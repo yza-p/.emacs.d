@@ -1,11 +1,7 @@
 #+Title: Yay-Evil distro by Ian Y.E. Pan
 #+Author: Ian Y.E. Pan
 #+Date: 2019
-Welcome! This Emacs "distro" is based on my personal Emacs
-configuration (on GNU Emacs 26.3). It's unopinionated and was created
-for general use in mind. The package settings are grouped in a logical
-manner, and I've documented as detailed as possible what each code
-snippet does in this file.
+
 * Settings without corresponding packages
 Clean up the UI and enhance some basic defaults defined in "C Source
 Code". The variable ~ian/indent-width~ controls the default
@@ -20,7 +16,7 @@ indentation width you prefer in the ~web-mode~ section.)
     :preface
     (defvar ian/indent-width 4) ; change this value to your preferred width
     :config
-    (setq frame-title-format '("Yay-Evil") ; Yayyyyy Evil!
+    (setq frame-title-format '("yza!") ; Yayyyyy Evil!
           ring-bell-function 'ignore       ; minimize distraction
           frame-resize-pixelwise t
           default-directory "~/")
@@ -39,7 +35,12 @@ indentation width you prefer in the ~web-mode~ section.)
                   tab-width ian/indent-width)
 
     ;; Omit default startup screen
-    (setq inhibit-startup-screen t))
+    (setq inhibit-startup-screen t)
+
+    ;; Vertico config
+    ;; Enable commands in the minibuffer
+    (setq enable-recursive-minibuffers t))
+
 
   ;; The Emacs default split doesn't seem too intuitive for most users.
   (use-package emacs
@@ -65,7 +66,6 @@ might as well try to organize under the same syntax as much as
 possible to keep the configuration consistent. The option
 ~use-package-always-ensure~ is turned on in ~init.el~, so we'll add
 ~:ensure nil~ when configuring the built-in packages.
-#+END_SRC
 ** Modernize selection behavior
 Replace the active region just by typing text, just like modern
 editors.
@@ -168,11 +168,11 @@ Maximize the frame by default on start-up. Set the font to size 12.
       (when (member "Consolas" (font-family-list))
         (set-face-attribute 'default nil :family "Consolas"))
       (set-face-attribute 'default nil
-                          :height 120
+                          :height 200
                           :weight 'normal))
     :ensure nil
     :config
-    (setq initial-frame-alist '((fullscreen . maximized)))
+    ;; (setq initial-frame-alist '((fullscreen . maximized)))
     (ian/set-default-font))
 #+END_SRC
 ** Ediff tweaks
@@ -244,7 +244,7 @@ Normally, we need to add ~:ensure t~ to tell ~use-package~ to download packages 
     :config
     (dashboard-setup-startup-hook)
     (setq dashboard-startup-banner 'logo
-          dashboard-banner-logo-title "Yay Evil!"
+          dashboard-banner-logo-title "PKM v3!"
           dashboard-items nil
           dashboard-set-footer nil))
 #+END_SRC
@@ -310,30 +310,11 @@ Tell magit to automatically put us in vi-insert-mode when committing a change.
     :config (add-hook 'with-editor-mode-hook #'evil-insert-state))
 #+END_SRC
 ** Searching/sorting enhancements & project management
-*** Ido, ido-vertical, ido-ubiquitous and fuzzy matching
+*** CANC Ido, ido-vertical, ido-ubiquitous and fuzzy matching
 Selecting buffers/files with great efficiency. In my opinion, Ido is
 enough to replace Ivy/Counsel and Helm. We install ido-vertical to get
 a better view of the available options (use ~C-n~, ~C-p~ or arrow keys
-to navigate). Ido-ubiquitous (from the ~ido-completing-read+~ package)
-provides us ido-like completions in describing functions and variables
-etc. Fuzzy matching is a nice feature and we have flx-ido for that
-purpose.
-#+BEGIN_SRC emacs-lisp
-  (use-package ido
-    :config
-    (ido-mode +1)
-    (setq ido-everywhere t
-          ido-enable-flex-matching t))
-
-  (use-package ido-vertical-mode
-    :config
-    (ido-vertical-mode +1)
-    (setq ido-vertical-define-keys 'C-n-C-p-up-and-down))
-
-  (use-package ido-completing-read+ :config (ido-ubiquitous-mode +1))
-
-  (use-package flx-ido :config (flx-ido-mode +1))
-#+END_SRC
+to navigate)
 ** Programming language support and utilities
 *** Company for auto-completion
 Use ~C-n~ and ~C-p~ to navigate the tooltip.
@@ -360,11 +341,11 @@ A modern on-the-fly syntax checking extension -- absolute essential
 Some minimal org mode tweaks: org-bullets gives our headings (h1, h2,
 h3...) a more visually pleasing look.
 #+BEGIN_SRC emacs-lisp
-  (use-package org
-    :hook ((org-mode . visual-line-mode)
-           (org-mode . org-indent-mode)))
+  ;; (use-package org
+  ;; :hook ((org-mode . visual-line-mode)
+  ;;        (org-mode . org-indent-mode)))
 
-  (use-package org-bullets :hook (org-mode . org-bullets-mode))
+  ;; (use-package org-bullets :hook (org-mode . org-bullets-mode))
 #+END_SRC
 *** Useful major modes
 Markdown mode and Web mode, the latter covers our usages of HTML/CSS/JS/JSX/TS/TSX/JSON.
@@ -409,3 +390,465 @@ Provides us with hints on available keystroke combinations.
     :config (when (memq window-system '(mac ns x))
               (exec-path-from-shell-initialize)))
 #+END_SRC
+* Yza Config - Built-in
+** Modifiers for mac
+#+BEGIN_SRC emacs-lisp
+  (when (memq window-system '(mac ns x))
+    (setq mac-command-modifier 'super
+          mac-option-modifier 'meta
+          mac-control-modifier 'control
+          mac-function-modifier 'hyper))
+#+END_SRC
+** Buffer travel using windmove
+#+BEGIN_SRC emacs-lisp
+(windmove-default-keybindings 'super)
+#+END_SRC
+** Switch to scratch
+#+BEGIN_SRC emacs-lisp
+(defun switch-to-scratch-buffer ()
+  "Switch to the current session's scratch buffer."
+  (interactive)
+  (switch-to-buffer "*scratch*"))
+(bind-key "H-," #'switch-to-scratch-buffer)
+#+END_SRC
+** Replace default org-hide to include properties too
+Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[link]​]]
+#+BEGIN_SRC emacs-lisp
+(defun org-cycle-hide-drawers (state)
+  "Re-hide all drawers after a visibility state change."
+  (when (and (derived-mode-p 'org-mode)
+             (not (memq state '(overview folded contents))))
+    (save-excursion
+      (let* ((globalp (memq state '(contents all)))
+             (beg (if globalp
+                    (point-min)
+                    (point)))
+             (end (if globalp
+                    (point-max)
+                    (if (eq state 'children)
+                      (save-excursion
+                        (outline-next-heading)
+                        (point))
+                      (org-end-of-subtree t)))))
+        (goto-char beg)
+        (while (re-search-forward org-drawer-regexp end t)
+          (save-excursion
+            (beginning-of-line 1)
+            (when (looking-at org-drawer-regexp)
+              (let* ((start (1- (match-beginning 0)))
+                     (limit
+                       (save-excursion
+                         (outline-next-heading)
+                           (point)))
+                     (msg (format
+                            (concat
+                              "org-cycle-hide-drawers:  "
+                              "`:END:`"
+                              " line missing at position %s")
+                            (1+ start))))
+                (if (re-search-forward "^[ \t]*:END:" limit t)
+                  (outline-flag-region start (point-at-eol) t)
+                  (user-error msg))))))))))
+
+
+
+(defun org-cycle-internal-local ()
+  "Do the local cycling action."
+  (let ((goal-column 0) eoh eol eos has-children children-skipped struct)
+    ;; First, determine end of headline (EOH), end of subtree or item
+    ;; (EOS), and if item or heading has children (HAS-CHILDREN).
+    (save-excursion
+      (if (org-at-item-p)
+      (progn
+        (beginning-of-line)
+        (setq struct (org-list-struct))
+        (setq eoh (point-at-eol))
+        (setq eos (org-list-get-item-end-before-blank (point) struct))
+        (setq has-children (org-list-has-child-p (point) struct)))
+    (org-back-to-heading)
+    (setq eoh (save-excursion (outline-end-of-heading) (point)))
+    (setq eos (save-excursion
+            (org-end-of-subtree t t)
+            (unless (eobp) (forward-char -1))
+            (point)))
+    (setq has-children
+          (or
+           (save-excursion
+         (let ((level (funcall outline-level)))
+           (outline-next-heading)
+           (and (org-at-heading-p t)
+            (> (funcall outline-level) level))))
+           (and (eq org-cycle-include-plain-lists 'integrate)
+            (save-excursion
+              (org-list-search-forward (org-item-beginning-re) eos t))))))
+      ;; Determine end invisible part of buffer (EOL)
+      (beginning-of-line 2)
+      (while (and (not (eobp))		;this is like `next-line'
+          (get-char-property (1- (point)) 'invisible))
+    (goto-char (next-single-char-property-change (point) 'invisible))
+    (and (eolp) (beginning-of-line 2)))
+      (setq eol (point)))
+    ;; Find out what to do next and set `this-command'
+    (cond
+     ((= eos eoh)
+      ;; Nothing is hidden behind this heading
+      (unless (org-before-first-heading-p)
+    (run-hook-with-args 'org-pre-cycle-hook 'empty))
+      (org-unlogged-message "EMPTY ENTRY")
+      (setq org-cycle-subtree-status nil)
+      (save-excursion
+    (goto-char eos)
+    (outline-next-heading)
+    (when (org-invisible-p) (org-flag-heading nil))))
+     ((and (or (>= eol eos)
+           (not (string-match "\\S-" (buffer-substring eol eos))))
+       (or has-children
+           (not (setq children-skipped
+              org-cycle-skip-children-state-if-no-children))))
+      ;; Entire subtree is hidden in one line: children view
+      (unless (org-before-first-heading-p)
+    (run-hook-with-args 'org-pre-cycle-hook 'children))
+      (if (org-at-item-p)
+      (org-list-set-item-visibility (point-at-bol) struct 'children)
+    (org-show-entry)
+    (org-with-limited-levels (org-show-children))
+    (org-show-set-visibility 'tree)
+    ;; Fold every list in subtree to top-level items.
+    (when (eq org-cycle-include-plain-lists 'integrate)
+      (save-excursion
+        (org-back-to-heading)
+        (while (org-list-search-forward (org-item-beginning-re) eos t)
+          (beginning-of-line 1)
+          (let* ((struct (org-list-struct))
+             (prevs (org-list-prevs-alist struct))
+             (end (org-list-get-bottom-point struct)))
+        (dolist (e (org-list-get-all-items (point) struct prevs))
+          (org-list-set-item-visibility e struct 'folded))
+        (goto-char (if (< end eos) end eos)))))))
+      (org-unlogged-message "CHILDREN")
+      (save-excursion
+    (goto-char eos)
+    (outline-next-heading)
+    (when (org-invisible-p) (org-flag-heading nil)))
+      (setq org-cycle-subtree-status 'children)
+      (unless (org-before-first-heading-p)
+    (run-hook-with-args 'org-cycle-hook 'children)))
+
+     ;; transplant
+     ((eq org-cycle-subtree-status 'subtree)
+      (org-show-subtree)
+      (org-unlogged-message "ALL")
+      (setq org-cycle-subtree-status 'all))
+
+     ((or children-skipped
+      (and (eq last-command this-command)
+           (eq org-cycle-subtree-status 'children)))
+      ;; We just showed the children, or no children are there,
+      ;; now show everything.
+      (unless (org-before-first-heading-p)
+    (run-hook-with-args 'org-pre-cycle-hook 'subtree))
+      (org-flag-region eoh eos nil 'outline)
+      (org-unlogged-message
+       (if children-skipped "SUBTREE (NO CHILDREN)" "SUBTREE"))
+      (setq org-cycle-subtree-status 'subtree)
+      (unless (org-before-first-heading-p)
+    (run-hook-with-args 'org-cycle-hook 'subtree)))
+
+     (t
+      ;; Default action: hide the subtree.
+      (run-hook-with-args 'org-pre-cycle-hook 'folded)
+      (org-flag-region eoh eos t 'outline)
+      (org-unlogged-message "FOLDED")
+      (setq org-cycle-subtree-status 'folded)
+      (unless (org-before-first-heading-p)
+    (run-hook-with-args 'org-cycle-hook 'folded))))))
+#+END_SRC
+** Org-related tweaks
+*** Formatting and stuff
+**** Hide markups
+#+BEGIN_SRC emacs-lisp
+  (defun markup-hiding ()
+    (setq org-hide-emphasis-markers t
+          org-toggle-pretty-entities t))
+#+END_SRC
+**** Show all inline images
+#+BEGIN_SRC emacs-lisp
+  (defun do-org-show-all-inline-images ()
+    (interactive)
+    (org-display-inline-images t))
+#+END_SRC
+*** Org-mode use-package declaration
+#+BEGIN_SRC emacs-lisp
+  (use-package org
+    :hook ((org-mode . visual-line-mode)
+           (org-mode . org-indent-mode))
+    :bind (("H-/" . org-todo))
+    :custom
+    (org-latex-create-formula-image-program 'dvisvgm)
+    (org-ellipsis " ◿")
+    (org-directory "~/Dropbox/org")
+    (org-return-follows-link t)
+    (org-use-fast-todo-selection t)
+    (org-hide-emphasis-markers t)
+    (org-hide-emphasis-markers t)
+    (org-toggle-pretty-entities t)
+    :custom-face
+    (org-document-title ((t (:weight bold :height 1.5))))
+    (org-headline-done ((t (:strike-through t))))
+    (org-image-actual-width '(600)))
+#+END_SRC
+*** Org-agenda custom Views
+*** Org-agenda use-package declaration
+#+BEGIN_SRC emacs-lisp
+  (use-package org-agenda
+    :ensure nil)
+#+END_SRC
+** Window configurations
+* Yza Config - Thirdparty
+** Moodline
+for minimalist modeline
+#+BEGIN_SRC emacs-lisp
+  (use-package mood-line
+    :config (mood-line-mode))
+#+END_SRC
+** Org plug-ins
+*** Olivetti for formatting
+#+BEGIN_SRC emacs-lisp
+  (use-package olivetti
+    :hook ((org-mode . olivetti-mode))
+    :config
+    (setq olivetti-body-width 100))
+#+END_SRC
+*** Org-fragtog and Org-reveal for revealing markups
+Org-fragtog for viewing raw latex and svg generation
+#+BEGIN_SRC emacs-lisp
+  (use-package org-fragtog
+    :hook ((org-mode . org-fragtog-mode)))
+#+END_SRC
+
+Org-appear for general org markups
+#+BEGIN_SRC emacs-lisp
+  (use-package org-appear
+    :hook ((org-mode . org-appear-mode)))
+#+END_SRC
+
+** Completion stack
+*** Vertico
+The main interface for completion. Comparing both selectrum and this, I decided to go with this because it is more lightweight
+#+BEGIN_SRC emacs-lisp
+(use-package vertico
+  :ensure t
+  :bind (:map vertico-map
+         ("C-j" . vertico-next)
+         ("C-k" . vertico-previous)
+         ("C-f" . vertico-exit)
+         :map minibuffer-local-map
+         ("M-h" . backward-kill-word))
+  :custom
+  (vertico-cycle t)
+  :init
+  (vertico-mode))
+#+END_SRC
+**** Savehist (Built-in)
+In-built package that remembers the commands and such picked in the mini-buffer and places it on the top.
+#+BEGIN_SRC emacs-lisp
+(use-package savehist
+  :init
+  (savehist-mode))
+#+END_SRC
+**** Orderless (Third-party)
+Completion style that allows spaces to be included in the narrowing. Can also match candidates regardless of order the user typed
+#+BEGIN_SRC emacs-lisp
+(use-package orderless
+  :ensure t
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-overrides '((file (styles basic partial-completion)))))
+#+END_SRC
+*** Marginalia
+For hints in the completion (eg. commands bindings/meanings)
+#+BEGIN_SRC emacs-lisp
+  (use-package marginalia
+    :after vertico
+    :bind (:map minibuffer-local-map
+                ("M-A" . marginalia-cycle))
+    :init
+    (marginalia-mode))
+#+END_SRC
+*** Consult
+for other useful functions
+#+BEGIN_SRC emacs-lisp
+  (use-package consult
+    :preface
+    (defun yza/consult-org-headings-all ()
+      (interactive)
+      (consult-org-heading t 'agenda))
+    :bind (;; C-c bindings (mode-specific-map)
+           ("C-c h" . consult-history)
+           ("C-c m" . consult-mode-command)
+           ("C-c k" . consult-kmacro)
+           ;; C-x bindings (ctl-x-map)
+           ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
+           ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
+           ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+           ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
+           ("C-x r b" . consult-bookmark)            ;; orig. bookmark-jump
+           ("C-x p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
+           ;; Custom M-# bindings for fast register access
+           ("M-#" . consult-register-load)
+           ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+           ("C-M-#" . consult-register)
+           ;; Other custom bindings
+           ("M-y" . consult-yank-pop)                ;; orig. yank-pop
+           ("<help> a" . consult-apropos)            ;; orig. apropos-command
+           ;; M-g bindings (goto-map)
+           ("M-g e" . consult-compile-error)
+           ("M-g f" . consult-flycheck)               ;; Alternative: consult-flycheck
+           ("M-g g" . consult-goto-line)             ;; orig. goto-line
+           ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
+           ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+           ("M-g m" . consult-mark)
+           ("M-g k" . consult-global-mark)
+           ("M-g i" . consult-imenu)
+           ("M-g I" . consult-imenu-multi)
+           ;; M-s bindings (search-map)
+           ("M-s d" . consult-find)
+           ("M-s D" . consult-locate)
+           ("M-s g" . consult-grep)
+           ("M-s G" . consult-git-grep)
+           ("M-s r" . consult-ripgrep)
+           ("M-s l" . consult-line)
+           ("M-s L" . consult-line-multi)
+           ("M-s m" . consult-multi-occur)
+           ("M-s k" . consult-keep-lines)
+           ("M-s u" . consult-focus-lines)
+           ;; Isearch integration
+           ("M-s e" . consult-isearch-history)
+           :map isearch-mode-map
+           ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
+           ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+           ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
+           ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
+           ;; Minibuffer history
+           :map minibuffer-local-map
+           ("M-s" . consult-history)                 ;; orig. next-matching-history-element
+           ("M-r" . consult-history)                ;; orig. previous-matching-history-element
+           ;; Custom shit
+           ("H-." . yza/consult-org-headings-all))
+
+    ;; The :init configuration is always executed (Not lazy)
+    :init
+
+    ;; Optionally configure the register formatting. This improves the register
+    ;; preview for `consult-register', `consult-register-load',
+    ;; `consult-register-store' and the Emacs built-ins.
+    (setq register-preview-delay 0.5
+          register-preview-function #'consult-register-format)
+
+    ;; Optionally tweak the register preview window.
+    ;; This adds thin lines, sorting and hides the mode line of the window.
+    (advice-add #'register-preview :override #'consult-register-window)
+
+    ;; Use Consult to select xref locations with preview
+    (setq xref-show-xrefs-function #'consult-xref
+          xref-show-definitions-function #'consult-xref)
+
+    ;; Configure other variables and modes in the :config section,
+    ;; after lazily loading the package.
+    :config
+
+    ;; Optionally configure preview. The default value
+    ;; is 'any, such that any key triggers the preview.
+    ;; (setq consult-preview-key 'any)
+    ;; (setq consult-preview-key (kbd "M-."))
+    ;; (setq consult-preview-key (list (kbd "<S-down>") (kbd "<S-up>")))
+    ;; For some commands and buffer sources it is useful to configure the
+    ;; :preview-key on a per-command basis using the `consult-customize' macro.
+    (consult-customize
+     consult-theme
+     :preview-key '(:debounce 0.2 any)
+     consult-ripgrep consult-git-grep consult-grep
+     consult-bookmark consult-recent-file consult-xref
+     consult--source-bookmark consult--source-recent-file
+     consult--source-project-recent-file
+     :preview-key (kbd "M-."))
+
+    ;; Optionally configure the narrowing key.
+    ;; Both < and C-+ work reasonably well.
+    (setq consult-narrow-key "<") ;; (kbd "C-+")
+    )
+#+END_SRC
+*** Embark
+for flipping the usual action-item movement of M-x; allowing to first select the thing BEFORE finalizing the action to be used.
+#+BEGIN_SRC emacs-lisp
+  (use-package embark
+    :preface
+    (defun dfeich/helm-org-clock-in (marker)
+      "Clock into the item at MARKER"
+      (with-current-buffer (marker-buffer marker)
+        (goto-char (marker-position marker))
+        (org-clock-in)))
+    :bind
+    (("C-." . embark-act)         ;; pick some comfortable binding
+     ("M-." . embark-dwim)        ;; good alternative: M-.
+     ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+
+    :init
+
+    ;; Optionally replace the key help with a completing-read interface
+    (setq prefix-help-command #'embark-prefix-help-command)
+
+    :config
+    (setq prefix-help-command #'embark-prefix-help-command)
+    ;; Hide the mode line of the Embark live/completions buffers
+    (add-to-list 'display-buffer-alist
+                 '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                   nil
+                   (window-parameters (mode-line-format . none)))))
+
+  ;; Consult users will also want the embark-consult package.
+  (use-package embark-consult
+    :ensure t
+    :after (embark consult)
+    :demand t ; only necessary if you have the hook below
+    ;; if you want to have consult previews as you move around an
+    ;; auto-updating embark collect buffer
+    :hook
+    (embark-collect-mode . consult-preview-at-point-mode))
+#+END_SRC
+*** Misc
+#+BEGIN_SRC emacs-lisp
+(defun with-minibuffer-keymap (keymap)
+  (lambda (fn &rest args)
+    (minibuffer-with-setup-hook
+        (lambda ()
+          (use-local-map
+           (make-composed-keymap keymap (current-local-map))))
+      (apply fn args))))
+
+(defvar embark-completing-read-prompter-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "<tab>") 'abort-recursive-edit)
+    map))
+
+(advice-add 'embark-completing-read-prompter :around
+            (with-minibuffer-keymap embark-completing-read-prompter-map))
+(define-key vertico-map (kbd "<tab>") 'embark-act-with-completing-read)
+
+  (defun embark-act-with-completing-read (&optional arg)
+    (interactive "P")
+    (let* ((embark-prompter 'embark-completing-read-prompter)
+           (act (propertize "Act" 'face 'highlight))
+           (embark-indicator (lambda (_keymap targets) nil)))
+      (embark-act arg)))
+#+END_SRC
+** Aggressive indention
+#+BEGIN_SRC emacs-lisp
+  (use-package aggressive-indent
+    :config
+    (global-aggressive-indent-mode 1)
+    (add-to-list 'aggressive-indent-excluded-modes 'html-mode))
+#+END_SRC
+* Yza Config - Programming
+** Showing diffs (git)
+*** Diff-hl

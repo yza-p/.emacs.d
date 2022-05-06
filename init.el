@@ -3,6 +3,7 @@
 ;;; Commentary:
 ;;; A lightweight Emacs config containing only the essentials: shipped with a custom theme!
 ;;; Code:
+(setq lexical-binding t)
 (defvar file-name-handler-alist-original file-name-handler-alist)
 
 (setq gc-cons-threshold most-positive-fixnum
