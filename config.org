@@ -3,20 +3,13 @@
 #+Date: 2019
 
 * Settings without corresponding packages
-Clean up the UI and enhance some basic defaults defined in "C Source
-Code". The variable ~ian/indent-width~ controls the default
-indentation across various programming modes. The default is 4, you
-can change this variable to 2 or any other indentation width you
-prefer, and the change will be made across all programming language
-modes including C, C++, Java, Python etc. (Exception: JavaScript
-defaults to 2-space indent, you can still set it to any other
-indentation width you prefer in the ~web-mode~ section.)
+Clean up the UI and enhance some basic defaults defined in "C Source Code". The variable ~ian/indent-width~ controls the default indentation across various programming modes. The default is 4, you can change this variable to 2 or any other indentation width you prefer, and the change will be made across all programming language modes including C, C++, Java, Python etc. (Exception: JavaScript defaults to 2-space indent, you can still set it to any other indentation width you prefer in the ~web-mode~ section.)
 #+BEGIN_SRC emacs-lisp
   (use-package emacs
     :preface
     (defvar ian/indent-width 4) ; change this value to your preferred width
     :config
-    (setq frame-title-format '("yza!") ; Yayyyyy Evil!
+    (setq frame-title-format '("emaaaaacs") ; Yayyyyy Evil!
           ring-bell-function 'ignore       ; minimize distraction
           frame-resize-pixelwise t
           default-directory "~/")
@@ -39,7 +32,12 @@ indentation width you prefer in the ~web-mode~ section.)
 
     ;; Vertico config
     ;; Enable commands in the minibuffer
-    (setq enable-recursive-minibuffers t))
+    (setq enable-recursive-minibuffers t)
+
+    ;; From the old config
+    (defalias 'yes-or-no-p 'y-or-n-p)
+    (setq blink-cursor-mode nil)
+    )
 
 
   ;; The Emacs default split doesn't seem too intuitive for most users.
@@ -59,13 +57,15 @@ indentation width you prefer in the ~web-mode~ section.)
     :config
     (global-set-key (kbd "C-x 2") #'ian/split-and-follow-horizontally)
     (global-set-key (kbd "C-x 3") #'ian/split-and-follow-vertically))
+
+  (use-package "startup"
+    :ensure nil
+    :config
+    (setq initial-scratch-message ""))
 #+END_SRC
+
 * Configuration for built-in packages
-Since we're using use-package as our package management system, we
-might as well try to organize under the same syntax as much as
-possible to keep the configuration consistent. The option
-~use-package-always-ensure~ is turned on in ~init.el~, so we'll add
-~:ensure nil~ when configuring the built-in packages.
+Since we're using use-package as our package management system, we might as well try to organize under the same syntax as much as possible to keep the configuration consistent. The option ~use-package-always-ensure~ is turned on in ~init.el~, so we'll add ~:ensure nil~ when configuring the built-in packages.
 ** Modernize selection behavior
 Replace the active region just by typing text, just like modern
 editors.
@@ -161,19 +161,19 @@ Reduce the highlight delay to instantly.
 ** Setting up some frame defaults
 Maximize the frame by default on start-up. Set the font to size 12.
 #+BEGIN_SRC emacs-lisp
-  (use-package frame
-    :preface
-    (defun ian/set-default-font ()
-      (interactive)
-      (when (member "Consolas" (font-family-list))
-        (set-face-attribute 'default nil :family "Consolas"))
-      (set-face-attribute 'default nil
-                          :height 200
-                          :weight 'normal))
-    :ensure nil
-    :config
-    ;; (setq initial-frame-alist '((fullscreen . maximized)))
-    (ian/set-default-font))
+  ;; (use-package frame
+  ;;   :preface
+  ;;   (defun ian/set-default-font ()
+  ;;     (interactive)
+  ;;     (when (member "Consolas" (font-family-list))
+  ;;       (set-face-attribute 'default nil :family "Consolas"))
+  ;;     (set-face-attribute 'default nil
+  ;;                         :height 150
+  ;;                         :weight 'normal))
+  ;;   :ensure nil
+  ;;   :config
+  ;;   ;; (setq initial-frame-alist '((fullscreen . maximized)))
+  ;;   (ian/set-default-font))
 #+END_SRC
 ** Ediff tweaks
 Enter ediff with side-by-side buffers to better compare the
@@ -236,17 +236,23 @@ Normally, we need to add ~:ensure t~ to tell ~use-package~ to download packages 
 *** Load custom theme
 #+BEGIN_SRC emacs-lisp
   (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes/"))
-  (load-theme 'wilmersdorf t) ; an orginal theme created by me.
+  (load-theme 'poet-dark t)
 #+END_SRC
 *** Dashboard welcome page
 #+BEGIN_SRC emacs-lisp
   (use-package dashboard
     :config
     (dashboard-setup-startup-hook)
-    (setq dashboard-startup-banner 'logo
+    (setq dashboard-startup-banner 3
           dashboard-banner-logo-title "PKM v3!"
           dashboard-items nil
-          dashboard-set-footer nil))
+          dashboard-set-footer nil(format
+                                   ";; %s\n\n"
+                                   (replace-regexp-in-string
+                                    "\n" "\n;; " ; comment each line
+                                    (replace-regexp-in-string
+                                     "\n$" ""    ; remove trailing linebreak
+                                     (shell-command-to-string "fortune"))))))
 #+END_SRC
 *** Syntax highlighting
 Lightweight syntax highlighting improvement for numbers and escape
@@ -399,212 +405,507 @@ Provides us with hints on available keystroke combinations.
           mac-control-modifier 'control
           mac-function-modifier 'hyper))
 #+END_SRC
+
+** Alerts
+#+BEGIN_SRC emacs-lisp
+  (use-package alert
+    :config
+    (if (eq system-type 'darwin)
+        (setq
+         alert-default-style 'osx-notifier
+         )))
+#+END_SRC
+
 ** Buffer travel using windmove
 #+BEGIN_SRC emacs-lisp
-(windmove-default-keybindings 'super)
+  (windmove-default-keybindings 'super)
 #+END_SRC
+
 ** Switch to scratch
 #+BEGIN_SRC emacs-lisp
-(defun switch-to-scratch-buffer ()
-  "Switch to the current session's scratch buffer."
-  (interactive)
-  (switch-to-buffer "*scratch*"))
-(bind-key "H-," #'switch-to-scratch-buffer)
+  (defun switch-to-scratch-buffer ()
+    "Switch to the current session's scratch buffer."
+    (interactive)
+    (switch-to-buffer "*scratch*"))
+  (bind-key "H-," #'switch-to-scratch-buffer)
 #+END_SRC
+
 ** Replace default org-hide to include properties too
 Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[link]​]]
 #+BEGIN_SRC emacs-lisp
-(defun org-cycle-hide-drawers (state)
-  "Re-hide all drawers after a visibility state change."
-  (when (and (derived-mode-p 'org-mode)
-             (not (memq state '(overview folded contents))))
-    (save-excursion
-      (let* ((globalp (memq state '(contents all)))
-             (beg (if globalp
-                    (point-min)
-                    (point)))
-             (end (if globalp
-                    (point-max)
-                    (if (eq state 'children)
-                      (save-excursion
-                        (outline-next-heading)
-                        (point))
-                      (org-end-of-subtree t)))))
-        (goto-char beg)
-        (while (re-search-forward org-drawer-regexp end t)
-          (save-excursion
-            (beginning-of-line 1)
-            (when (looking-at org-drawer-regexp)
-              (let* ((start (1- (match-beginning 0)))
-                     (limit
-                       (save-excursion
-                         (outline-next-heading)
-                           (point)))
-                     (msg (format
-                            (concat
+  (defun org-cycle-hide-drawers (state)
+    "Re-hide all drawers after a visibility state change."
+    (when (and (derived-mode-p 'org-mode)
+               (not (memq state '(overview folded contents))))
+      (save-excursion
+        (let* ((globalp (memq state '(contents all)))
+               (beg (if globalp
+                        (point-min)
+                      (point)))
+               (end (if globalp
+                        (point-max)
+                      (if (eq state 'children)
+                          (save-excursion
+                            (outline-next-heading)
+                            (point))
+                        (org-end-of-subtree t)))))
+          (goto-char beg)
+          (while (re-search-forward org-drawer-regexp end t)
+            (save-excursion
+              (beginning-of-line 1)
+              (when (looking-at org-drawer-regexp)
+                (let* ((start (1- (match-beginning 0)))
+                       (limit
+                        (save-excursion
+                          (outline-next-heading)
+                          (point)))
+                       (msg (format
+                             (concat
                               "org-cycle-hide-drawers:  "
                               "`:END:`"
                               " line missing at position %s")
-                            (1+ start))))
-                (if (re-search-forward "^[ \t]*:END:" limit t)
-                  (outline-flag-region start (point-at-eol) t)
-                  (user-error msg))))))))))
+                             (1+ start))))
+                  (if (re-search-forward "^[ \t]*:END:" limit t)
+                      (outline-flag-region start (point-at-eol) t)
+                    (user-error msg))))))))))
 
 
 
-(defun org-cycle-internal-local ()
-  "Do the local cycling action."
-  (let ((goal-column 0) eoh eol eos has-children children-skipped struct)
-    ;; First, determine end of headline (EOH), end of subtree or item
-    ;; (EOS), and if item or heading has children (HAS-CHILDREN).
-    (save-excursion
-      (if (org-at-item-p)
-      (progn
-        (beginning-of-line)
-        (setq struct (org-list-struct))
-        (setq eoh (point-at-eol))
-        (setq eos (org-list-get-item-end-before-blank (point) struct))
-        (setq has-children (org-list-has-child-p (point) struct)))
-    (org-back-to-heading)
-    (setq eoh (save-excursion (outline-end-of-heading) (point)))
-    (setq eos (save-excursion
-            (org-end-of-subtree t t)
-            (unless (eobp) (forward-char -1))
-            (point)))
-    (setq has-children
-          (or
-           (save-excursion
-         (let ((level (funcall outline-level)))
-           (outline-next-heading)
-           (and (org-at-heading-p t)
-            (> (funcall outline-level) level))))
-           (and (eq org-cycle-include-plain-lists 'integrate)
+  (defun org-cycle-internal-local ()
+    "Do the local cycling action."
+    (let ((goal-column 0) eoh eol eos has-children children-skipped struct)
+      ;; First, determine end of headline (EOH), end of subtree or item
+      ;; (EOS), and if item or heading has children (HAS-CHILDREN).
+      (save-excursion
+        (if (org-at-item-p)
+            (progn
+              (beginning-of-line)
+              (setq struct (org-list-struct))
+              (setq eoh (point-at-eol))
+              (setq eos (org-list-get-item-end-before-blank (point) struct))
+              (setq has-children (org-list-has-child-p (point) struct)))
+          (org-back-to-heading)
+          (setq eoh (save-excursion (outline-end-of-heading) (point)))
+          (setq eos (save-excursion
+                      (org-end-of-subtree t t)
+                      (unless (eobp) (forward-char -1))
+                      (point)))
+          (setq has-children
+                (or
+                 (save-excursion
+                   (let ((level (funcall outline-level)))
+                     (outline-next-heading)
+                     (and (org-at-heading-p t)
+                          (> (funcall outline-level) level))))
+                 (and (eq org-cycle-include-plain-lists 'integrate)
+                      (save-excursion
+                        (org-list-search-forward (org-item-beginning-re) eos t))))))
+        ;; Determine end invisible part of buffer (EOL)
+        (beginning-of-line 2)
+        (while (and (not (eobp))		;this is like `next-line'
+                    (get-char-property (1- (point)) 'invisible))
+          (goto-char (next-single-char-property-change (point) 'invisible))
+          (and (eolp) (beginning-of-line 2)))
+        (setq eol (point)))
+      ;; Find out what to do next and set `this-command'
+      (cond
+       ((= eos eoh)
+        ;; Nothing is hidden behind this heading
+        (unless (org-before-first-heading-p)
+          (run-hook-with-args 'org-pre-cycle-hook 'empty))
+        (org-unlogged-message "EMPTY ENTRY")
+        (setq org-cycle-subtree-status nil)
+        (save-excursion
+          (goto-char eos)
+          (outline-next-heading)
+          (when (org-invisible-p) (org-flag-heading nil))))
+       ((and (or (>= eol eos)
+                 (not (string-match "\\S-" (buffer-substring eol eos))))
+             (or has-children
+                 (not (setq children-skipped
+                            org-cycle-skip-children-state-if-no-children))))
+        ;; Entire subtree is hidden in one line: children view
+        (unless (org-before-first-heading-p)
+          (run-hook-with-args 'org-pre-cycle-hook 'children))
+        (if (org-at-item-p)
+            (org-list-set-item-visibility (point-at-bol) struct 'children)
+          (org-show-entry)
+          (org-with-limited-levels (org-show-children))
+          (org-show-set-visibility 'tree)
+          ;; Fold every list in subtree to top-level items.
+          (when (eq org-cycle-include-plain-lists 'integrate)
             (save-excursion
-              (org-list-search-forward (org-item-beginning-re) eos t))))))
-      ;; Determine end invisible part of buffer (EOL)
-      (beginning-of-line 2)
-      (while (and (not (eobp))		;this is like `next-line'
-          (get-char-property (1- (point)) 'invisible))
-    (goto-char (next-single-char-property-change (point) 'invisible))
-    (and (eolp) (beginning-of-line 2)))
-      (setq eol (point)))
-    ;; Find out what to do next and set `this-command'
-    (cond
-     ((= eos eoh)
-      ;; Nothing is hidden behind this heading
-      (unless (org-before-first-heading-p)
-    (run-hook-with-args 'org-pre-cycle-hook 'empty))
-      (org-unlogged-message "EMPTY ENTRY")
-      (setq org-cycle-subtree-status nil)
-      (save-excursion
-    (goto-char eos)
-    (outline-next-heading)
-    (when (org-invisible-p) (org-flag-heading nil))))
-     ((and (or (>= eol eos)
-           (not (string-match "\\S-" (buffer-substring eol eos))))
-       (or has-children
-           (not (setq children-skipped
-              org-cycle-skip-children-state-if-no-children))))
-      ;; Entire subtree is hidden in one line: children view
-      (unless (org-before-first-heading-p)
-    (run-hook-with-args 'org-pre-cycle-hook 'children))
-      (if (org-at-item-p)
-      (org-list-set-item-visibility (point-at-bol) struct 'children)
-    (org-show-entry)
-    (org-with-limited-levels (org-show-children))
-    (org-show-set-visibility 'tree)
-    ;; Fold every list in subtree to top-level items.
-    (when (eq org-cycle-include-plain-lists 'integrate)
-      (save-excursion
-        (org-back-to-heading)
-        (while (org-list-search-forward (org-item-beginning-re) eos t)
-          (beginning-of-line 1)
-          (let* ((struct (org-list-struct))
-             (prevs (org-list-prevs-alist struct))
-             (end (org-list-get-bottom-point struct)))
-        (dolist (e (org-list-get-all-items (point) struct prevs))
-          (org-list-set-item-visibility e struct 'folded))
-        (goto-char (if (< end eos) end eos)))))))
-      (org-unlogged-message "CHILDREN")
-      (save-excursion
-    (goto-char eos)
-    (outline-next-heading)
-    (when (org-invisible-p) (org-flag-heading nil)))
-      (setq org-cycle-subtree-status 'children)
-      (unless (org-before-first-heading-p)
-    (run-hook-with-args 'org-cycle-hook 'children)))
+              (org-back-to-heading)
+              (while (org-list-search-forward (org-item-beginning-re) eos t)
+                (beginning-of-line 1)
+                (let* ((struct (org-list-struct))
+                       (prevs (org-list-prevs-alist struct))
+                       (end (org-list-get-bottom-point struct)))
+                  (dolist (e (org-list-get-all-items (point) struct prevs))
+                    (org-list-set-item-visibility e struct 'folded))
+                  (goto-char (if (< end eos) end eos)))))))
+        (org-unlogged-message "CHILDREN")
+        (save-excursion
+          (goto-char eos)
+          (outline-next-heading)
+          (when (org-invisible-p) (org-flag-heading nil)))
+        (setq org-cycle-subtree-status 'children)
+        (unless (org-before-first-heading-p)
+          (run-hook-with-args 'org-cycle-hook 'children)))
 
-     ;; transplant
-     ((eq org-cycle-subtree-status 'subtree)
-      (org-show-subtree)
-      (org-unlogged-message "ALL")
-      (setq org-cycle-subtree-status 'all))
+       ;; transplant
+       ((eq org-cycle-subtree-status 'subtree)
+        (org-show-subtree)
+        (org-unlogged-message "ALL")
+        (setq org-cycle-subtree-status 'all))
 
-     ((or children-skipped
-      (and (eq last-command this-command)
-           (eq org-cycle-subtree-status 'children)))
-      ;; We just showed the children, or no children are there,
-      ;; now show everything.
-      (unless (org-before-first-heading-p)
-    (run-hook-with-args 'org-pre-cycle-hook 'subtree))
-      (org-flag-region eoh eos nil 'outline)
-      (org-unlogged-message
-       (if children-skipped "SUBTREE (NO CHILDREN)" "SUBTREE"))
-      (setq org-cycle-subtree-status 'subtree)
-      (unless (org-before-first-heading-p)
-    (run-hook-with-args 'org-cycle-hook 'subtree)))
+       ((or children-skipped
+            (and (eq last-command this-command)
+                 (eq org-cycle-subtree-status 'children)))
+        ;; We just showed the children, or no children are there,
+        ;; now show everything.
+        (unless (org-before-first-heading-p)
+          (run-hook-with-args 'org-pre-cycle-hook 'subtree))
+        (org-flag-region eoh eos nil 'outline)
+        (org-unlogged-message
+         (if children-skipped "SUBTREE (NO CHILDREN)" "SUBTREE"))
+        (setq org-cycle-subtree-status 'subtree)
+        (unless (org-before-first-heading-p)
+          (run-hook-with-args 'org-cycle-hook 'subtree)))
 
-     (t
-      ;; Default action: hide the subtree.
-      (run-hook-with-args 'org-pre-cycle-hook 'folded)
-      (org-flag-region eoh eos t 'outline)
-      (org-unlogged-message "FOLDED")
-      (setq org-cycle-subtree-status 'folded)
-      (unless (org-before-first-heading-p)
-    (run-hook-with-args 'org-cycle-hook 'folded))))))
+       (t
+        ;; Default action: hide the subtree.
+        (run-hook-with-args 'org-pre-cycle-hook 'folded)
+        (org-flag-region eoh eos t 'outline)
+        (org-unlogged-message "FOLDED")
+        (setq org-cycle-subtree-status 'folded)
+        (unless (org-before-first-heading-p)
+          (run-hook-with-args 'org-cycle-hook 'folded))))))
 #+END_SRC
+
+** Window configurations (defuns)
+#+BEGIN_SRC emacs-lisp
+  (defun yza/default-window-setup ()
+    "Called by emacs-startup-hook to set up my initial window configuration."
+    (org-agenda nil "0")
+    (split-window-right)
+    (find-file "~/Dropbox/org/journal/2022-Q2.org"))
+
+  (defun yza/default-fast-window-setup ()
+    "Called by emacs-startup-hook to set up my initial window configuration."
+    (split-window-below)
+    (split-window-right))
+
+  (defun yza/switch-to-agenda ()
+    (interactive)
+    "Called by emacs-startup-hook to set up my initial window configuration."
+    (org-agenda nil "0"))
+
+  (global-set-key (kbd "H-1") #'yza/default-window-setup)
+  (global-set-key (kbd "H-0") #'yza/switch-to-agenda)
+#+END_SRC
+
+** Recentf
+#+BEGIN_SRC emacs-lisp
+  (require 'recentf) ;; so that the recentfiles don't show the installed packages
+  (recentf-mode 1)
+  (add-to-list 'recentf-exclude "\\elpa")
+#+END_SRC
+
 ** Org-related tweaks
-*** Formatting and stuff
-**** Hide markups
+*** Org-related functions
 #+BEGIN_SRC emacs-lisp
-  (defun markup-hiding ()
-    (setq org-hide-emphasis-markers t
-          org-toggle-pretty-entities t))
-#+END_SRC
-**** Show all inline images
-#+BEGIN_SRC emacs-lisp
+  (defun yza/consult-org-headings-all ()
+    (interactive)
+    (consult-org-heading t 'agenda))
+  (defun dfeich/helm-org-clock-in (marker)
+    "Clock into the item at MARKER"
+    (with-current-buffer (marker-buffer marker)
+      (goto-char (marker-position marker))
+      (org-clock-in)))
   (defun do-org-show-all-inline-images ()
     (interactive)
     (org-display-inline-images t))
 #+END_SRC
-*** Org-mode use-package declaration
+
+** Org-mode use-package declaration
 #+BEGIN_SRC emacs-lisp
   (use-package org
     :hook ((org-mode . visual-line-mode)
            (org-mode . org-indent-mode))
-    :bind (("H-/" . org-todo))
+    :bind (("H-/" . org-todo)
+           ("H-." . yza/consult-org-headings-all)
+           ("H-i" . do-org-show-all-inline-images)
+           ("<H-left>" . org-clock-in)
+           ("<H-right>" . org-clock-out))
     :custom
+    (org-extend-today-until 5)
+    (org-log-into-drawer t)
     (org-latex-create-formula-image-program 'dvisvgm)
-    (org-ellipsis " ◿")
+    (org-ellipsis "▾")
     (org-directory "~/Dropbox/org")
     (org-return-follows-link t)
     (org-use-fast-todo-selection t)
     (org-hide-emphasis-markers t)
-    (org-hide-emphasis-markers t)
     (org-toggle-pretty-entities t)
+    (org-return-follows-link t)
+
+    (org-todo-keywords
+     '((sequence "TODO(t!)" "NEXT(n)" "WAIT(w)" "SOMEDAY(s@)" "GOAL(1)" "|" "CNCL(c@)" "DONE(d!)")
+       (sequence "IDEA(i!)" "WORKING(k!)" "INCUBATE(y!)" "MATURE(m!)" "|" "REJECT(j@/@)")
+       (sequence "BACKLOG(b)" "READING(a!)" "PROCESS(p!)" "|" "CONSUMED(p@)" "DROPPED(d@/@)")))
+
+    (org-todo-keyword-faces
+     (quote (("TODO" :foreground "OrangeRed" :weight bold)
+             ("NEXT" :foreground "RoyalBlue1" :weight bold)
+             ("SOMEDAY" :foreground "DarkOrange1" :weight bold)
+             ("DONE" :foreground "MediumSpringGreen" :weight bold)
+             ("WAIT" :foreground "yellow" :weight bold)
+             ("CNCL" :foreground "SaddleBrown" :weight bold)
+
+             ("IDEA" :foreground "White" :background "OrangeRed1" :weight bold)
+             ("WORKING" :foreground "White" :background "OrangeRed4" :weight bold)
+             ("INCUBATE" :foreground "White" :background "DodgerBlue4" :weight bold)
+             ("MATURE" :foreground "White" :background "blue3" :weight bold)
+             ("REJECT" :foreground "White" :background "DarkRed" :weight bold)
+
+             ("BACKLOG" :foreground "PaleVioletRed" :weight bold)
+             ("READING" :foreground "LightPink" :weight bold)
+             ("PROCESS" :foreground "gold" :weight bold)
+             ("CONSUMED" :foreground "MediumSpringGreen" :weight bold)
+             ("DROPPED" :foreground "LightSlateGrey" :weight bold)
+
+             ("GOAL" :foreground "DeepPink" :weight bold)
+             )))
+
     :custom-face
     (org-document-title ((t (:weight bold :height 1.5))))
     (org-headline-done ((t (:strike-through t))))
     (org-image-actual-width '(600)))
 #+END_SRC
-*** Org-agenda custom Views
+
+*** Org-agenda custom views
+#+BEGIN_SRC emacs-lisp
+  (use-package org-ql)
+  (use-package org-super-agenda
+    :hook ((org-agenda-mode . org-super-agenda-mode)))
+
+  (setq org-agenda-custom-commands
+        '(("7" "Super-default"
+           ((agenda "" ((org-agenda-span 'day) (org-agenda-files '("~/Dropbox/org/life/" "~/Dropbox/org/knowledge/projfiles" "~/Dropbox/org/journal/"))
+                        (org-super-agenda-groups
+                         '((:log t)
+                           (:discard (:habit t))
+                           (:scheduled t)
+                           (:deadline t)
+                           (:discard (:anything t))
+                           ))
+                        ))
+            (alltodo "" ((org-agenda-overriding-header "Review Later Items") (org-agenda-files '("~/Dropbox/org/life/actionable.org"))
+                         (org-super-agenda-groups
+                          '((:discard (:not (:todo ("NEXT"))))
+                            (:name "Must Today - clear this by schedding"
+                                   :and (:priority ("A") :not (:scheduled t))
+                                   :order 1)
+                            (:name "Must Later"
+                                   :and (:priority ("B") :not (:scheduled t))
+                                   :order 2)
+                            (:name "Should Today - clear this by schedding"
+                                   :and (:priority ("C") :not (:scheduled t))
+                                   :order 3)
+                            (:name "Should Later"
+                                   :and (:priority ("D") :not (:scheduled t))
+                                   :order 4)
+                            (:name "Coulds"
+                                   :and (:priority ("E") :not (:scheduled t))
+                                   :order 5)
+                            ))))
+            (alltodo "" ((org-agenda-overriding-header "Sort by Difficulty") (org-agenda-files '("~/Dropbox/org/life/actionable.org"))
+                         (org-super-agenda-groups
+                          '((:discard (:not (:todo ("NEXT" "WAIT"))))
+                            (:name "Inbox!"
+                                   :and (:not (:tag("low" "mid" "high" "chill") :scheduled t :effort> "0"))
+                                   :order 1)
+                            (:name "Keep in mind!"
+                                   :deadline t
+                                   :order 2)
+                            (:name "Delegated, waiting"
+                                   :todo "WAIT"
+                                   :order 3)
+                            (:name "Light Tasks!"
+                                   :and (:tag ("low") :not (:scheduled t))
+                                   :order 31)
+                            (:name "Mid-tier!"
+                                   :and (:tag ("mid") :not (:scheduled t))
+                                   :order 32)
+                            (:name "Hard Tasks"
+                                   :and (:tag ("high") :not (:scheduled t))
+                                   :order 41)
+                            ))))
+            (alltodo "" ((org-agenda-span 'day) (org-agenda-files '("~/Dropbox/org/life/actionable.org"))
+                         (org-agenda-overriding-header "Parallelism!")
+                         (org-super-agenda-groups
+                          '((:name "Today"
+                                   :and (:category "Action" :tag "chill" :scheduled today))
+                            (:name "Others"
+                                   :and (:category "Action" :tag "chill" :not (:scheduled t)))
+                            (:discard (:anything t))
+                            ))
+                         ))
+            (agenda "" ((org-agenda-span 'day) (org-agenda-files '("~/Dropbox/org/life/routines.org"))
+                        (org-agenda-overriding-header "Routines!")
+                        (org-super-agenda-groups
+                         '((:discard (:not (:habit t)))
+                           (:auto-parent t)
+                           ))
+                        ))
+            (alltodo "" ((org-agenda-overriding-header "Project Masterlists")
+                         (org-agenda-files '("~/Dropbox/org/life/actionable.org"))
+                         (org-super-agenda-groups
+                          '((:discard (:category ("Scheduled" "Action" "Delegated")))
+                            (:auto-parent t)
+                            ))
+                         ))
+            (alltodo "" ((org-agenda-overriding-header "Active Books/Resources") (org-agenda-files '("~/Dropbox/org/life/list.org"))
+                         (org-super-agenda-groups
+                          '((:discard (:not (:todo ("READING" "PROCESS"))))
+                            (:tag "_dpanal")
+                            (:auto-property "Genre")
+                            ))
+                         ))
+            ))
+          ("0" "Focus"
+           ((agenda "" ((org-agenda-span 'day) (org-agenda-files '("~/Dropbox/org/life/" "~/Dropbox/org/knowledge/projfiles/" "~/Dropbox/org/journal/"))
+                        (org-agenda-entry-types '(:scheduled :deadline :timestamp))
+                        (org-super-agenda-groups
+                         '((:discard (:log t))
+                           (:discard (:tag "longrun"))
+                           (:discard (:deadline future))
+                           (:name "Nice!"
+                                  :todo "DONE"
+                                  :todo "CNCL")
+                           (:name "Today"
+                                  :tag "chill"
+                                  :time-grid t
+                                  :scheduled today
+                                  :deadline today)
+                           (:name "Past"
+                                  :scheduled past)
+                                          ;   :and (:not (:deadline today) :scheduled today))
+                           (:discard (:anything t))
+                           ))
+                        ))
+            (org-ql-block '(and (not (clocked :on 0)) (tags "longrun") (ts-active :to 0))
+                          ((org-ql-block-header "Longruns!")))
+            (agenda "" ((org-agenda-span 'day) (org-agenda-files '("~/Dropbox/org/life/" "~/Dropbox/org/knowledge/projfiles" "~/Dropbox/org/journal/"))
+                        (org-agenda-overriding-header "Deadlines!")
+                        (org-agenda-entry-types '(:deadline))
+                        (org-super-agenda-groups
+                         '((:discard (:not (:deadline future)))
+                           (:name "" :deadline future)
+                           ))
+                        ))
+            (agenda "" ((org-agenda-span 'day) (org-agenda-sorting-strategy '(time-up todo-state-up priority-down))))
+            ))
+          ("w" "Weekly Review"
+           ((agenda "" ((org-agenda-start-day "-Mon")
+                        (org-agenda-files '("~/Dropbox/org/life/" "~/Dropbox/org/knowledge/projfiles" "~/Dropbox/org/journal/"))
+                        (org-agenda-span 14)
+                        (org-agenda-start-on-weekday 1)
+                        (org-super-agenda-groups
+                         '((:discard (:not (:todo "DONE")))
+                           (:name "" :log clocked)
+                           (:discard (:anything t))
+                           )))
+                    )))
+          ("9" "Schedule NEXT Tasks"
+           ((agenda "" ((org-agenda-span 'day))) (todo "NEXT")))
+          ("1" "Backlogged Articles / Movies!"
+           ((alltodo "" ((org-agenda-overriding-header "Books") (org-agenda-files '("~/Dropbox/org/life/list.org"))
+                         (org-super-agenda-groups
+                          '((:discard (:not (:and (:category "books" :todo "BACKLOG"))))
+                            (:auto-priority)
+                            ))
+                         ))
+            (alltodo "" ((org-agenda-overriding-header "Web Resources") (org-agenda-files '("~/Dropbox/org/life/list.org"))
+                         (org-super-agenda-groups
+                          '((:discard (:not (:and (:category "webref" :todo "BACKLOG"))))
+                            (:auto-priority)
+                            ))
+                         ))
+            (alltodo "" ((org-agenda-overriding-header "Movies") (org-agenda-files '("~/Dropbox/org/life/list.org"))
+                         (org-super-agenda-groups
+                          '((:discard (:not (:and (:category "movies" :todo "BACKLOG"))))
+                            (:auto-priority)
+                            ))
+                         ))
+            ))
+          ("2" "Research Papers"
+           ((alltodo "" ((org-agenda-overriding-header "Currently Researching...") (org-agenda-files '("~/Dropbox/org/knowledge/slipbox"))
+                         (org-super-agenda-groups
+                          '((:discard (:scheduled t))
+                            (:name "Ideas to be researched!"
+                                   :todo "IDEA")
+                            (:name "Currently drafting"
+                                   :todo "WORKING")
+                            (:name "Final Review!"
+                                   :todo "INCUBATE")
+                            (:name "Matured"
+                                   :todo "MATURE")
+                            (:name "To be revised"
+                                   :todo "REJECT")
+                            (:discard (:anything t))
+                            ))))
+            ))
+          ))
+#+END_SRC
+
 *** Org-agenda use-package declaration
 #+BEGIN_SRC emacs-lisp
   (use-package org-agenda
-    :ensure nil)
+    :bind (("<f9>" . org-agenda))
+    :ensure nil
+    :custom
+    (org-agenda-files '("~/Dropbox/org/life/" "~/Dropbox/org/knowledge/projfiles" "~/Dropbox/org/journal/"))
+    )
 #+END_SRC
-** Window configurations
-* Yza Config - Thirdparty
+
+*** Org-capture use-package
+#+BEGIN_SRC emacs-lisp
+  (use-package org-capture
+    :ensure nil
+    :after org-gtd
+    :bind (("<f12>" . org-capture))
+    :config
+    (setq org-capture-templates `(("s" "Speedy task! (skipping inbox)"
+                                   entry (file+headline "~/Dropbox/org/life/actionable.org" "Actions")
+                                   "* NEXT %? \n%U\n\n %i"
+                                   :kill-buffer t)
+                                  ("m" "Movie"
+                                   entry (file+headline "~/Dropbox/org/life/list.org" "Movies")
+                                   "* %? @watch %^{GIST}p %^{GENRE}p")
+                                  ("e" "Book" entry (file+headline "~/Dropbox/org/life/list.org" "Books")
+                                   "* BACKLOG %^{TITLE}\n:PROPERTIES:\n:ADDED: %<[%Y-%02m-%02d]>\n%^{AUTHOR}p%^{GIST}p%^{GENRE}p\n:END:%?" :empty-lines 1)
+                                  )))
+#+END_SRC
+
+* Yza Config - Third-party
+** Themes
+*** Poet config
+#+BEGIN_SRC emacs-lisp
+  (dolist (hook '(text-mode-hook))
+    (add-hook hook (lambda () (flyspell-mode 1))))
+  (add-hook 'text-mode-hook
+            (lambda ()
+              (variable-pitch-mode 1)))
+  (add-to-list
+   'default-frame-alist'(ns-transparent-titlebar . t))
+  (add-to-list
+   'default-frame-alist'(ns-appearance . light))
+  (set-face-attribute 'default nil :family "Roboto Mono" :height 150)
+  (set-face-attribute 'fixed-pitch nil :family "Roboto Mono")
+  (set-face-attribute 'variable-pitch nil :family "IBM Plex Serif")
+#+END_SRC
 ** Moodline
 for minimalist modeline
 #+BEGIN_SRC emacs-lisp
@@ -612,13 +913,6 @@ for minimalist modeline
     :config (mood-line-mode))
 #+END_SRC
 ** Org plug-ins
-*** Olivetti for formatting
-#+BEGIN_SRC emacs-lisp
-  (use-package olivetti
-    :hook ((org-mode . olivetti-mode))
-    :config
-    (setq olivetti-body-width 100))
-#+END_SRC
 *** Org-fragtog and Org-reveal for revealing markups
 Org-fragtog for viewing raw latex and svg generation
 #+BEGIN_SRC emacs-lisp
@@ -631,39 +925,72 @@ Org-appear for general org markups
   (use-package org-appear
     :hook ((org-mode . org-appear-mode)))
 #+END_SRC
-
+*** Flyspell-correct for spelling
+#+BEGIN_SRC emacs-lisp
+  (use-package flyspell-correct
+    :after flyspell
+    :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
+#+END_SRC
+*** Olivetti for formatting
+#+BEGIN_SRC emacs-lisp
+  (use-package olivetti
+    :hook ((org-mode . olivetti-mode))
+    :custom
+    (olivetti-body-width 175))
+#+END_SRC
+*** Org-download
+#+BEGIN_SRC emacs-lisp
+  (use-package org-download
+    :defer t
+    :init
+    ;; Add handlers for drag-and-drop when Org is loaded.
+    (with-eval-after-load 'org
+      (org-download-enable))
+    :config
+    (add-hook 'dired-mode-hook 'org-download-enable)
+    (setq-default org-download-image-dir "~/Dropbox/org_back"))
+#+END_SRC
+*** Org-clock-convenience
+#+BEGIN_SRC emacs-lisp
+  (use-package org-clock-convenience
+    :bind (:map org-agenda-mode-map
+                ("<H-up>" . org-clock-convenience-timestamp-up)
+                ("<H-down>" . org-clock-convenience-timestamp-down)
+                ("<H-left>" . org-clock-convenience-fill-gap)
+                ("<H-right>" . org-clock-convenience-fill-gap-both)))
+#+END_SRC
 ** Completion stack
 *** Vertico
 The main interface for completion. Comparing both selectrum and this, I decided to go with this because it is more lightweight
 #+BEGIN_SRC emacs-lisp
-(use-package vertico
-  :ensure t
-  :bind (:map vertico-map
-         ("C-j" . vertico-next)
-         ("C-k" . vertico-previous)
-         ("C-f" . vertico-exit)
-         :map minibuffer-local-map
-         ("M-h" . backward-kill-word))
-  :custom
-  (vertico-cycle t)
-  :init
-  (vertico-mode))
+  (use-package vertico
+    :ensure t
+    :bind (:map vertico-map
+                ("C-j" . vertico-next)
+                ("C-k" . vertico-previous)
+                ("C-f" . vertico-exit)
+                :map minibuffer-local-map
+                ("M-h" . backward-kill-word))
+    :custom
+    (vertico-cycle t)
+    :init
+    (vertico-mode))
 #+END_SRC
 **** Savehist (Built-in)
 In-built package that remembers the commands and such picked in the mini-buffer and places it on the top.
 #+BEGIN_SRC emacs-lisp
-(use-package savehist
-  :init
-  (savehist-mode))
+  (use-package savehist
+    :init
+    (savehist-mode))
 #+END_SRC
 **** Orderless (Third-party)
 Completion style that allows spaces to be included in the narrowing. Can also match candidates regardless of order the user typed
 #+BEGIN_SRC emacs-lisp
-(use-package orderless
-  :ensure t
-  :custom
-  (completion-styles '(orderless basic))
-  (completion-category-overrides '((file (styles basic partial-completion)))))
+  (use-package orderless
+    :ensure t
+    :custom
+    (completion-styles '(orderless basic))
+    (completion-category-overrides '((file (styles basic partial-completion)))))
 #+END_SRC
 *** Marginalia
 For hints in the completion (eg. commands bindings/meanings)
@@ -680,9 +1007,6 @@ for other useful functions
 #+BEGIN_SRC emacs-lisp
   (use-package consult
     :preface
-    (defun yza/consult-org-headings-all ()
-      (interactive)
-      (consult-org-heading t 'agenda))
     :bind (;; C-c bindings (mode-specific-map)
            ("C-c h" . consult-history)
            ("C-c m" . consult-mode-command)
@@ -711,6 +1035,7 @@ for other useful functions
            ("M-g k" . consult-global-mark)
            ("M-g i" . consult-imenu)
            ("M-g I" . consult-imenu-multi)
+           ("M-g r" . consult-recent-file)
            ;; M-s bindings (search-map)
            ("M-s d" . consult-find)
            ("M-s D" . consult-locate)
@@ -734,7 +1059,7 @@ for other useful functions
            ("M-s" . consult-history)                 ;; orig. next-matching-history-element
            ("M-r" . consult-history)                ;; orig. previous-matching-history-element
            ;; Custom shit
-           ("H-." . yza/consult-org-headings-all))
+           )
 
     ;; The :init configuration is always executed (Not lazy)
     :init
@@ -778,16 +1103,12 @@ for other useful functions
     (setq consult-narrow-key "<") ;; (kbd "C-+")
     )
 #+END_SRC
+**** TODO Consult Bibtex
 *** Embark
 for flipping the usual action-item movement of M-x; allowing to first select the thing BEFORE finalizing the action to be used.
 #+BEGIN_SRC emacs-lisp
   (use-package embark
     :preface
-    (defun dfeich/helm-org-clock-in (marker)
-      "Clock into the item at MARKER"
-      (with-current-buffer (marker-buffer marker)
-        (goto-char (marker-position marker))
-        (org-clock-in)))
     :bind
     (("C-." . embark-act)         ;; pick some comfortable binding
      ("M-." . embark-dwim)        ;; good alternative: M-.
@@ -808,7 +1129,6 @@ for flipping the usual action-item movement of M-x; allowing to first select the
 
   ;; Consult users will also want the embark-consult package.
   (use-package embark-consult
-    :ensure t
     :after (embark consult)
     :demand t ; only necessary if you have the hook below
     ;; if you want to have consult previews as you move around an
@@ -816,7 +1136,9 @@ for flipping the usual action-item movement of M-x; allowing to first select the
     :hook
     (embark-collect-mode . consult-preview-at-point-mode))
 #+END_SRC
-*** Misc
+
+**** Embark as helm
+Ported from [[https://karthinks.com/software/fifteen-ways-to-use-embark/][karthinks]]
 #+BEGIN_SRC emacs-lisp
 (defun with-minibuffer-keymap (keymap)
   (lambda (fn &rest args)
@@ -842,6 +1164,32 @@ for flipping the usual action-item movement of M-x; allowing to first select the
            (embark-indicator (lambda (_keymap targets) nil)))
       (embark-act arg)))
 #+END_SRC
+** Completion: Expansion packs
+*** TODO consult-dir
+using consult for directory completion everywhere!
+*** TODO compose custom keymap for direct clocking?
+** Yasnippets
+#+BEGIN_SRC emacs-lisp
+  (use-package yasnippet
+    :defer 3 ;; takes a while to load, so do it async
+    :config (yas-global-mode)
+    ;; :custom (yas-prompt-functions '(yas-completing-prompt))
+    )
+#+END_SRC
+
+** COMMENT Helpful for verbose help
+#+BEGIN_SRC emacs-lisp
+  (use-package helpful
+    :bind (("C-h f" . helpful-callable)
+           ("C-h v" . helpful-variable)
+           ("C-h k" . helpful-key)
+           ("C-c C-d" . helpful-at-point))
+#+END_SRC
+
+** TODO Avy
+* Yza Config - Programming
+** Showing diffs (git)
+*** Diff-hl
 ** Aggressive indention
 #+BEGIN_SRC emacs-lisp
   (use-package aggressive-indent
@@ -849,6 +1197,16 @@ for flipping the usual action-item movement of M-x; allowing to first select the
     (global-aggressive-indent-mode 1)
     (add-to-list 'aggressive-indent-excluded-modes 'html-mode))
 #+END_SRC
-* Yza Config - Programming
-** Showing diffs (git)
-*** Diff-hl
+
+** Yankpad
+#+BEGIN_SRC emacs-lisp
+  (use-package yankpad
+    :defer 10
+    :init
+    (setq yankpad-file "~/Dropbox/org/yankpad.org")
+    :config
+    (bind-key "<H-backspace>" 'yankpad-expand))
+#+END_SRC
+
+** TODO Parrot?
+** TODO Outshine to navigate code like org-mode?
