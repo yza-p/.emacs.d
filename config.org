@@ -114,6 +114,7 @@ control status as well.
           global-auto-revert-non-file-buffers t
           auto-revert-verbose nil))
 #+END_SRC
+
 ** Eldoc: documentation in the mini-buffer
 Slightly shorten eldoc display delay.
 #+BEGIN_SRC emacs-lisp
@@ -123,6 +124,7 @@ Slightly shorten eldoc display delay.
     :config
     (setq eldoc-idle-delay 0.4))
 #+END_SRC
+
 ** Indentation improvement
 For Java and C/C++, change the formatting style from GNU (the default)
 to the more standard K&R. Here we also set the indentation width of C,
@@ -145,6 +147,7 @@ the value depending on the language as well.
     :ensure nil
     :config (setq python-indent-offset ian/indent-width))
 #+END_SRC
+
 ** Mouse wheel (track-pad) scroll speed
 By default, the scrolling is way too fast to be precise and helpful,
 let's tune it down a little bit.
@@ -154,6 +157,7 @@ let's tune it down a little bit.
     :config (setq mouse-wheel-scroll-amount '(2 ((shift) . 1))
                   mouse-wheel-progressive-speed nil))
 #+END_SRC
+
 ** Show matching parentheses
 Reduce the highlight delay to instantly.
 #+BEGIN_SRC emacs-lisp
@@ -162,23 +166,25 @@ Reduce the highlight delay to instantly.
     :init (setq show-paren-delay 0)
     :config (show-paren-mode +1))
 #+END_SRC
-** Setting up some frame defaults
+
+** COMMENT Setting up some frame defaults
 Maximize the frame by default on start-up. Set the font to size 12.
 #+BEGIN_SRC emacs-lisp
-  ;; (use-package frame
-  ;;   :preface
-  ;;   (defun ian/set-default-font ()
-  ;;     (interactive)
-  ;;     (when (member "Consolas" (font-family-list))
-  ;;       (set-face-attribute 'default nil :family "Consolas"))
-  ;;     (set-face-attribute 'default nil
-  ;;                         :height 150
-  ;;                         :weight 'normal))
-  ;;   :ensure nil
-  ;;   :config
-  ;;   ;; (setq initial-frame-alist '((fullscreen . maximized)))
-  ;;   (ian/set-default-font))
+  (use-package frame
+    :preface
+    (defun ian/set-default-font ()
+      (interactive)
+      (when (member "Consolas" (font-family-list))
+        (set-face-attribute 'default nil :family "Consolas"))
+      (set-face-attribute 'default nil
+                          :height 150
+                          :weight 'normal))
+    :ensure nil
+    :config
+    (setq initial-frame-alist '((fullscreen . maximized)))
+    (ian/set-default-font))
 #+END_SRC
+
 ** Ediff tweaks
 Enter ediff with side-by-side buffers to better compare the
 differences.
@@ -189,6 +195,7 @@ differences.
     (setq ediff-window-setup-function #'ediff-setup-windows-plain)
     (setq ediff-split-window-function #'split-window-horizontally))
 #+END_SRC
+
 ** Auto-pairing quotes and parentheses etc.
 Electric-pair-mode has improved quite a bit in recent Emacs
 versions. No longer need an extra package for this. It also takes care
@@ -198,12 +205,14 @@ of the new-line-and-push-brace feature.
     :ensure nil
     :hook (prog-mode . electric-pair-mode))
 #+END_SRC
+
 ** Clean up whitespace on save
 #+BEGIN_SRC emacs-lisp
   (use-package whitespace
     :ensure nil
     :hook (before-save . whitespace-cleanup))
 #+END_SRC
+
 ** Dired tweaks
 Delete intermediate buffers when navigating through dired.
 #+begin_src emacs-lisp
@@ -216,6 +225,7 @@ Delete intermediate buffers when navigating through dired.
           (put 'dired-find-alternate-file 'disabled nil)
           (define-key dired-mode-map (kbd "RET") #'dired-find-alternate-file))))
 #+end_src
+
 ** Dump custom-set-variables to a garbage file and don't load it
 #+BEGIN_SRC emacs-lisp
   (use-package cus-edit
@@ -223,6 +233,7 @@ Delete intermediate buffers when navigating through dired.
     :config
     (setq custom-file (concat user-emacs-directory "to-be-dumped.el")))
 #+END_SRC
+
 * Third-party packages
 Many Emacsers love having tons of packages -- and that's absolutely
 fine! However, one of the goals of the Yay-Evil distro is to provide
@@ -358,11 +369,13 @@ Use ~C-n~ and ~C-p~ to navigate the tooltip.
     (define-key company-active-map (kbd "C-n") 'company-select-next)
     (define-key company-active-map (kbd "C-p") 'company-select-previous))
 #+END_SRC
+
 *** Flycheck
 A modern on-the-fly syntax checking extension -- absolute essential
 #+BEGIN_SRC emacs-lisp
   (use-package flycheck :config (global-flycheck-mode +1))
 #+END_SRC
+
 *** Org Mode
 Some minimal org mode tweaks: org-bullets gives our headings (h1, h2,
 h3...) a more visually pleasing look.
@@ -373,6 +386,7 @@ h3...) a more visually pleasing look.
 
   ;; (use-package org-bullets :hook (org-mode . org-bullets-mode))
 #+END_SRC
+
 *** Useful major modes
 Markdown mode and Web mode, the latter covers our usages of HTML/CSS/JS/JSX/TS/TSX/JSON.
 #+BEGIN_SRC emacs-lisp
@@ -391,6 +405,7 @@ Markdown mode and Web mode, the latter covers our usages of HTML/CSS/JS/JSX/TS/T
     (setq web-mode-code-indent-offset 2)   ; JS/JSX/TS/TSX
     (setq web-mode-content-types-alist '(("jsx" . "\\.js[x]?\\'"))))
 #+END_SRC
+
 ** Miscellaneous
 *** Diminish minor modes
 The diminish package is used to hide unimportant minor modes in the
@@ -400,6 +415,7 @@ other use-package declarations.
   (use-package diminish
     :demand t)
 #+END_SRC
+
 *** Which-key
 Provides us with hints on available keystroke combinations.
 #+BEGIN_SRC emacs-lisp
@@ -410,12 +426,14 @@ Provides us with hints on available keystroke combinations.
     (setq which-key-idle-delay 0.4
           which-key-idle-secondary-delay 0.4))
 #+END_SRC
+
 *** Configure PATH on macOS
 #+BEGIN_SRC emacs-lisp
   (use-package exec-path-from-shell
     :config (when (memq window-system '(mac ns x))
               (exec-path-from-shell-initialize)))
 #+END_SRC
+
 * Yza Config - Built-in
 ** Modifiers for mac
 #+BEGIN_SRC emacs-lisp
@@ -641,6 +659,7 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
   (recentf-mode 1)
   (add-to-list 'recentf-exclude "\\elpa")
 #+END_SRC
+
 ** Remember cursor position
 #+BEGIN_SRC emacs-lisp
   (save-place-mode 1)
@@ -650,9 +669,13 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
 ** Standard procedures
 *** Custom functions
 #+BEGIN_SRC emacs-lisp
-  (defun yza/consult-org-headings-all ()
+  (defun yza/consult-org-headings-agenda ()
     (interactive)
-    (consult-org-heading t 'agenda))
+    (consult-org-heading t '(yza/action-files yza/review-files)))
+  (defun yza/consult-slipbox ()
+    (interactive)
+    (consult-ripgrep yza/slipbox-files))
+
   (defun dfeich/helm-org-clock-in (marker)
     "Clock into the item at MARKER"
     (with-current-buffer (marker-buffer marker)
@@ -664,9 +687,10 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
 #+END_SRC
 *** Custom directory variables
 #+BEGIN_SRC emacs-lisp
-(defvar yza/agenda-files "~/Dropbox/org_new/life/actions")
-(defvar yza/journal-files "~/Dropbox/org_new/life/journal")
-(defvar yza/slipbox-files "~/Dropbox/org_new/notes/2.slipbox")
+  (defvar yza/action-files "~/Dropbox/org_new/life/actions")
+  (defvar yza/review-files "~/Dropbox/org_new/life/reviews")
+  (defvar yza/journal-files "~/Dropbox/org_new/life/journal")
+  (defvar yza/slipbox-files "~/Dropbox/org_new/notes/0.slipbox")
 #+END_SRC
 
 *** Org-mode use-package declaration
@@ -684,7 +708,7 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
     (org-extend-today-until 5)
     (org-log-into-drawer t)
     (org-latex-create-formula-image-program 'dvisvgm)
-    (org-ellipsis "▾")
+    (org-ellipsis " ▾")
     (org-directory "~/Dropbox/org")
     (org-return-follows-link t)
     (org-use-fast-todo-selection t)
@@ -908,7 +932,7 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
     :bind (("<f9>" . org-agenda))
     :ensure nil
     :custom
-    (org-agenda-files '("~/Dropbox/org/life/" "~/Dropbox/org/knowledge/projfiles" "~/Dropbox/org/journal/"))
+    (org-agenda-files '(yza/action-files yza/review-files))
     (org-agenda-start-with-log-mode t)
     )
 #+END_SRC
