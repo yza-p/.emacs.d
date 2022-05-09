@@ -645,7 +645,7 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
 #+END_SRC
 
 ** TODO Daemon
-** TODO fortune?
+** SOMEDAY fortune?
 (format
                                    ";; %s\n\n"
                                    (replace-regexp-in-string
@@ -671,7 +671,7 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
 #+BEGIN_SRC emacs-lisp
   (defun yza/consult-org-headings-agenda ()
     (interactive)
-    (consult-org-heading t '(yza/action-files yza/review-files)))
+    (consult-org-heading t 'agenda))
   (defun yza/consult-slipbox ()
     (interactive)
     (consult-ripgrep yza/slipbox-files))
@@ -687,10 +687,10 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
 #+END_SRC
 *** Custom directory variables
 #+BEGIN_SRC emacs-lisp
-  (defvar yza/action-files "~/Dropbox/org_new/life/actions")
-  (defvar yza/review-files "~/Dropbox/org_new/life/reviews")
-  (defvar yza/journal-files "~/Dropbox/org_new/life/journal")
-  (defvar yza/slipbox-files "~/Dropbox/org_new/notes/0.slipbox")
+  (defvar yza/agenda-files "~/Dropbox/org/life/actions")
+  (defvar yza/review-files "~/Dropbox/org/life/actions/reviews")
+  (defvar yza/journal-files "~/Dropbox/org/life/journal")
+  (defvar yza/slipbox-files "~/Dropbox/org/notes/0.slipbox")
 #+END_SRC
 
 *** Org-mode use-package declaration
@@ -699,7 +699,8 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
     :hook ((org-mode . visual-line-mode)
            (org-mode . org-indent-mode))
     :bind (("H-/" . org-todo)
-           ("H-." . yza/consult-org-headings-all)
+           ("H-." . yza/consult-org-headings-agenda)
+           ("H-r" . yza/consult-slipbox)
            ("C-c 1" . org-time-stamp-inactive)
            ("H-i" . do-org-show-all-inline-images)
            ("<H-left>" . org-clock-in)
@@ -758,7 +759,7 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
 
   (setq org-agenda-custom-commands
         '(("7" "Super-default"
-           ((agenda "" ((org-agenda-span 'day) (org-agenda-files '("~/Dropbox/org/life/" "~/Dropbox/org/knowledge/projfiles" "~/Dropbox/org/journal/"))
+           ((agenda "" ((org-agenda-span 'day)
                         (org-super-agenda-groups
                          '((:log t)
                            (:discard (:habit t))
@@ -767,7 +768,7 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
                            (:discard (:anything t))
                            ))
                         ))
-            (alltodo "" ((org-agenda-overriding-header "Review Later Items") (org-agenda-files '("~/Dropbox/org/life/actionable.org"))
+            (alltodo "" ((org-agenda-overriding-header "Review Later Items")
                          (org-super-agenda-groups
                           '((:discard (:not (:todo ("NEXT"))))
                             (:name "Must Today - clear this by schedding"
@@ -786,7 +787,7 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
                                    :and (:priority ("E") :not (:scheduled t))
                                    :order 5)
                             ))))
-            (alltodo "" ((org-agenda-overriding-header "Sort by Difficulty") (org-agenda-files '("~/Dropbox/org/life/actionable.org"))
+            (alltodo "" ((org-agenda-overriding-header "Sort by Difficulty")
                          (org-super-agenda-groups
                           '((:discard (:not (:todo ("NEXT" "WAIT"))))
                             (:name "Inbox!"
@@ -808,7 +809,7 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
                                    :and (:tag ("high") :not (:scheduled t))
                                    :order 41)
                             ))))
-            (alltodo "" ((org-agenda-span 'day) (org-agenda-files '("~/Dropbox/org/life/actionable.org"))
+            (alltodo "" ((org-agenda-span 'day)
                          (org-agenda-overriding-header "Parallelism!")
                          (org-super-agenda-groups
                           '((:name "Today"
@@ -818,7 +819,7 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
                             (:discard (:anything t))
                             ))
                          ))
-            (agenda "" ((org-agenda-span 'day) (org-agenda-files '("~/Dropbox/org/life/routines.org"))
+            (agenda "" ((org-agenda-span 'day)
                         (org-agenda-overriding-header "Routines!")
                         (org-super-agenda-groups
                          '((:discard (:not (:habit t)))
@@ -826,13 +827,13 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
                            ))
                         ))
             (alltodo "" ((org-agenda-overriding-header "Project Masterlists")
-                         (org-agenda-files '("~/Dropbox/org/life/actionable.org"))
+
                          (org-super-agenda-groups
                           '((:discard (:category ("Scheduled" "Action" "Delegated")))
                             (:auto-parent t)
                             ))
                          ))
-            (alltodo "" ((org-agenda-overriding-header "Active Books/Resources") (org-agenda-files '("~/Dropbox/org/life/list.org"))
+            (alltodo "" ((org-agenda-overriding-header "Active Books/Resources")
                          (org-super-agenda-groups
                           '((:discard (:not (:todo ("READING" "PROCESS"))))
                             (:tag "_dpanal")
@@ -841,7 +842,7 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
                          ))
             ))
           ("0" "Focus"
-           ((agenda "" ((org-agenda-span 'day) (org-agenda-files '("~/Dropbox/org/life/" "~/Dropbox/org/knowledge/projfiles/" "~/Dropbox/org/journal/"))
+           ((agenda "" ((org-agenda-span 'day)
                         (org-agenda-entry-types '(:scheduled :deadline :timestamp))
                         (org-super-agenda-groups
                          '((:discard (:log t))
@@ -863,7 +864,7 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
                         ))
             (org-ql-block '(and (not (clocked :on 0)) (tags "longrun") (ts-active :to 0))
                           ((org-ql-block-header "Longruns!")))
-            (agenda "" ((org-agenda-span 'day) (org-agenda-files '("~/Dropbox/org/life/" "~/Dropbox/org/knowledge/projfiles" "~/Dropbox/org/journal/"))
+            (agenda "" ((org-agenda-span 'day)
                         (org-agenda-overriding-header "Deadlines!")
                         (org-agenda-entry-types '(:deadline))
                         (org-super-agenda-groups
@@ -875,7 +876,6 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
             ))
           ("w" "Weekly Review"
            ((agenda "" ((org-agenda-start-day "-Mon")
-                        (org-agenda-files '("~/Dropbox/org/life/" "~/Dropbox/org/knowledge/projfiles" "~/Dropbox/org/journal/"))
                         (org-agenda-span 14)
                         (org-agenda-start-on-weekday 1)
                         (org-super-agenda-groups
@@ -887,52 +887,40 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
           ("9" "Schedule NEXT Tasks"
            ((agenda "" ((org-agenda-span 'day))) (todo "NEXT")))
           ("1" "Backlogged Articles / Movies!"
-           ((alltodo "" ((org-agenda-overriding-header "Books") (org-agenda-files '("~/Dropbox/org/life/list.org"))
+           ((alltodo "" ((org-agenda-overriding-header "Books") (org-agenda-files '("~/Dropbox/org/life/actions/list.org"))
                          (org-super-agenda-groups
                           '((:discard (:not (:and (:category "books" :todo "BACKLOG"))))
                             (:auto-priority)
                             ))
                          ))
-            (alltodo "" ((org-agenda-overriding-header "Web Resources") (org-agenda-files '("~/Dropbox/org/life/list.org"))
+            (alltodo "" ((org-agenda-overriding-header "Web Resources") (org-agenda-files '("~/Dropbox/org/life/actions/list.org"))
                          (org-super-agenda-groups
                           '((:discard (:not (:and (:category "webref" :todo "BACKLOG"))))
                             (:auto-priority)
                             ))
                          ))
-            (alltodo "" ((org-agenda-overriding-header "Movies") (org-agenda-files '("~/Dropbox/org/life/list.org"))
+            (alltodo "" ((org-agenda-overriding-header "Movies") (org-agenda-files '("~/Dropbox/org/life/actions/list.org"))
                          (org-super-agenda-groups
                           '((:discard (:not (:and (:category "movies" :todo "BACKLOG"))))
                             (:auto-priority)
                             ))
                          ))
             ))
-          ("2" "Research Papers"
-           ((alltodo "" ((org-agenda-overriding-header "Currently Researching...") (org-agenda-files '("~/Dropbox/org/knowledge/slipbox"))
-                         (org-super-agenda-groups
-                          '((:discard (:scheduled t))
-                            (:name "Ideas to be researched!"
-                                   :todo "IDEA")
-                            (:name "Currently drafting"
-                                   :todo "WORKING")
-                            (:name "Final Review!"
-                                   :todo "INCUBATE")
-                            (:name "Matured"
-                                   :todo "MATURE")
-                            (:name "To be revised"
-                                   :todo "REJECT")
-                            (:discard (:anything t))
-                            ))))
-            ))
           ))
 #+END_SRC
 
 *** Org-agenda use-package declaration
+the tip for finding org files recursively using find-lisp is from [[https://stackoverflow.com/a/41969460][stackoverflow]]
 #+BEGIN_SRC emacs-lisp
   (use-package org-agenda
-    :bind (("<f9>" . org-agenda))
+    :preface
+    (load-library "find-lisp")
     :ensure nil
+    :bind (("<f9>" . org-agenda))
+    :config
+    (setq org-agenda-files (find-lisp-find-files yza/agenda-files "\.org$"))
     :custom
-    (org-agenda-files '(yza/action-files yza/review-files))
+    ;; (org-agenda-files yza/agenda-files)
     (org-agenda-start-with-log-mode t)
     )
 #+END_SRC
@@ -1013,6 +1001,8 @@ Org-appear for general org markups
   (use-package org-journal
     :defer t
     :hook (after-init . evil-mode)
+    :find (("H-j j" . org-journal-new-entry)
+           ("H-j s" . org-journal-search))
     :init
     ;; Change default prefix key; needs to be set before loading org-journal
     (setq org-journal-prefix-key "H-j ")
@@ -1022,6 +1012,8 @@ Org-appear for general org markups
           org-journal-file-header "#+STARTUP: folded\n"
           org-journal-date-format "%A, %d %B %Y"
           org-journal-file-format "%Y-%m-%d.org")
+    ;; (global-set-key (kbd "H-j j") 'org-journal-new-entry)
+    ;; (global-set-key (kbd "H-j s") 'org-journal-search)
     )
 
 #+END_SRC
