@@ -9,7 +9,7 @@ Clean up the UI and enhance some basic defaults defined in "C Source Code". The 
     :preface
     (defvar ian/indent-width 4) ; change this value to your preferred width
     :config
-    (setq frame-title-format '("emaaaaacs") ; Yayyyyy Evil!
+    (setq frame-title-format '("yzaa - ಠ_ಠ") ; Yayyyyy Evil!
           ring-bell-function 'ignore       ; minimize distraction
           frame-resize-pixelwise t
           default-directory "~/")
@@ -74,18 +74,21 @@ editors.
     :ensure nil
     :config (delete-selection-mode +1))
 #+END_SRC
+
 ** Disable scroll-bar
 #+BEGIN_SRC emacs-lisp
   (use-package scroll-bar
     :ensure nil
     :config (scroll-bar-mode -1))
 #+END_SRC
+
 ** Enable column numbers
 #+BEGIN_SRC emacs-lisp
   (use-package simple
     :ensure nil
     :config (column-number-mode +1))
 #+END_SRC
+
 ** File-related tweaks
 Don't bother confirming killing processes and don't let backup~ files
 scatter around.
@@ -97,6 +100,7 @@ scatter around.
           create-lockfiles nil ; don't create .# files (crashes 'npm start')
           make-backup-files nil))
 #+END_SRC
+
 ** Automatically refreshes the buffer for changes outside of Emacs
 Auto refreshes every 2 seconds. Don't forget to refresh the version
 control status as well.
@@ -238,6 +242,7 @@ Normally, we need to add ~:ensure t~ to tell ~use-package~ to download packages 
   (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes/"))
   (load-theme 'poet-dark t)
 #+END_SRC
+
 *** Dashboard welcome page
 #+BEGIN_SRC emacs-lisp
   (use-package dashboard
@@ -245,15 +250,24 @@ Normally, we need to add ~:ensure t~ to tell ~use-package~ to download packages 
     (dashboard-setup-startup-hook)
     (setq dashboard-startup-banner 3
           dashboard-banner-logo-title "PKM v3!"
-          dashboard-items nil
-          dashboard-set-footer nil(format
-                                   ";; %s\n\n"
-                                   (replace-regexp-in-string
-                                    "\n" "\n;; " ; comment each line
-                                    (replace-regexp-in-string
-                                     "\n$" ""    ; remove trailing linebreak
-                                     (shell-command-to-string "fortune"))))))
+          dashboard-items nil))
 #+END_SRC
+
+**** Dashboard custom quotes
+Stolen from this [[https://www.reddit.com/r/emacs/comments/kkujqe/emacs_dashboard_configuration/][reddit guy]]
+#+BEGIN_SRC emacs-lisp
+  ;; Read file as list of lines
+   ;; http://ergoemacs.org/emacs/elisp_read_file_content.html
+   (defun read-lines (filePath)
+     "Return a list of lines of a file at filePath."
+     (with-temp-buffer
+       (insert-file-contents filePath)
+       (split-string (buffer-string) "\n" t)))
+   ;; Use file as random footer message
+   ;; Created with quotes.org roam file
+   (setq dashboard-footer-messages (read-lines "~/.emacs.d/external/dashboard-quotes.txt"))
+#+END_SRC
+
 *** Syntax highlighting
 Lightweight syntax highlighting improvement for numbers and escape
 sequences (e.g. ~\n, \t~).
@@ -264,6 +278,7 @@ sequences (e.g. ~\n, \t~).
   (use-package highlight-escape-sequences
     :hook (prog-mode . hes-mode))
 #+END_SRC
+
 ** Vi keybindings
 I personally find Vi(m) bindings to be the most efficient way of
 editing text (especially code). I also changed the default ~:q~ and
@@ -287,7 +302,10 @@ subsequently killing Emacs.
       (define-key evil-insert-state-map (kbd "C-n") nil)
       (define-key evil-insert-state-map (kbd "C-p") nil))
     (evil-ex-define-cmd "q" #'kill-this-buffer)
-    (evil-ex-define-cmd "wq" #'ian/save-and-kill-this-buffer))
+    (evil-ex-define-cmd "wq" #'ian/save-and-kill-this-buffer)
+
+    (add-hook 'evil-insert-state-exit-hook 'save-buffer)
+    )
 #+END_SRC
 Evil-collection covers more parts of Emacs that the original Evil
 doesn't support (e.g. Packages buffer, eshell, calendar etc.)
@@ -308,6 +326,7 @@ selection etc.)
     :diminish
     :config (evil-commentary-mode +1))
 #+END_SRC
+
 ** Git Integration
 Tell magit to automatically put us in vi-insert-mode when committing a change.
 #+BEGIN_SRC emacs-lisp
@@ -315,6 +334,7 @@ Tell magit to automatically put us in vi-insert-mode when committing a change.
     :bind ("C-x g" . magit-status)
     :config (add-hook 'with-editor-mode-hook #'evil-insert-state))
 #+END_SRC
+
 ** Searching/sorting enhancements & project management
 *** CANC Ido, ido-vertical, ido-ubiquitous and fuzzy matching
 Selecting buffers/files with great efficiency. In my opinion, Ido is
@@ -419,6 +439,7 @@ Provides us with hints on available keystroke combinations.
 ** Buffer travel using windmove
 #+BEGIN_SRC emacs-lisp
   (windmove-default-keybindings 'super)
+  (winner-mode 1)
 #+END_SRC
 
 ** Switch to scratch
@@ -430,7 +451,7 @@ Provides us with hints on available keystroke combinations.
   (bind-key "H-," #'switch-to-scratch-buffer)
 #+END_SRC
 
-** Replace default org-hide to include properties too
+** Replace default org-cycle to include properties too
 Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[link]​]]
 #+BEGIN_SRC emacs-lisp
   (defun org-cycle-hide-drawers (state)
@@ -605,15 +626,29 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
   (global-set-key (kbd "H-0") #'yza/switch-to-agenda)
 #+END_SRC
 
+** TODO Daemon
+** TODO fortune?
+(format
+                                   ";; %s\n\n"
+                                   (replace-regexp-in-string
+                                    "\n" "\n;; " ; comment each line
+                                    (replace-regexp-in-string
+                                     "\n$" ""    ; remove trailing linebreak
+                                     (shell-command-to-string "fortune wisdom"))))
 ** Recentf
 #+BEGIN_SRC emacs-lisp
   (require 'recentf) ;; so that the recentfiles don't show the installed packages
   (recentf-mode 1)
   (add-to-list 'recentf-exclude "\\elpa")
 #+END_SRC
+** Remember cursor position
+#+BEGIN_SRC emacs-lisp
+  (save-place-mode 1)
+#+END_SRC
 
-** Org-related tweaks
-*** Org-related functions
+* Org-related tweaks
+** Standard procedures
+*** Custom functions
 #+BEGIN_SRC emacs-lisp
   (defun yza/consult-org-headings-all ()
     (interactive)
@@ -627,14 +662,21 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
     (interactive)
     (org-display-inline-images t))
 #+END_SRC
+*** Custom directory variables
+#+BEGIN_SRC emacs-lisp
+(defvar yza/agenda-files "~/Dropbox/org_new/life/actions")
+(defvar yza/journal-files "~/Dropbox/org_new/life/journal")
+(defvar yza/slipbox-files "~/Dropbox/org_new/notes/2.slipbox")
+#+END_SRC
 
-** Org-mode use-package declaration
+*** Org-mode use-package declaration
 #+BEGIN_SRC emacs-lisp
   (use-package org
     :hook ((org-mode . visual-line-mode)
            (org-mode . org-indent-mode))
     :bind (("H-/" . org-todo)
            ("H-." . yza/consult-org-headings-all)
+           ("C-c 1" . org-time-stamp-inactive)
            ("H-i" . do-org-show-all-inline-images)
            ("<H-left>" . org-clock-in)
            ("<H-right>" . org-clock-out))
@@ -867,10 +909,11 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
     :ensure nil
     :custom
     (org-agenda-files '("~/Dropbox/org/life/" "~/Dropbox/org/knowledge/projfiles" "~/Dropbox/org/journal/"))
+    (org-agenda-start-with-log-mode t)
     )
 #+END_SRC
 
-*** Org-capture use-package
+*** TODO Org-capture use-package
 #+BEGIN_SRC emacs-lisp
   (use-package org-capture
     :ensure nil
@@ -889,30 +932,7 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
                                   )))
 #+END_SRC
 
-* Yza Config - Third-party
-** Themes
-*** Poet config
-#+BEGIN_SRC emacs-lisp
-  (dolist (hook '(text-mode-hook))
-    (add-hook hook (lambda () (flyspell-mode 1))))
-  (add-hook 'text-mode-hook
-            (lambda ()
-              (variable-pitch-mode 1)))
-  (add-to-list
-   'default-frame-alist'(ns-transparent-titlebar . t))
-  (add-to-list
-   'default-frame-alist'(ns-appearance . light))
-  (set-face-attribute 'default nil :family "Roboto Mono" :height 150)
-  (set-face-attribute 'fixed-pitch nil :family "Roboto Mono")
-  (set-face-attribute 'variable-pitch nil :family "IBM Plex Serif")
-#+END_SRC
-** Moodline
-for minimalist modeline
-#+BEGIN_SRC emacs-lisp
-  (use-package mood-line
-    :config (mood-line-mode))
-#+END_SRC
-** Org plug-ins
+** Org tiny plug-ins
 *** Org-fragtog and Org-reveal for revealing markups
 Org-fragtog for viewing raw latex and svg generation
 #+BEGIN_SRC emacs-lisp
@@ -959,6 +979,91 @@ Org-appear for general org markups
                 ("<H-left>" . org-clock-convenience-fill-gap)
                 ("<H-right>" . org-clock-convenience-fill-gap-both)))
 #+END_SRC
+*** TODO Org-projectile
+** Complicated extensions
+*** TODO vale for linting
+[[https://emacstil.com/til/2022/03/05/setting-up-vale-prose-linter-on-emacs/][short tut]]
+
+*** org-journal
+#+BEGIN_SRC emacs-lisp
+  (use-package org-journal
+    :defer t
+    :hook (after-init . evil-mode)
+    :init
+    ;; Change default prefix key; needs to be set before loading org-journal
+    (setq org-journal-prefix-key "H-j ")
+    :config
+    (setq org-journal-dir yza/journal-files
+          org-journal-file-type 'weekly
+          org-journal-file-header "#+STARTUP: folded\n"
+          org-journal-date-format "%A, %d %B %Y"
+          org-journal-file-format "%Y-%m-%d.org")
+    )
+
+#+END_SRC
+
+* Yza Config - Third-party
+** Evil: Expansion packs
+*** TODO evil-org
+*** SOMEDAY Alternative modal editing: meow
+** Themes
+*** Poet config
+#+BEGIN_SRC emacs-lisp
+  (dolist (hook '(text-mode-hook))
+    (add-hook hook (lambda () (flyspell-mode 1))))
+  (add-hook 'text-mode-hook
+            (lambda ()
+              (variable-pitch-mode 1)))
+  (add-to-list
+   'default-frame-alist'(ns-transparent-titlebar . t))
+  (add-to-list
+   'default-frame-alist'(ns-appearance . light))
+  (set-face-attribute 'default nil :family "Roboto Mono" :height 150)
+  (set-face-attribute 'fixed-pitch nil :family "Roboto Mono")
+  (set-face-attribute 'variable-pitch nil :family "IBM Plex Serif")
+#+END_SRC
+*** COMMENT Circadian for changing themes
+#+BEGIN_SRC emacs-lisp
+(use-package poet-theme :ensure :defer)
+(use-package poet-dark :ensure :defer)
+
+(use-package circadian
+  :ensure t
+  :config
+  (setq calendar-latitude 14.6)
+  (setq calendar-longitude 121.1)
+  (setq circadian-themes '((:sunrise . poet-theme)
+                           (:sunset  . poet-dark)))
+  (circadian-setup))
+#+END_SRC
+
+** Mode line
+for minimalist modeline
+#+BEGIN_SRC emacs-lisp
+  (use-package mood-line
+    :config (mood-line-mode))
+#+END_SRC
+
+** Beacon for visible cursor
+#+BEGIN_SRC emacs-lisp
+  (use-package beacon
+    :config (beacon-mode 1))
+#+END_SRC
+
+** Better undo
+#+BEGIN_SRC emacs-lisp
+  (use-package undo-fu
+    :config
+    (global-unset-key (kbd "C-/"))
+    (global-set-key (kbd "C-/")   'undo-fu-only-undo)
+    (global-set-key (kbd "C-?") 'undo-fu-only-redo))
+#+END_SRC
+
+** COMMENT Using <SPC> for C-x
+#+BEGIN_SRC emacs-lisp
+  (define-key evil-normal-state-map (kbd "<SPC>") ctl-x-map)
+#+END_SRC
+
 ** Completion stack
 *** Vertico
 The main interface for completion. Comparing both selectrum and this, I decided to go with this because it is more lightweight
@@ -1002,6 +1107,7 @@ For hints in the completion (eg. commands bindings/meanings)
     :init
     (marginalia-mode))
 #+END_SRC
+
 *** Consult
 for other useful functions
 #+BEGIN_SRC emacs-lisp
@@ -1103,7 +1209,8 @@ for other useful functions
     (setq consult-narrow-key "<") ;; (kbd "C-+")
     )
 #+END_SRC
-**** TODO Consult Bibtex
+**** TODO [#A] Consult Bibtex
+**** TODO [#A]  have rg functions for agenda, projects, zettls
 *** Embark
 for flipping the usual action-item movement of M-x; allowing to first select the thing BEFORE finalizing the action to be used.
 #+BEGIN_SRC emacs-lisp
@@ -1137,7 +1244,7 @@ for flipping the usual action-item movement of M-x; allowing to first select the
     (embark-collect-mode . consult-preview-at-point-mode))
 #+END_SRC
 
-**** Embark as helm
+**** COMMENT Embark as helm
 Ported from [[https://karthinks.com/software/fifteen-ways-to-use-embark/][karthinks]]
 #+BEGIN_SRC emacs-lisp
 (defun with-minibuffer-keymap (keymap)
@@ -1176,7 +1283,6 @@ using consult for directory completion everywhere!
     ;; :custom (yas-prompt-functions '(yas-completing-prompt))
     )
 #+END_SRC
-
 ** COMMENT Helpful for verbose help
 #+BEGIN_SRC emacs-lisp
   (use-package helpful
@@ -1187,6 +1293,7 @@ using consult for directory completion everywhere!
 #+END_SRC
 
 ** TODO Avy
+** TODO Ace-window for fast swaps
 * Yza Config - Programming
 ** Showing diffs (git)
 *** Diff-hl
@@ -1208,5 +1315,10 @@ using consult for directory completion everywhere!
     (bind-key "<H-backspace>" 'yankpad-expand))
 #+END_SRC
 
+** TODO [#A] Projectile
+** TODO [#A] Company
 ** TODO Parrot?
 ** TODO Outshine to navigate code like org-mode?
+** Language Specific
+*** TODO [#B] LSP-mode for favorite programs
+*** TODO Emmet mode for fast HTML/CSS
