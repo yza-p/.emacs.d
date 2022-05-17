@@ -680,6 +680,9 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
   (defun yza/consult-slipbox ()
     (interactive)
     (consult-ripgrep yza/slipbox-files))
+  (defun yza/consult-projects ()
+    (interactive)
+    (consult-ripgrep yza/project-files))
 
   (defun dfeich/helm-org-clock-in (marker)
     "Clock into the item at MARKER"
@@ -696,6 +699,16 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
   (defvar yza/review-files "~/Dropbox/org/life/reviews")
   (defvar yza/journal-files "~/Dropbox/org/life/journal")
   (defvar yza/slipbox-files "~/Dropbox/org/notes/0.slipbox")
+
+  (defvar yza/school-files "~/Dropbox/org/projects/future.school")
+  (defvar yza/project-files "~/Dropbox/org/projects")
+#+END_SRC
+
+*** COMMENT Custom  global bindings
+#+BEGIN_SRC emacs-lisp
+(global-set-key (kbd "H-p")  (lambda () (interactive)
+                                   (cd "~/Dropbox/org/projects/")
+                                   (call-interactively 'find-file)))
 #+END_SRC
 
 *** Org-mode use-package declaration
@@ -706,6 +719,7 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
     :bind (("H-/" . org-todo)
            ("H-." . yza/consult-org-headings-agenda)
            ("H-r" . yza/consult-slipbox)
+           ("H-p" . yza/consult-projects)
            ("C-c 1" . org-time-stamp-inactive)
            ("H-i" . do-org-show-all-inline-images)
            ("<H-left>" . org-clock-in)
@@ -1221,22 +1235,26 @@ from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2e
     )
 
 #+END_SRC
-*** org-multi-wiki
+*** COMMENT org-multi-wiki
+not working
 #+BEGIN_SRC emacs-lisp
   (use-package org-multi-wiki
-    :defer t
-    :bind (("H-j j" . org-journal-new-entry)
-           ("H-j s" . org-journal-search))
-    :init
-    (setq org-journal-prefix-key "H-j ")
+    ;; :defer t
+    ;; :bind (("H-j j" . org-journal-new-entry)
+    ;;        ("H-j s" . org-journal-search))
     :config
-    (setq org-journal-dir yza/journal-files
-          org-journal-file-type 'weekly
-          org-journal-file-header "#+STARTUP: folded\n"
-          org-journal-date-format "%A, %d %B %Y"
-          org-journal-file-format "%Y-%m.org")
+    (org-multi-wiki-global-mode 1)
+    :custom
+    ;; (org-multi-wiki-namespace-list '((personal (concat yza/project-files "yza/"))))
+    ;; (org-multi-wiki-namespace-list '((huh "~/Dropbox/org/projects/yza/")
+                                     ;; (schnotes "~/Dropbox/org/projects/future.school/")
+                                     ;; (schprojs "~/Dropbox/org/projects/future.school/projects/")
+                                     ;; (computer "~/Dropbox/org/projects/learn.computer/")
+                                     ;; (fandom "~/Dropbox/org/projects/social.fandom/")
+                                     ;; (writeups "~/Dropbox/org/projects/future.writing/")
+                                     ;; ))
+    (org-multi-wiki-default-namespace 'personal)
     )
-
 #+END_SRC
 
 *** TODO vale for linting
