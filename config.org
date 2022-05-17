@@ -2,6 +2,8 @@
 #+Author: Ian Y.E. Pan
 #+Date: 2019
 
+:: [[https://github.com/ianyepan/.macOS-emacs.d/blob/master/init.el][pan's short config]]
+
 * Settings without corresponding packages
 Clean up the UI and enhance some basic defaults defined in "C Source Code". The variable ~ian/indent-width~ controls the default indentation across various programming modes. The default is 4, you can change this variable to 2 or any other indentation width you prefer, and the change will be made across all programming language modes including C, C++, Java, Python etc. (Exception: JavaScript defaults to 2-space indent, you can still set it to any other indentation width you prefer in the ~web-mode~ section.)
 #+BEGIN_SRC emacs-lisp
@@ -622,23 +624,26 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
           (run-hook-with-args 'org-cycle-hook 'folded))))))
 #+END_SRC
 
-** Window configurations (defuns)
+** TODO dynamic abbrevs
+[[https://www.emacswiki.org/emacs/DynamicAbbreviations][emacswiki]]
+** TODO [#A] Window configurations (defuns)
 #+BEGIN_SRC emacs-lisp
   (defun yza/default-window-setup ()
     "Called by emacs-startup-hook to set up my initial window configuration."
     (org-agenda nil "0")
-    (split-window-right)
-    (find-file "~/Dropbox/org/journal/2022-Q2.org"))
+    (split-window-right))
 
   (defun yza/default-fast-window-setup ()
     "Called by emacs-startup-hook to set up my initial window configuration."
     (split-window-below)
     (split-window-right))
 
-  (defun yza/switch-to-agenda ()
+  (defun yza/switch-to-agenda () ;; call org agenda only if there's no existing shit, use switch-buffer if so
     (interactive)
     "Called by emacs-startup-hook to set up my initial window configuration."
-    (org-agenda nil "0"))
+    (switch-to-buffer "*Org Agenda*")
+    ;; (org-agenda nil "0")
+    )
 
   (global-set-key (kbd "H-1") #'yza/default-window-setup)
   (global-set-key (kbd "H-0") #'yza/switch-to-agenda)
@@ -687,8 +692,8 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
 #+END_SRC
 *** Custom directory variables
 #+BEGIN_SRC emacs-lisp
-  (defvar yza/agenda-files "~/Dropbox/org/life/actions")
-  (defvar yza/review-files "~/Dropbox/org/life/actions/reviews")
+  (defvar yza/action-files "~/Dropbox/org/life/actions")
+  (defvar yza/review-files "~/Dropbox/org/life/reviews")
   (defvar yza/journal-files "~/Dropbox/org/life/journal")
   (defvar yza/slipbox-files "~/Dropbox/org/notes/0.slipbox")
 #+END_SRC
@@ -711,7 +716,9 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
     (org-latex-create-formula-image-program 'dvisvgm)
     (org-ellipsis " ▾")
     (org-directory "~/Dropbox/org")
+    (org-use-sub-superscripts '{})
     (org-return-follows-link t)
+    (org-log-reschedule 'note)
     (org-use-fast-todo-selection t)
     (org-hide-emphasis-markers t)
     (org-toggle-pretty-entities t)
@@ -744,6 +751,48 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
 
              ("GOAL" :foreground "DeepPink" :weight bold)
              )))
+
+    (org-tag-alist '(;(:startgroup)
+                     ;; ("Learning")
+                     ;; (:grouptags)
+                     ;; ("Computer")
+                     ;; ("Art")
+                     ;; ("Math")
+                     ;; ("Science")
+                     ;; (:endgroup)
+
+                     ;; (:startgroup)
+                     ;; ("Computer")
+                     ;; (:grouptags)
+                     ;; (:startgroup)
+                     ;; ("lc@.+")
+                     ;; (:endgroup)
+                     ;; (:endgroup)
+                     ;; (:startgroup)
+
+                     ;; ("Art")
+                     ;; (:grouptags)
+                     ;; (:startgroup)
+                     ;; ("la@.+")
+                     ;; (:endgroup)
+                     ;; (:endgroup)
+
+                     ;; (:startgroup)
+                     ;; ("School")
+                     ;; (:grouptags)
+                     ;; (:startgroup)
+                     ;; ("S@.+")
+                     ;; (:endgroup)
+                     ;; (:endgroup)
+
+                     (:startgroup)
+                     ("Brainpower")
+                     (:grouptags)
+                     ("high" . ?1)
+                     ("mid" . ?2)
+                     ("low" . ?3)
+                     ("chill" . ?4)
+                     (:endgroup)))
 
     :custom-face
     (org-document-title ((t (:weight bold :height 1.5))))
@@ -918,33 +967,137 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
     :ensure nil
     :bind (("<f9>" . org-agenda))
     :config
-    (setq org-agenda-files (find-lisp-find-files yza/agenda-files "\.org$"))
+    ;; (setq org-agenda-files (append (find-lisp-find-files yza/action-files "\.org$")
+                                   ;; (find-lisp-find-files yza/review-files "\.org$")))
     :custom
-    ;; (org-agenda-files yza/agenda-files)
+    (org-agenda-files (append (find-lisp-find-files yza/action-files "\.org$")
+                              (find-lisp-find-files yza/review-files "\.org$")))
     (org-agenda-start-with-log-mode t)
     )
 #+END_SRC
 
-*** TODO Org-capture use-package
+*** TODO [#A] Org-capture use-package
 #+BEGIN_SRC emacs-lisp
   (use-package org-capture
+    :preface
+    (defun org-journal-find-location ()
+      ;; Open today's journal, but specify a non-nil prefix argument in order to
+      ;; inhibit inserting the heading; org-capture will insert the heading.
+      (org-journal-new-entry t)
+      (unless (eq org-journal-file-type 'daily)
+        (org-narrow-to-subtree))
+      (goto-char (point-max)))
     :ensure nil
-    :after org-gtd
     :bind (("<f12>" . org-capture))
     :config
-    (setq org-capture-templates `(("s" "Speedy task! (skipping inbox)"
-                                   entry (file+headline "~/Dropbox/org/life/actionable.org" "Actions")
-                                   "* NEXT %? \n%U\n\n %i"
-                                   :kill-buffer t)
-                                  ("m" "Movie"
-                                   entry (file+headline "~/Dropbox/org/life/list.org" "Movies")
-                                   "* %? @watch %^{GIST}p %^{GENRE}p")
-                                  ("e" "Book" entry (file+headline "~/Dropbox/org/life/list.org" "Books")
-                                   "* BACKLOG %^{TITLE}\n:PROPERTIES:\n:ADDED: %<[%Y-%02m-%02d]>\n%^{AUTHOR}p%^{GIST}p%^{GENRE}p\n:END:%?" :empty-lines 1)
-                                  )))
+    (setq org-capture-templates (doct '(
+                                        ("Ideas" :keys "i"
+                                         :file (lambda () (concat yza/action-files "/actionable.org"))
+                                         :template ("* IDEA %^{Description} %^g"
+                                                    ":PROPERTIES:"
+                                                    ":created: %U"
+                                                    "%{add-prop}"
+                                                    ":END:"
+                                                    "%?")
+                                         :children (("Explore!" :keys "z"
+                                                     :headline "Ideas"
+                                                     :add-prop ":ref: %^{Reference}")
+                                                    ("Maybe todos?" :keys "t"
+                                                     :headline "Ideas"
+                                                     :add-prop ":context: %^{Where will you do this?}")))
+                                        ("Actions" :keys "a"
+                                         :file (lambda () (concat yza/action-files "/actionable.org"))
+                                         :template ("* %{todo-state}  %^{Description} %^g"
+                                                    ":PROPERTIES:"
+                                                    ":created: %U"
+                                                    ":effort: %^{Effort}"
+                                                    ":brainpower: %^{Brainpower (high/mid/low/chill)}"
+                                                    ":END:"
+                                                    "%?")
+                                         :children (("Single Actions" :keys "a" :todo-state "NEXT"
+                                                     :headline "Actions")
+                                                    ("Scheduled" :keys "s" :todo-state "TODO"
+                                                     :headline "Appointments")
+                                                    ("Waiting on" :keys "w" ;:todo-state "WAIT"
+                                                     :headline "Waiting on"
+                                                     :template ("* WAIT %^{Description}"))
+                                                    ("Projects" :keys "p" :todo-state ""
+                                                     :headline "Projects")))
+                                        ("Fast-clocking" :keys "c"
+                                         :clock-in t
+                                         :clock-keep t
+                                         :immediate-finish t
+                                         :file (lambda () (concat yza/action-files "/actionable.org"))
+                                         :template ("* %{todo-state} %^{Description} %^g"
+                                                    ":PROPERTIES:"
+                                                    ":created: %U"
+                                                    ":effort: %^{Effort}"
+                                                    ":END:"
+                                                    "%?")
+                                         :children (("Movie!" :keys "m"
+                                                     :file (lambda () (concat yza/action-files "/watch-history.org"))
+                                                     :template ("* TODO %^{Name}"
+                                                                ":PROPERTIES:"
+                                                                ":watch-with: %^{Watch with who?}"
+                                                                ":watchlist-link: %^{Link to movie if in the list}"
+                                                                ":END:"
+                                                                "%?")
+                                                     )
+                                                    ("Event now!" :keys "e" :todo-state "TODO"
+                                                     :headline "Appointments"
+                                                     )
+                                                    ("Action now!" :keys "a" :todo-state "NEXT"
+                                                     :headline "Actions"
+                                                     )))
+                                        ("Record" :keys "r"
+                                         :file (lambda () (concat yza/action-files "/data.org"))
+                                         :type table-line
+                                         :template ("| NEXT %^{Description} |")
+                                         :children (("daily hours" :keys "z"
+                                                     :headline "Ideas")
+                                                    ("sleep" :keys "z"
+                                                     :headline "Ideas")
+                                                    ("nihon!" :keys "n")))
+                                        ("Add to list" :keys "l"
+                                         :file (lambda () (concat yza/action-files "/list.org"))
+                                         :template ("* BACKLOG %^{Title}"
+                                                    ":PROPERTIES:"
+                                                    ":added: %U"
+                                                    ":list-group: %^{Movie/Series/Book/Article?}"
+                                                    ":published-on: %^{Published on}u"
+                                                    "%{add-prop}"
+                                                    ":gist: %^{Gist}"
+                                                    ":END:"
+                                                    )
+                                         :children (("book" :keys "b"
+                                                     :add-prop ":author: ^%{Author}"
+                                                     :headline "Books")
+                                                    ("shows" :keys "s"
+                                                     :add-prop ":director: ^%{Director}"
+                                                     :headline "Shows")
+                                                    ("people" :keys "p"
+                                                     :add-prop ":author: ^%{Author}"
+                                                     :headline "People")))
+                                        ("Journal" :keys "j"
+                                         ;; :jump-to-captured t
+                                         :type plain
+                                         ;; :immediate-finish t
+                                         :function (lambda() (org-journal-find-location))
+                                         ;; :template "* hello"
+                                         :strfmt (lambda() (format-time-string org-journal-time-format))
+                                         :template "** %{strfmt} %^{Title}\n%?")
+                                        ;; "%?"
+                                        )))
+    )
 #+END_SRC
 
 ** Org tiny plug-ins
+*** DOCT for more elegant org-capture templates
+#+BEGIN_SRC emacs-lisp
+  (use-package doct
+    :commands (doct))
+#+END_SRC
+
 *** Org-fragtog and Org-reveal for revealing markups
 Org-fragtog for viewing raw latex and svg generation
 #+BEGIN_SRC emacs-lisp
@@ -991,17 +1144,68 @@ Org-appear for general org markups
                 ("<H-left>" . org-clock-convenience-fill-gap)
                 ("<H-right>" . org-clock-convenience-fill-gap-both)))
 #+END_SRC
-*** TODO Org-projectile
-** Complicated extensions
-*** TODO vale for linting
-[[https://emacstil.com/til/2022/03/05/setting-up-vale-prose-linter-on-emacs/][short tut]]
+*** Function: org clock table for tag-grouping
+from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2ee][githubgist]]
+#+BEGIN_SRC emacs-lisp
+(defun clocktable-by-tag/shift-cell (n)
+  (let ((str ""))
+    (dotimes (i n)
+      (setq str (concat str "| ")))
+    str))
 
+(defun clocktable-by-tag/insert-tag (params)
+  (let ((tag (plist-get params :tags)))
+    (insert "|--\n")
+    (insert (format "| %s | *Tag time* |\n" tag))
+    (let ((total 0))
+      (mapcar
+       (lambda (file)
+         (let ((clock-data (with-current-buffer (find-file-noselect file)
+                             (org-clock-get-table-data (buffer-name) params))))
+           (when (> (nth 1 clock-data) 0)
+             (setq total (+ total (nth 1 clock-data)))
+             (insert (format "| | File *%s* | %.2f |\n"
+                             (file-name-nondirectory file)
+                             (/ (nth 1 clock-data) 60.0)))
+             (dolist (entry (nth 2 clock-data))
+               (insert (format "| | . %s%s | %s %.2f |\n"
+                               (org-clocktable-indent-string (nth 0 entry))
+                               (nth 1 entry)
+                               (clocktable-by-tag/shift-cell (nth 0 entry))
+                               (/ (nth 4 entry) 60.0)))))))
+       (org-agenda-files))
+      (save-excursion
+        (re-search-backward "*Tag time*")
+        (org-table-next-field)
+        (org-table-blank-field)
+        (insert (format "*%.2f*" (/ total 60.0)))))
+    (org-table-align)))
+
+(defun org-dblock-write:clocktable-by-tag (params)
+  (insert "| Tag | Headline | Time (h) |\n")
+  (insert "|     |          | <r>  |\n")
+  (let ((tags (plist-get params :tags)))
+    (mapcar (lambda (tag)
+              (clocktable-by-tag/insert-tag (plist-put (plist-put params :match tag) :tags tag)))
+            tags)))
+#+END_SRC
+*** COMMENT org-starter for easy organization of refile and agenda files
+#+BEGIN_SRC emacs-lisp
+      (use-package org-starter
+    :custom
+  (org-starter-path "~/Dropbox/org")
+)
+#+END_SRC
+
+*** TODO Org-visual-outline
+*** TODO Org-projectile
+** Main extensions
 *** org-journal
 #+BEGIN_SRC emacs-lisp
   (use-package org-journal
     :defer t
     :hook (after-init . evil-mode)
-    :find (("H-j j" . org-journal-new-entry)
+    :bind (("H-j j" . org-journal-new-entry)
            ("H-j s" . org-journal-search))
     :init
     ;; Change default prefix key; needs to be set before loading org-journal
@@ -1011,12 +1215,34 @@ Org-appear for general org markups
           org-journal-file-type 'weekly
           org-journal-file-header "#+STARTUP: folded\n"
           org-journal-date-format "%A, %d %B %Y"
-          org-journal-file-format "%Y-%m-%d.org")
+          org-journal-file-format "%Y-%m.org")
     ;; (global-set-key (kbd "H-j j") 'org-journal-new-entry)
     ;; (global-set-key (kbd "H-j s") 'org-journal-search)
     )
 
 #+END_SRC
+*** org-multi-wiki
+#+BEGIN_SRC emacs-lisp
+  (use-package org-multi-wiki
+    :defer t
+    :bind (("H-j j" . org-journal-new-entry)
+           ("H-j s" . org-journal-search))
+    :init
+    (setq org-journal-prefix-key "H-j ")
+    :config
+    (setq org-journal-dir yza/journal-files
+          org-journal-file-type 'weekly
+          org-journal-file-header "#+STARTUP: folded\n"
+          org-journal-date-format "%A, %d %B %Y"
+          org-journal-file-format "%Y-%m.org")
+    )
+
+#+END_SRC
+
+*** TODO vale for linting
+[[https://emacstil.com/til/2022/03/05/setting-up-vale-prose-linter-on-emacs/][short tut]]
+
+*** TODO reveal-js
 
 * Yza Config - Third-party
 ** Evil: Expansion packs
@@ -1310,6 +1536,8 @@ using consult for directory completion everywhere!
 
 ** TODO Avy
 ** TODO Ace-window for fast swaps
+** TODO vundo for visualized undo-tree
+
 * Yza Config - Programming
 ** Showing diffs (git)
 *** Diff-hl
@@ -1326,15 +1554,18 @@ using consult for directory completion everywhere!
   (use-package yankpad
     :defer 10
     :init
-    (setq yankpad-file "~/Dropbox/org/yankpad.org")
+    (setq yankpad-file "~/Dropbox/org/meta/yankpad.org")
     :config
     (bind-key "<H-backspace>" 'yankpad-expand))
 #+END_SRC
 
+** TODO EAF for browser?
 ** TODO [#A] Projectile
 ** TODO [#A] Company
 ** TODO Parrot?
 ** TODO Outshine to navigate code like org-mode?
+** TODO [#C] Tree sitter for better parsing of lang?
+
 ** Language Specific
 *** TODO [#B] LSP-mode for favorite programs
 *** TODO Emmet mode for fast HTML/CSS
