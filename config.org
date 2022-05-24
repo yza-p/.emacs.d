@@ -437,6 +437,14 @@ Provides us with hints on available keystroke combinations.
 #+END_SRC
 
 * Yza Config - Built-in
+** Server
+#+BEGIN_SRC emacs-lisp
+  (use-package server
+    :ensure nil
+    :config
+    (unless (server-running-p) (server-start)))
+#+END_SRC
+
 ** Modifiers for mac
 #+BEGIN_SRC emacs-lisp
   (when (memq window-system '(mac ns x))
@@ -449,6 +457,7 @@ Provides us with hints on available keystroke combinations.
 ** Alerts
 #+BEGIN_SRC emacs-lisp
   (use-package alert
+    :ensure nil
     :config
     (if (eq system-type 'darwin)
         (setq
@@ -630,8 +639,8 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
 #+BEGIN_SRC emacs-lisp
   (defun yza/default-window-setup ()
     "Called by emacs-startup-hook to set up my initial window configuration."
-    (org-agenda nil "0")
-    (split-window-right))
+    (ian/split-and-follow-vertically)
+    (org-agenda nil "0"))
 
   (defun yza/default-fast-window-setup ()
     "Called by emacs-startup-hook to set up my initial window configuration."
@@ -645,19 +654,12 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
     ;; (org-agenda nil "0")
     )
 
-  (global-set-key (kbd "H-1") #'yza/default-window-setup)
+  (add-hook 'after-init-hook #'yza/default-window-setup)
+  ;; (global-set-key (kbd "H-1") #'yza/default-window-setup)
   (global-set-key (kbd "H-0") #'yza/switch-to-agenda)
 #+END_SRC
 
 ** TODO Daemon
-** SOMEDAY fortune?
-(format
-                                   ";; %s\n\n"
-                                   (replace-regexp-in-string
-                                    "\n" "\n;; " ; comment each line
-                                    (replace-regexp-in-string
-                                     "\n$" ""    ; remove trailing linebreak
-                                     (shell-command-to-string "fortune wisdom"))))
 ** Recentf
 #+BEGIN_SRC emacs-lisp
   (require 'recentf) ;; so that the recentfiles don't show the installed packages
@@ -670,6 +672,525 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
   (save-place-mode 1)
 #+END_SRC
 
+** open links via firefox
+#+BEGIN_SRC emacs-lisp
+(setq browse-url-browser-function 'browse-url-default-macosx-browser)
+#+END_SRC
+
+* Yza Config - Third-party
+** Evil: Expansion packs
+*** TODO evil-org
+*** SOMEDAY Alternative modal editing: meow
+** Buffer move
+#+BEGIN_SRC emacs-lisp
+(use-package buffer-move
+  :load-path "~/.emacs.d/external/buffer-move-master")
+#+END_SRC
+
+** Themes
+*** Poet config
+#+BEGIN_SRC emacs-lisp
+  (dolist (hook '(text-mode-hook))
+    (add-hook hook (lambda () (flyspell-mode 1))))
+  (add-hook 'text-mode-hook
+            (lambda ()
+              (variable-pitch-mode 1)))
+  (add-to-list
+   'default-frame-alist'(ns-transparent-titlebar . t))
+  (add-to-list
+   'default-frame-alist'(ns-appearance . light))
+  (set-face-attribute 'default nil :family "Roboto Mono" :height 150)
+  (set-face-attribute 'fixed-pitch nil :family "Roboto Mono")
+  (set-face-attribute 'variable-pitch nil :family "IBM Plex Serif")
+#+END_SRC
+*** COMMENT Circadian for changing themes
+#+BEGIN_SRC emacs-lisp
+(use-package poet-theme :ensure :defer)
+(use-package poet-dark :ensure :defer)
+
+(use-package circadian
+  :ensure t
+  :config
+  (setq calendar-latitude 14.6)
+  (setq calendar-longitude 121.1)
+  (setq circadian-themes '((:sunrise . poet-theme)
+                           (:sunset  . poet-dark)))
+  (circadian-setup))
+#+END_SRC
+
+** Mode line
+for minimalist modeline
+#+BEGIN_SRC emacs-lisp
+  (use-package mood-line
+    :config (mood-line-mode))
+#+END_SRC
+
+** Beacon for visible cursor
+#+BEGIN_SRC emacs-lisp
+  (use-package beacon
+    :config (beacon-mode 1))
+#+END_SRC
+
+** Better undo
+#+BEGIN_SRC emacs-lisp
+  (use-package undo-fu
+    :config
+    (global-unset-key (kbd "C-/"))
+    (global-set-key (kbd "C-/")   'undo-fu-only-undo)
+    (global-set-key (kbd "C-?") 'undo-fu-only-redo))
+#+END_SRC
+
+** COMMENT Using <SPC> for C-x
+#+BEGIN_SRC emacs-lisp
+  (define-key evil-normal-state-map (kbd "<SPC>") ctl-x-map)
+#+END_SRC
+
+** Completion stack
+*** Vertico
+The main interface for completion. Comparing both selectrum and this, I decided to go with this because it is more lightweight
+#+BEGIN_SRC emacs-lisp
+  (use-package vertico
+    :ensure t
+    :bind (:map vertico-map
+                ("C-j" . vertico-next)
+                ("C-k" . vertico-previous)
+                ("C-f" . vertico-exit)
+                :map minibuffer-local-map
+                ("M-h" . backward-kill-word))
+    :custom
+    (vertico-cycle t)
+    :init
+    (vertico-mode))
+#+END_SRC
+**** Savehist (Built-in)
+In-built package that remembers the commands and such picked in the mini-buffer and places it on the top.
+#+BEGIN_SRC emacs-lisp
+  (use-package savehist
+    :init
+    (savehist-mode))
+#+END_SRC
+**** Orderless (Third-party)
+Completion style that allows spaces to be included in the narrowing. Can also match candidates regardless of order the user typed
+#+BEGIN_SRC emacs-lisp
+  (use-package orderless
+    :ensure t
+    :custom
+    (completion-styles '(orderless basic))
+    (completion-category-overrides '((file (styles basic partial-completion)))))
+#+END_SRC
+*** Marginalia
+For hints in the completion (eg. commands bindings/meanings)
+#+BEGIN_SRC emacs-lisp
+  (use-package marginalia
+    :after vertico
+    :bind (:map minibuffer-local-map
+                ("M-A" . marginalia-cycle))
+    :init
+    (marginalia-mode))
+#+END_SRC
+
+*** Consult
+for other useful functions
+#+BEGIN_SRC emacs-lisp
+  (use-package consult
+    :preface
+    :bind (;; C-c bindings (mode-specific-map)
+           ("C-c h" . consult-history)
+           ("C-c m" . consult-mode-command)
+           ("C-c k" . consult-kmacro)
+           ;; C-x bindings (ctl-x-map)
+           ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
+           ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
+           ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+           ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
+           ("C-x r b" . consult-bookmark)            ;; orig. bookmark-jump
+           ("C-x p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
+           ;; Custom M-# bindings for fast register access
+           ("M-#" . consult-register-load)
+           ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+           ("C-M-#" . consult-register)
+           ;; Other custom bindings
+           ("M-y" . consult-yank-pop)                ;; orig. yank-pop
+           ("<help> a" . consult-apropos)            ;; orig. apropos-command
+           ;; M-g bindings (goto-map)
+           ("M-g e" . consult-compile-error)
+           ("M-g f" . consult-flycheck)               ;; Alternative: consult-flycheck
+           ("M-g g" . consult-goto-line)             ;; orig. goto-line
+           ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
+           ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+           ("M-g m" . consult-mark)
+           ("M-g k" . consult-global-mark)
+           ("M-g i" . consult-imenu)
+           ("M-g I" . consult-imenu-multi)
+           ("M-g r" . consult-recent-file)
+           ;; M-s bindings (search-map)
+           ("M-s d" . consult-find)
+           ("M-s D" . consult-locate)
+           ("M-s g" . consult-grep)
+           ("M-s G" . consult-git-grep)
+           ("M-s r" . consult-ripgrep)
+           ("M-s l" . consult-line)
+           ("M-s L" . consult-line-multi)
+           ("M-s m" . consult-multi-occur)
+           ("M-s k" . consult-keep-lines)
+           ("M-s u" . consult-focus-lines)
+           ;; Isearch integration
+           ("M-s e" . consult-isearch-history)
+           :map isearch-mode-map
+           ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
+           ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+           ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
+           ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
+           ;; Minibuffer history
+           :map minibuffer-local-map
+           ("M-s" . consult-history)                 ;; orig. next-matching-history-element
+           ("M-r" . consult-history)                ;; orig. previous-matching-history-element
+           ;; Custom shit
+           )
+
+    ;; The :init configuration is always executed (Not lazy)
+    :init
+
+    ;; Optionally configure the register formatting. This improves the register
+    ;; preview for `consult-register', `consult-register-load',
+    ;; `consult-register-store' and the Emacs built-ins.
+    (setq register-preview-delay 0.5
+          register-preview-function #'consult-register-format)
+
+    ;; Optionally tweak the register preview window.
+    ;; This adds thin lines, sorting and hides the mode line of the window.
+    (advice-add #'register-preview :override #'consult-register-window)
+
+    ;; Use Consult to select xref locations with preview
+    (setq xref-show-xrefs-function #'consult-xref
+          xref-show-definitions-function #'consult-xref)
+
+    ;; Configure other variables and modes in the :config section,
+    ;; after lazily loading the package.
+    :config
+
+    ;; Optionally configure preview. The default value
+    ;; is 'any, such that any key triggers the preview.
+    ;; (setq consult-preview-key 'any)
+    ;; (setq consult-preview-key (kbd "M-."))
+    ;; (setq consult-preview-key (list (kbd "<S-down>") (kbd "<S-up>")))
+    ;; For some commands and buffer sources it is useful to configure the
+    ;; :preview-key on a per-command basis using the `consult-customize' macro.
+    (consult-customize
+     consult-theme
+     :preview-key '(:debounce 0.2 any)
+     consult-ripgrep consult-git-grep consult-grep
+     consult-bookmark consult-recent-file consult-xref
+     consult--source-bookmark consult--source-recent-file
+     consult--source-project-recent-file
+     :preview-key (kbd "M-."))
+
+    ;; Optionally configure the narrowing key.
+    ;; Both < and C-+ work reasonably well.
+    (setq consult-narrow-key "<") ;; (kbd "C-+")
+    )
+#+END_SRC
+**** TODO [#A] Consult Bibtex
+**** TODO [#A]  have rg functions for agenda, projects, zettls
+*** Embark
+for flipping the usual action-item movement of M-x; allowing to first select the thing BEFORE finalizing the action to be used.
+#+BEGIN_SRC emacs-lisp
+  (use-package embark
+    :preface
+    :bind
+    (("C-." . embark-act)         ;; pick some comfortable binding
+     ("M-." . embark-dwim)        ;; good alternative: M-.
+     ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+
+    :init
+
+    ;; Optionally replace the key help with a completing-read interface
+    (setq prefix-help-command #'embark-prefix-help-command)
+
+    :config
+    (setq prefix-help-command #'embark-prefix-help-command)
+    ;; Hide the mode line of the Embark live/completions buffers
+    (add-to-list 'display-buffer-alist
+                 '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                   nil
+                   (window-parameters (mode-line-format . none)))))
+
+  ;; Consult users will also want the embark-consult package.
+  (use-package embark-consult
+    :after (embark consult)
+    :demand t ; only necessary if you have the hook below
+    ;; if you want to have consult previews as you move around an
+    ;; auto-updating embark collect buffer
+    :hook
+    (embark-collect-mode . consult-preview-at-point-mode))
+#+END_SRC
+
+**** COMMENT Embark as helm
+Ported from [[https://karthinks.com/software/fifteen-ways-to-use-embark/][karthinks]]
+#+BEGIN_SRC emacs-lisp
+(defun with-minibuffer-keymap (keymap)
+  (lambda (fn &rest args)
+    (minibuffer-with-setup-hook
+        (lambda ()
+          (use-local-map
+           (make-composed-keymap keymap (current-local-map))))
+      (apply fn args))))
+
+(defvar embark-completing-read-prompter-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "<tab>") 'abort-recursive-edit)
+    map))
+
+(advice-add 'embark-completing-read-prompter :around
+            (with-minibuffer-keymap embark-completing-read-prompter-map))
+(define-key vertico-map (kbd "<tab>") 'embark-act-with-completing-read)
+
+  (defun embark-act-with-completing-read (&optional arg)
+    (interactive "P")
+    (let* ((embark-prompter 'embark-completing-read-prompter)
+           (act (propertize "Act" 'face 'highlight))
+           (embark-indicator (lambda (_keymap targets) nil)))
+      (embark-act arg)))
+#+END_SRC
+** Completion: Expansion packs
+*** TODO consult-dir
+using consult for directory completion everywhere!
+*** TODO compose custom keymap for direct clocking?
+** Hydra
+most of this came from the official docs (all except org-roam)
+#+BEGIN_SRC emacs-lisp
+  (use-package hydra)
+  (use-package pretty-hydra)
+#+END_SRC
+
+*** oft-used keys with no modifiers
+#+BEGIN_SRC emacs-lisp
+    (defun x-hydra-pre ()
+      (insert "x")
+      (let ((timer (timer-create)))
+        (timer-set-time timer (timer-relative-time (current-time) 0.5))
+        (timer-set-function timer 'hydra-keyboard-quit)
+        (timer-activate timer)))
+
+    (defhydra x-hydra (:body-pre x-hydra-pre
+                                 :color blue
+                                 :hint nil)
+      ("f" (progn (zap-to-char -1 ?x) (ido-find-file)))
+      ("g" (progn (zap-to-char -1 ?x) (minibuffer-keyboard-quit)))
+      ("b" (progn (zap-to-char -1 ?x) (consult-buffer))))
+
+    (global-set-key "x" #'x-hydra/body)
+#+END_SRC
+*** outline minor mode
+#+BEGIN_SRC emacs-lisp
+  (pretty-hydra-define phydra-outline
+    (:color pink :quit-key "SPC" :title "Outline")
+    ("Hide..."
+     (("q" hide-sublevels "sublevels")
+      ("t" hide-body "body")
+      ("o" hide-other "other")
+      ("c" hide-entry "entry")
+      ("l" hide-leaves "leaves")
+      ("d" hide-subtree "subtree")
+      )
+     "Show..."
+     (("a" show-all "all")
+      ("e" show-entry "entry")
+      ("i" show-children "children")
+      ("k" show-branches "branches")
+      ("s" show-subtree "subtree")
+      )
+     "Move..."
+     (("u" outline-up-heading "up")
+      ("j" outline-next-visible-heading "next visible")
+      ("k" outline-previous-visible-heading "prev visible")
+      ("l" outline-forward-same-level "forward same level")
+      ("h" outline-backward-same-level "backward same level")
+      )
+     )
+    )
+
+  (global-set-key (kbd "s-z") 'phydra-outline/body)
+#+END_SRC
+
+*** window movement
+#+BEGIN_SRC emacs-lisp
+   (defhydra hydra-window ()
+     "
+  Movement^^        ^Split^         ^Switch^		^Resize^
+  ----------------------------------------------------------------
+  _h_ ←         _v_ertical      _b_uffer		_q_ X←
+  _j_ ↓         _x_ horizontal	_f_ind files	_w_ X↓
+  _k_ ↑         _z_ undo        _a_ce 1		_e_ X↑
+  _l_ →         _Z_ reset       _s_wap		_r_ X→
+  _F_ollow		_D_lt Other     _S_ave		max_i_mize
+  _SPC_ cancel	_o_nly this     _d_elete
+  "
+     ("h" windmove-left )
+     ("j" windmove-down )
+     ("k" windmove-up )
+     ("l" windmove-right )
+     ("q" hydra-move-splitter-left)
+     ("w" hydra-move-splitter-down)
+     ("e" hydra-move-splitter-up)
+     ("r" hydra-move-splitter-right)
+     ("b" helm-mini)
+     ("f" ido-find-files)
+     ("F" follow-mode)
+     ("a" (lambda ()
+            (interactive)
+            (ace-window 1)
+            (add-hook 'ace-window-end-once-hook
+                      'hydra-window/body))
+         )
+     ("v" (lambda ()
+            (interactive)
+            (split-window-right)
+            (windmove-right))
+         )
+     ("x" (lambda ()
+            (interactive)
+            (split-window-below)
+            (windmove-down))
+         )
+     ("s" (lambda ()
+            (interactive)
+            (ace-window 4)
+            (add-hook 'ace-window-end-once-hook
+                      'hydra-window/body)))
+     ("S" save-buffer)
+     ("d" delete-window)
+     ("D" (lambda ()
+            (interactive)
+            (ace-window 16)
+            (add-hook 'ace-window-end-once-hook
+                      'hydra-window/body))
+         )
+     ("o" delete-other-windows)
+     ("i" ace-maximize-window)
+     ("z" (progn
+            (winner-undo)
+            (setq this-command 'winner-undo))
+     )
+     ("Z" winner-redo)
+     ("SPC" nil)
+     )
+
+  (global-set-key (kbd "s-q") 'hydra-window/body)
+#+END_SRC
+
+*** ediff
+#+BEGIN_SRC emacs-lisp
+(defhydra hydra-ediff (:color blue :hint nil)
+  "
+^Buffers           Files           VC                     Ediff regions
+----------------------------------------------------------------------
+_b_uffers           _f_iles (_=_)       _r_evisions              _l_inewise
+_B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
+                  _c_urrent file
+"
+  ("b" ediff-buffers)
+  ("B" ediff-buffers3)
+  ("=" ediff-files)
+  ("f" ediff-files)
+  ("F" ediff-files3)
+  ("c" ediff-current-file)
+  ("r" ediff-revision)
+  ("l" ediff-regions-linewise)
+  ("w" ediff-regions-wordwise))
+  (global-set-key (kbd "s-e") 'hydra-ediff/body)
+#+END_SRC
+
+*** page navigation
+#+BEGIN_SRC emacs-lisp
+(defhydra hydra-page (ctl-x-map "" :pre (widen))
+  "page"
+  ("]" forward-page "next")
+  ("[" backward-page "prev")
+  ("n" narrow-to-page "narrow" :bind nil :exit t))
+#+END_SRC
+
+*** code folding
+#+BEGIN_SRC emacs-lisp
+  (defhydra hydra-hs (:idle 1.0)
+     "
+  Hide^^            ^Show^            ^Toggle^    ^Navigation^
+  ----------------------------------------------------------------
+  _h_ hide all      _s_ show all      _t_oggle    _n_ext line
+  _d_ hide block    _a_ show block              _p_revious line
+  _l_ hide level
+
+  _SPC_ cancel
+  "
+     ("s" hs-show-all)
+     ("h" hs-hide-all)
+     ("a" hs-show-block)
+     ("d" hs-hide-block)
+     ("t" hs-toggle-hiding)
+     ("l" hs-hide-level)
+     ("n" forward-line)
+     ("p" (forward-line -1))
+     ("SPC" nil)
+  )
+
+  (global-set-key (kbd "s-w") 'hydra-hs/body)
+#+END_SRC
+
+*** deft
+*** org-roam
+** Yasnippets
+#+BEGIN_SRC emacs-lisp
+  (use-package yasnippet
+    :defer 3 ;; takes a while to load, so do it async
+    :config (yas-global-mode)
+    ;; :custom (yas-prompt-functions '(yas-completing-prompt))
+    )
+#+END_SRC
+
+** TODO [#F] hippie expand
+** COMMENT Helpful for verbose help
+#+BEGIN_SRC emacs-lisp
+  (use-package helpful
+    :bind (("C-h f" . helpful-callable)
+           ("C-h v" . helpful-variable)
+           ("C-h k" . helpful-key)
+           ("C-c C-d" . helpful-at-point))
+#+END_SRC
+
+** TODO Avy
+** TODO Ace-window for fast swaps
+** TODO vundo for visualized undo-tree
+* Yza Config - Programming
+** Showing diffs (git)
+*** Diff-hl
+** Aggressive indention
+#+BEGIN_SRC emacs-lisp
+  (use-package aggressive-indent
+    :config
+    (global-aggressive-indent-mode 1)
+    (add-to-list 'aggressive-indent-excluded-modes 'html-mode))
+#+END_SRC
+
+** Yankpad
+#+BEGIN_SRC emacs-lisp
+  (use-package yankpad
+    :defer 10
+    :init
+    (setq yankpad-file "~/Dropbox/org/meta/yankpad.org")
+    :config
+    (bind-key "<H-backspace>" 'yankpad-expand))
+#+END_SRC
+
+** TODO EAF for browser?
+** TODO [#A] Projectile
+** TODO [#A] Company
+** TODO Parrot?
+** TODO Outshine to navigate code like org-mode?
+** TODO [#C] Tree sitter for better parsing of lang?
+
+** Language Specific
+*** TODO [#B] LSP-mode for favorite programs
+*** TODO Emmet mode for fast HTML/CSS
 * Org-related tweaks
 ** Standard procedures
 *** Custom functions
@@ -695,13 +1216,13 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
 #+END_SRC
 *** Custom directory variables
 #+BEGIN_SRC emacs-lisp
-  (defvar yza/action-files "~/Dropbox/org/life/actions")
-  (defvar yza/review-files "~/Dropbox/org/life/reviews")
-  (defvar yza/journal-files "~/Dropbox/org/life/journal")
-  (defvar yza/slipbox-files "~/Dropbox/org/notes/0.slipbox")
+  (defvar yza/action-files "~/Dropbox/org/life/actions/")
+  (defvar yza/review-files "~/Dropbox/org/life/reviews/")
+  (defvar yza/journal-files "~/Dropbox/org/life/journal/")
+  (defvar yza/slipbox-files "~/Dropbox/org/notes/0.slipbox/")
 
-  (defvar yza/school-files "~/Dropbox/org/projects/future.school")
-  (defvar yza/project-files "~/Dropbox/org/projects")
+  (defvar yza/school-files "~/Dropbox/org/projects/future.school/")
+  (defvar yza/project-files "~/Dropbox/org/projects/")
 #+END_SRC
 
 *** COMMENT Custom  global bindings
@@ -718,7 +1239,6 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
            (org-mode . org-indent-mode))
     :bind (("H-/" . org-todo)
            ("H-." . yza/consult-org-headings-agenda)
-           ("H-r" . yza/consult-slipbox)
            ("H-p" . yza/consult-projects)
            ("C-c 1" . org-time-stamp-inactive)
            ("H-i" . do-org-show-all-inline-images)
@@ -1006,7 +1526,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
     :config
     (setq org-capture-templates (doct '(
                                         ("Ideas" :keys "i"
-                                         :file (lambda () (concat yza/action-files "/actionable.org"))
+                                         :file (lambda () (concat yza/action-files "actionable.org"))
                                          :template ("* IDEA %^{Description} %^g"
                                                     ":PROPERTIES:"
                                                     ":created: %U"
@@ -1020,7 +1540,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                                      :headline "Ideas"
                                                      :add-prop ":context: %^{Where will you do this?}")))
                                         ("Actions" :keys "a"
-                                         :file (lambda () (concat yza/action-files "/actionable.org"))
+                                         :file (lambda () (concat yza/action-files "actionable.org"))
                                          :template ("* %{todo-state}  %^{Description} %^g"
                                                     ":PROPERTIES:"
                                                     ":created: %U"
@@ -1041,7 +1561,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                          :clock-in t
                                          :clock-keep t
                                          :immediate-finish t
-                                         :file (lambda () (concat yza/action-files "/actionable.org"))
+                                         :file (lambda () (concat yza/action-files "actionable.org"))
                                          :template ("* %{todo-state} %^{Description} %^g"
                                                     ":PROPERTIES:"
                                                     ":created: %U"
@@ -1049,7 +1569,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                                     ":END:"
                                                     "%?")
                                          :children (("Movie!" :keys "m"
-                                                     :file (lambda () (concat yza/action-files "/watch-history.org"))
+                                                     :file (lambda () (concat yza/action-files "watch-history.org"))
                                                      :template ("* TODO %^{Name}"
                                                                 ":PROPERTIES:"
                                                                 ":watch-with: %^{Watch with who?}"
@@ -1064,7 +1584,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                                      :headline "Actions"
                                                      )))
                                         ("Record" :keys "r"
-                                         :file (lambda () (concat yza/action-files "/data.org"))
+                                         :file (lambda () (concat yza/action-files "data.org"))
                                          :type table-line
                                          :template ("| NEXT %^{Description} |")
                                          :children (("daily hours" :keys "z"
@@ -1073,7 +1593,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                                      :headline "Ideas")
                                                     ("nihon!" :keys "n")))
                                         ("Add to list" :keys "l"
-                                         :file (lambda () (concat yza/action-files "/list.org"))
+                                         :file (lambda () (concat yza/action-files "list.org"))
                                          :template ("* BACKLOG %^{Title}"
                                                     ":PROPERTIES:"
                                                     ":added: %U"
@@ -1084,16 +1604,17 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                                     ":END:"
                                                     )
                                          :children (("book" :keys "b"
-                                                     :add-prop ":author: ^%{Author}"
+                                                     :add-prop ":author: %^{Author}"
                                                      :headline "Books")
                                                     ("shows" :keys "s"
-                                                     :add-prop ":director: ^%{Director}"
+                                                     :add-prop ":director: %^{Director}"
                                                      :headline "Shows")
                                                     ("people" :keys "p"
                                                      :add-prop ":author: ^%{Author}"
                                                      :headline "People")))
                                         ("Journal" :keys "j"
                                          ;; :jump-to-captured t
+                                         :unnarrowed t
                                          :type plain
                                          ;; :immediate-finish t
                                          :function (lambda() (org-journal-find-location))
@@ -1158,6 +1679,18 @@ Org-appear for general org markups
                 ("<H-left>" . org-clock-convenience-fill-gap)
                 ("<H-right>" . org-clock-convenience-fill-gap-both)))
 #+END_SRC
+*** org-fancy-priorities
+#+BEGIN_SRC emacs-lisp
+  (use-package org-fancy-priorities
+    :hook (org-mode . org-fancy-priorities-mode)
+    :config
+    (setq org-fancy-priorities-list '("[*Quick]" "[*InProg]" "[MustToday]" "[MustLater]" "[ShouldToday]" "[ShouldLater]" "[Coulds]"))
+    :custom
+    (org-priority-lowest 71)
+    (org-priority-faces (quote ((65 . "pink1") (66 . "SlateGray1") (67 . "OrangeRed") (68 . "DarkOrange1") (69 . "DarkTurquoise") (70 . "SkyBlue1") (71 . "khaki3"))))
+    )
+#+END_SRC
+
 *** Function: org clock table for tag-grouping
 from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2ee][githubgist]]
 #+BEGIN_SRC emacs-lisp
@@ -1235,6 +1768,107 @@ from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2e
     )
 
 #+END_SRC
+*** org-roam
+Most of this came from wonderful [[https://gist.github.com/jeremyf/b1fb8414624e639c9d3b9fec2f22564a][config]]
+#+BEGIN_SRC emacs-lisp
+  (use-package dendroam
+    :ensure nil
+    :load-path "~/.emacs.d/external/dendroam/")
+
+  (use-package org-roam
+    :hook ((org-roam-mode . olivetti-mode))
+    :bind
+    (("H-r r" . org-roam-node-find)
+     ("H-r c" . org-roam-capture)
+     ("H-r i" . org-roam-node-insert)
+     ("H-r t" . org-roam-buffer-toggle)
+     ("H-r o" . org-roam-node-random)
+     ("H-r s" . yza/consult-slipbox))
+    :init
+    (setq org-roam-completion-everywhere t)
+    (setq org-roam-v2-ack t)
+    (org-roam-db-autosync-mode)
+    (add-to-list 'display-buffer-alist
+                 '("\\*org-roam\\#"
+                   (display-buffer-in-side-window)
+                   (side . right)
+                   (slot . 0)
+                   (window-width . 0.33)
+                   (window-parameters . ((no-other-window . t)
+                                         (no-delete-other-windows . t)))))
+    :custom
+    (org-roam-directory (file-truename yza/slipbox-files))
+    (org-roam-node-display-template "${hierarchy}:${title:*} ${tags:40}")
+    )
+#+END_SRC
+**** org-roam capture templates
+#+BEGIN_SRC emacs-lisp
+  (setq org-roam-capture-templates
+        '(("d" "default" plain
+           "%?"
+           :if-new (file+head "${slug}.org"
+                              "#+title: ${hierarchy-title}\n")
+           :immediate-finish t
+           :unnarrowed t)))
+#+END_SRC
+*** deft
+found a nice short config here in [[https://www.reddit.com/r/emacs/comments/h0h4ix/how_to_configure_multile_directories_with_deft/][this reddit thread]]
+#+BEGIN_SRC emacs-lisp
+  (use-package deft
+    :preface
+    (defvar my/deft-dir-list '()
+      "A list of deft directories to pick")
+
+    (setq my/deft-dir-list '("~/Dropbox/org/projects/fics/"
+                             "~/Dropbox/org/projects/school/"
+                             "~/Dropbox/org/projects/school-agmnt/"
+                             "~/Dropbox/org/projects/yza/"
+                             ))
+    ;; (setq my/deft-dir-list '((lambda () (concat yza/project-files "fics/"))
+    ;;                          (lambda () (concat yza/project-files "school/"))
+    ;;                          ))
+
+    (defun my/pick-deft-dir ()
+      "Select directories from a list"
+      (interactive)
+      (setq deft-directory
+            (completing-read "Select directory: " my/deft-dir-list))
+      (deft-refresh))
+
+    (defun my/prog-deft-dir (arg)
+      "Select arg as deft-directory"
+      (setq deft-directory arg)
+      (deft-refresh))
+
+    :bind (("H-o o" . deft)
+           ("H-o p" . my/pick-deft-dir)
+           :map deft-mode-map
+           ("H-SPC" . deft-hydra/body))
+
+    :commands (deft)
+
+    :pretty-hydra
+    ((:color pink :quit-key "SPC")
+     ("Deft"
+      (("k" kill-this-buffer "kill deft" :color blue)
+       ("g" deft-refresh "refresh")
+       ("r" deft-rename-file "rename")
+       ("d" deft-delete-file "delete")
+       ("a" deft-archive-file "archive")
+       ("n" deft-new-file "new file"))
+      "Switch Dir"
+      (("1" (my/prog-deft-dir "~/Dropbox/org/projects/yza/") "personal")
+       ("2" (my/prog-deft-dir "~/Dropbox/org/projects/fics/") "fics")
+       ("3" (my/prog-deft-dir "~/Dropbox/org/projects/school-agmnt/") "sch assignments")
+       ("4" (my/prog-deft-dir "~/Dropbox/org/projects/school/") "sch notes"))
+      ))
+
+    :custom
+    (deft-directory "~/Dropbox/org/projects/yza/")
+    (deft-extensions '("org" "md" "txt"))
+    (deft-use-filter-string-for-filename t)
+    )
+#+END_SRC
 *** COMMENT org-multi-wiki
 not working
 #+BEGIN_SRC emacs-lisp
@@ -1261,329 +1895,3 @@ not working
 [[https://emacstil.com/til/2022/03/05/setting-up-vale-prose-linter-on-emacs/][short tut]]
 
 *** TODO reveal-js
-
-* Yza Config - Third-party
-** Evil: Expansion packs
-*** TODO evil-org
-*** SOMEDAY Alternative modal editing: meow
-** Themes
-*** Poet config
-#+BEGIN_SRC emacs-lisp
-  (dolist (hook '(text-mode-hook))
-    (add-hook hook (lambda () (flyspell-mode 1))))
-  (add-hook 'text-mode-hook
-            (lambda ()
-              (variable-pitch-mode 1)))
-  (add-to-list
-   'default-frame-alist'(ns-transparent-titlebar . t))
-  (add-to-list
-   'default-frame-alist'(ns-appearance . light))
-  (set-face-attribute 'default nil :family "Roboto Mono" :height 150)
-  (set-face-attribute 'fixed-pitch nil :family "Roboto Mono")
-  (set-face-attribute 'variable-pitch nil :family "IBM Plex Serif")
-#+END_SRC
-*** COMMENT Circadian for changing themes
-#+BEGIN_SRC emacs-lisp
-(use-package poet-theme :ensure :defer)
-(use-package poet-dark :ensure :defer)
-
-(use-package circadian
-  :ensure t
-  :config
-  (setq calendar-latitude 14.6)
-  (setq calendar-longitude 121.1)
-  (setq circadian-themes '((:sunrise . poet-theme)
-                           (:sunset  . poet-dark)))
-  (circadian-setup))
-#+END_SRC
-
-** Mode line
-for minimalist modeline
-#+BEGIN_SRC emacs-lisp
-  (use-package mood-line
-    :config (mood-line-mode))
-#+END_SRC
-
-** Beacon for visible cursor
-#+BEGIN_SRC emacs-lisp
-  (use-package beacon
-    :config (beacon-mode 1))
-#+END_SRC
-
-** Better undo
-#+BEGIN_SRC emacs-lisp
-  (use-package undo-fu
-    :config
-    (global-unset-key (kbd "C-/"))
-    (global-set-key (kbd "C-/")   'undo-fu-only-undo)
-    (global-set-key (kbd "C-?") 'undo-fu-only-redo))
-#+END_SRC
-
-** COMMENT Using <SPC> for C-x
-#+BEGIN_SRC emacs-lisp
-  (define-key evil-normal-state-map (kbd "<SPC>") ctl-x-map)
-#+END_SRC
-
-** Completion stack
-*** Vertico
-The main interface for completion. Comparing both selectrum and this, I decided to go with this because it is more lightweight
-#+BEGIN_SRC emacs-lisp
-  (use-package vertico
-    :ensure t
-    :bind (:map vertico-map
-                ("C-j" . vertico-next)
-                ("C-k" . vertico-previous)
-                ("C-f" . vertico-exit)
-                :map minibuffer-local-map
-                ("M-h" . backward-kill-word))
-    :custom
-    (vertico-cycle t)
-    :init
-    (vertico-mode))
-#+END_SRC
-**** Savehist (Built-in)
-In-built package that remembers the commands and such picked in the mini-buffer and places it on the top.
-#+BEGIN_SRC emacs-lisp
-  (use-package savehist
-    :init
-    (savehist-mode))
-#+END_SRC
-**** Orderless (Third-party)
-Completion style that allows spaces to be included in the narrowing. Can also match candidates regardless of order the user typed
-#+BEGIN_SRC emacs-lisp
-  (use-package orderless
-    :ensure t
-    :custom
-    (completion-styles '(orderless basic))
-    (completion-category-overrides '((file (styles basic partial-completion)))))
-#+END_SRC
-*** Marginalia
-For hints in the completion (eg. commands bindings/meanings)
-#+BEGIN_SRC emacs-lisp
-  (use-package marginalia
-    :after vertico
-    :bind (:map minibuffer-local-map
-                ("M-A" . marginalia-cycle))
-    :init
-    (marginalia-mode))
-#+END_SRC
-
-*** Consult
-for other useful functions
-#+BEGIN_SRC emacs-lisp
-  (use-package consult
-    :preface
-    :bind (;; C-c bindings (mode-specific-map)
-           ("C-c h" . consult-history)
-           ("C-c m" . consult-mode-command)
-           ("C-c k" . consult-kmacro)
-           ;; C-x bindings (ctl-x-map)
-           ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
-           ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
-           ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
-           ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
-           ("C-x r b" . consult-bookmark)            ;; orig. bookmark-jump
-           ("C-x p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
-           ;; Custom M-# bindings for fast register access
-           ("M-#" . consult-register-load)
-           ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
-           ("C-M-#" . consult-register)
-           ;; Other custom bindings
-           ("M-y" . consult-yank-pop)                ;; orig. yank-pop
-           ("<help> a" . consult-apropos)            ;; orig. apropos-command
-           ;; M-g bindings (goto-map)
-           ("M-g e" . consult-compile-error)
-           ("M-g f" . consult-flycheck)               ;; Alternative: consult-flycheck
-           ("M-g g" . consult-goto-line)             ;; orig. goto-line
-           ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
-           ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
-           ("M-g m" . consult-mark)
-           ("M-g k" . consult-global-mark)
-           ("M-g i" . consult-imenu)
-           ("M-g I" . consult-imenu-multi)
-           ("M-g r" . consult-recent-file)
-           ;; M-s bindings (search-map)
-           ("M-s d" . consult-find)
-           ("M-s D" . consult-locate)
-           ("M-s g" . consult-grep)
-           ("M-s G" . consult-git-grep)
-           ("M-s r" . consult-ripgrep)
-           ("M-s l" . consult-line)
-           ("M-s L" . consult-line-multi)
-           ("M-s m" . consult-multi-occur)
-           ("M-s k" . consult-keep-lines)
-           ("M-s u" . consult-focus-lines)
-           ;; Isearch integration
-           ("M-s e" . consult-isearch-history)
-           :map isearch-mode-map
-           ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
-           ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
-           ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
-           ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
-           ;; Minibuffer history
-           :map minibuffer-local-map
-           ("M-s" . consult-history)                 ;; orig. next-matching-history-element
-           ("M-r" . consult-history)                ;; orig. previous-matching-history-element
-           ;; Custom shit
-           )
-
-    ;; The :init configuration is always executed (Not lazy)
-    :init
-
-    ;; Optionally configure the register formatting. This improves the register
-    ;; preview for `consult-register', `consult-register-load',
-    ;; `consult-register-store' and the Emacs built-ins.
-    (setq register-preview-delay 0.5
-          register-preview-function #'consult-register-format)
-
-    ;; Optionally tweak the register preview window.
-    ;; This adds thin lines, sorting and hides the mode line of the window.
-    (advice-add #'register-preview :override #'consult-register-window)
-
-    ;; Use Consult to select xref locations with preview
-    (setq xref-show-xrefs-function #'consult-xref
-          xref-show-definitions-function #'consult-xref)
-
-    ;; Configure other variables and modes in the :config section,
-    ;; after lazily loading the package.
-    :config
-
-    ;; Optionally configure preview. The default value
-    ;; is 'any, such that any key triggers the preview.
-    ;; (setq consult-preview-key 'any)
-    ;; (setq consult-preview-key (kbd "M-."))
-    ;; (setq consult-preview-key (list (kbd "<S-down>") (kbd "<S-up>")))
-    ;; For some commands and buffer sources it is useful to configure the
-    ;; :preview-key on a per-command basis using the `consult-customize' macro.
-    (consult-customize
-     consult-theme
-     :preview-key '(:debounce 0.2 any)
-     consult-ripgrep consult-git-grep consult-grep
-     consult-bookmark consult-recent-file consult-xref
-     consult--source-bookmark consult--source-recent-file
-     consult--source-project-recent-file
-     :preview-key (kbd "M-."))
-
-    ;; Optionally configure the narrowing key.
-    ;; Both < and C-+ work reasonably well.
-    (setq consult-narrow-key "<") ;; (kbd "C-+")
-    )
-#+END_SRC
-**** TODO [#A] Consult Bibtex
-**** TODO [#A]  have rg functions for agenda, projects, zettls
-*** Embark
-for flipping the usual action-item movement of M-x; allowing to first select the thing BEFORE finalizing the action to be used.
-#+BEGIN_SRC emacs-lisp
-  (use-package embark
-    :preface
-    :bind
-    (("C-." . embark-act)         ;; pick some comfortable binding
-     ("M-." . embark-dwim)        ;; good alternative: M-.
-     ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
-
-    :init
-
-    ;; Optionally replace the key help with a completing-read interface
-    (setq prefix-help-command #'embark-prefix-help-command)
-
-    :config
-    (setq prefix-help-command #'embark-prefix-help-command)
-    ;; Hide the mode line of the Embark live/completions buffers
-    (add-to-list 'display-buffer-alist
-                 '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-                   nil
-                   (window-parameters (mode-line-format . none)))))
-
-  ;; Consult users will also want the embark-consult package.
-  (use-package embark-consult
-    :after (embark consult)
-    :demand t ; only necessary if you have the hook below
-    ;; if you want to have consult previews as you move around an
-    ;; auto-updating embark collect buffer
-    :hook
-    (embark-collect-mode . consult-preview-at-point-mode))
-#+END_SRC
-
-**** COMMENT Embark as helm
-Ported from [[https://karthinks.com/software/fifteen-ways-to-use-embark/][karthinks]]
-#+BEGIN_SRC emacs-lisp
-(defun with-minibuffer-keymap (keymap)
-  (lambda (fn &rest args)
-    (minibuffer-with-setup-hook
-        (lambda ()
-          (use-local-map
-           (make-composed-keymap keymap (current-local-map))))
-      (apply fn args))))
-
-(defvar embark-completing-read-prompter-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "<tab>") 'abort-recursive-edit)
-    map))
-
-(advice-add 'embark-completing-read-prompter :around
-            (with-minibuffer-keymap embark-completing-read-prompter-map))
-(define-key vertico-map (kbd "<tab>") 'embark-act-with-completing-read)
-
-  (defun embark-act-with-completing-read (&optional arg)
-    (interactive "P")
-    (let* ((embark-prompter 'embark-completing-read-prompter)
-           (act (propertize "Act" 'face 'highlight))
-           (embark-indicator (lambda (_keymap targets) nil)))
-      (embark-act arg)))
-#+END_SRC
-** Completion: Expansion packs
-*** TODO consult-dir
-using consult for directory completion everywhere!
-*** TODO compose custom keymap for direct clocking?
-** Yasnippets
-#+BEGIN_SRC emacs-lisp
-  (use-package yasnippet
-    :defer 3 ;; takes a while to load, so do it async
-    :config (yas-global-mode)
-    ;; :custom (yas-prompt-functions '(yas-completing-prompt))
-    )
-#+END_SRC
-** COMMENT Helpful for verbose help
-#+BEGIN_SRC emacs-lisp
-  (use-package helpful
-    :bind (("C-h f" . helpful-callable)
-           ("C-h v" . helpful-variable)
-           ("C-h k" . helpful-key)
-           ("C-c C-d" . helpful-at-point))
-#+END_SRC
-
-** TODO Avy
-** TODO Ace-window for fast swaps
-** TODO vundo for visualized undo-tree
-
-* Yza Config - Programming
-** Showing diffs (git)
-*** Diff-hl
-** Aggressive indention
-#+BEGIN_SRC emacs-lisp
-  (use-package aggressive-indent
-    :config
-    (global-aggressive-indent-mode 1)
-    (add-to-list 'aggressive-indent-excluded-modes 'html-mode))
-#+END_SRC
-
-** Yankpad
-#+BEGIN_SRC emacs-lisp
-  (use-package yankpad
-    :defer 10
-    :init
-    (setq yankpad-file "~/Dropbox/org/meta/yankpad.org")
-    :config
-    (bind-key "<H-backspace>" 'yankpad-expand))
-#+END_SRC
-
-** TODO EAF for browser?
-** TODO [#A] Projectile
-** TODO [#A] Company
-** TODO Parrot?
-** TODO Outshine to navigate code like org-mode?
-** TODO [#C] Tree sitter for better parsing of lang?
-
-** Language Specific
-*** TODO [#B] LSP-mode for favorite programs
-*** TODO Emmet mode for fast HTML/CSS
