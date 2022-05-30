@@ -1332,42 +1332,41 @@ from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2e
               tags)))
 #+END_SRC
 *** Refile item to a new file
-[[https://superuser.com/questions/567916/org-mode-command-to-create-new-file-from-subtree/568300#568300][got from stackoverflow]]
+[[https://superuser.com/questions/567916/org-mode-command-to-create-new-file-from-subtree/568300#568300][got from stackoverflo w]]
 - switched the command that C-u triggers (this saves the refile in the  current dir, without asking the filename--that means the default is now asking a directory)
 #+BEGIN_SRC emacs-lisp
-  (defun zin/org-file-from-subtree (&optional name)
-    "Cut the subtree currently being edited and create a new file
-      from it.
+  (defun zin/org-refile-new-noselect (&optional name)
+  "Cut the subtree currently being edited and create a new file
+from it.
 
-      If called with the universal argument, prompt for new filename,
-      otherwise use the subtree title."
-    (interactive "P")
-    (org-back-to-heading)
-    (let ((filename (cond
-                     (concat
-                      (expand-file-name
-                       (org-element-property :title
-                                             (org-element-at-point))
-                       default-directory)
-                      ".org")
-                     (t
-                      (current-prefix-arg
-                       (expand-file-name
-                        (read-file-name "New file name: ")))
-                      ))))
-      (org-cut-subtree)
-      (find-file-noselect filename)
-      (with-temp-file filename
-        (org-mode)
-        (yank))))
+If called with the universal argument, prompt for new filename,
+otherwise use the subtree title."
+  (interactive "P")
+  (org-back-to-heading)
+  (let ((filename (cond
+                   (current-prefix-arg
+                    (expand-file-name
+                     (read-file-name "New file name: ")))
+                   (t
+                    (concat
+                     (expand-file-name
+                      (org-element-property :title
+                                            (org-element-at-point))
+                      default-directory)
+                     ".org")))))
+    (org-cut-subtree)
+    (find-file-noselect filename)
+    (with-temp-file filename
+      (org-mode)
+      (yank))))
 
-  (defun zin/org-file-with-prefix ()
+  (defun zin/org-refile-new-select ()
     (interactive)
     (setq current-prefix-arg '(4)) ; C-u
     (call-interactively 'zin/org-file-from-subtree))
 
-  (global-set-key (kbd "C-c m g") 'zin/org-file-from-subtree)
-  (global-set-key (kbd "C-c m g") 'zin/org-file-from-subtree)
+  (define-key org-mode-map (kbd "H-\\") 'zin/org-refile-new-select)
+  (define-key org-mode-map (kbd "H-|") 'zin/org-refile-new-noselect)
 #+END_SRC
 
 ** Standard procedures
@@ -1774,8 +1773,8 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                                                 ":END:"))))
                                         ("Scratch!" :keys "s"
                                          :kill-buffer t
-                                         :type plain
-                                         :template "** "
+                                         :type entry
+                                          ;      :template ("** %?")
                                          :children (("current file" :keys "b"
                                                      :headline "Refile"
                                                      :file buffer-name)
@@ -1784,9 +1783,10 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                                      :file "~/Dropbox/org/projects/refile.org"
                                                      :refile-targets (( yza/get-project-files :maxlevel . 2)))
                                                     ("refile to new file" :keys "n"
-                                                     :headline "Scratch"
                                                      :file "~/Dropbox/org/projects/refile.org"
-                                                     :prepare-finalize (lambda () (call-interactively 'zin/org-file-from-subtree))
+                                                     :hook (lambda () (call-interactively 'delete-other-windows))
+                                                     :before-finalize (lambda () (call-interactively 'zin/org-refile-new-select))
+                                          ;     :template ("* %?")
                                                      )
                                                     ))
                                         ("Journal" :keys "j"
