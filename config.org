@@ -208,7 +208,7 @@ of the new-line-and-push-brace feature.
     :hook (prog-mode . electric-pair-mode))
 #+END_SRC
 
-** Clean up whitespace on save
+** COMMENT Clean up whitespace on save
 #+BEGIN_SRC emacs-lisp
   (use-package whitespace
     :ensure nil
@@ -437,7 +437,13 @@ Provides us with hints on available keystroke combinations.
 #+END_SRC
 
 * Yza Config - Built-in
-** Server
+** binding return to include indent
+[[http://www.emacslife.com/read-lisp-tweak-emacs/beginner-3-make-things-more-convenient.html][newbie res here]]
+#+BEGIN_SRC emacs-lisp
+  (global-set-key (kbd "RET") 'newline-and-indent)
+#+END_SRC
+ 
+** Daemon Server
 #+BEGIN_SRC emacs-lisp
   (use-package server
     :ensure nil
@@ -633,9 +639,10 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
           (run-hook-with-args 'org-cycle-hook 'folded))))))
 #+END_SRC
 
-** TODO dynamic abbrevs
+** TODO dynamic abbrevs / hippie expand
 [[https://www.emacswiki.org/emacs/DynamicAbbreviations][emacswiki]]
-** TODO [#A] Window configurations (defuns)
+
+** Window configurations (defuns)
 #+BEGIN_SRC emacs-lisp
   (defun yza/default-window-setup ()
     "Called by emacs-startup-hook to set up my initial window configuration."
@@ -659,7 +666,6 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
   (global-set-key (kbd "H-0") #'yza/switch-to-agenda)
 #+END_SRC
 
-** TODO Daemon
 ** Recentf
 #+BEGIN_SRC emacs-lisp
   (require 'recentf) ;; so that the recentfiles don't show the installed packages
@@ -679,8 +685,55 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
 
 * Yza Config - Third-party
 ** Evil: Expansion packs
+*** evil leader
+#+BEGIN_SRC emacs-lisp
+  (use-package evil-leader
+    :load-path "~/.emacs.d/external/evil-leader-master"
+    :init
+    (setq evil-want-keybindings nil)
+    :config
+    (evil-leader/set-leader "SPC")
+    (evil-leader/set-key
+      "l" 'next-buffer
+      "h" 'previous-buffer
+      "f" 'find-file
+      "b" 'consult-buffer
+      "K" 'kill-buffer
+      "k" 'kill-this-buffer
+      "g" 'minibuffer-keyboard-quit
+      "s" 'consult-line
+      "mg" 'consult-global-mark
+      "mf" 'consult-mark
+      "mj" 'org-mark-ring-goto
+      "mh" 'org-mark-ring-push
+      "0" 'delete-window
+      "1" 'ian/split-and-follow-vertically
+      "2" 'ian/split-and-follow-horizontally
+      "<return>" 'org-open-at-point)
+    (global-evil-leader-mode)
+    )
+#+END_SRC
+*** change key to normal state
+#+BEGIN_SRC emacs-lisp
+    (global-set-key (kbd "s-j") 'evil-force-normal-state)
+#+END_SRC
 *** TODO evil-org
+#+BEGIN_SRC emacs-lisp
+  (use-package evil-org
+  :after org
+  :hook (org-mode . (lambda () evil-org-mode))
+  :config
+  (require 'evil-org-agenda)
+  (evil-org-agenda-set-keys))
+#+END_SRC
+ 
 *** SOMEDAY Alternative modal editing: meow
+
+** Hammerspoon
+#+BEGIN_SRC emacs-lisp
+(load "~/emacs/hammerspoon.el")
+#+END_SRC
+
 ** Buffer move
 #+BEGIN_SRC emacs-lisp
 (use-package buffer-move
@@ -738,11 +791,6 @@ for minimalist modeline
     (global-unset-key (kbd "C-/"))
     (global-set-key (kbd "C-/")   'undo-fu-only-undo)
     (global-set-key (kbd "C-?") 'undo-fu-only-redo))
-#+END_SRC
-
-** COMMENT Using <SPC> for C-x
-#+BEGIN_SRC emacs-lisp
-  (define-key evil-normal-state-map (kbd "<SPC>") ctl-x-map)
 #+END_SRC
 
 ** Completion stack
@@ -1136,8 +1184,20 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
   (global-set-key (kbd "s-w") 'hydra-hs/body)
 #+END_SRC
 
-*** deft
-*** org-roam
+*** zooming
+[[https://ericjmritz.wordpress.com/2015/10/14/some-personal-hydras-for-gnu-emacs/][source]]
+#+BEGIN_SRC emacs-lisp
+  (pretty-hydra-define phydra-zoom
+    (:color pink :quit-key "SPC")
+    ("Zoom"
+     (("=" text-scale-increase "in")
+      ("-" text-scale-decrease "out")
+      ("0" (text-scale-adjust 0) "reset")
+      )))
+
+  (global-set-key (kbd "s-=") 'phydra-zoom/body)
+#+END_SRC
+ 
 ** Yasnippets
 #+BEGIN_SRC emacs-lisp
   (use-package yasnippet
@@ -1181,18 +1241,30 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
     (bind-key "<H-backspace>" 'yankpad-expand))
 #+END_SRC
 
-** TODO EAF for browser?
-** TODO [#A] Projectile
-** TODO [#A] Company
+** TODO [#G] EAF for browser?
+** TODO [#D] git gutter
+** TODO [#D] Projectile
+** TODO [#D] Company
 ** TODO Parrot?
 ** TODO Outshine to navigate code like org-mode?
-** TODO [#C] Tree sitter for better parsing of lang?
+** TODO [#G] Tree sitter for better parsing of lang?
 
 ** Language Specific
 *** TODO [#B] LSP-mode for favorite programs
 *** TODO Emmet mode for fast HTML/CSS
 * Org-related tweaks
-** Standard procedures
+** Org functions
+*** Custom directory variables
+#+BEGIN_SRC emacs-lisp
+  (defvar yza/action-files "~/Dropbox/org/life/actions/")
+  (defvar yza/review-files "~/Dropbox/org/life/reviews/")
+  (defvar yza/journal-files "~/Dropbox/org/life/journal/")
+  (defvar yza/slipbox-files "~/Dropbox/org/notes/0.slipbox/")
+
+  (defvar yza/school-files "~/Dropbox/org/projects/future.school/")
+  (defvar yza/project-files "~/Dropbox/org/projects/")
+#+END_SRC
+
 *** Custom functions
 #+BEGIN_SRC emacs-lisp
   (defun yza/consult-org-headings-agenda ()
@@ -1214,17 +1286,91 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
     (interactive)
     (org-display-inline-images t))
 #+END_SRC
-*** Custom directory variables
+*** Function: org clock table for tag-grouping
+from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2ee][githubgist]]
 #+BEGIN_SRC emacs-lisp
-  (defvar yza/action-files "~/Dropbox/org/life/actions/")
-  (defvar yza/review-files "~/Dropbox/org/life/reviews/")
-  (defvar yza/journal-files "~/Dropbox/org/life/journal/")
-  (defvar yza/slipbox-files "~/Dropbox/org/notes/0.slipbox/")
+  (defun clocktable-by-tag/shift-cell (n)
+    (let ((str ""))
+      (dotimes (i n)
+        (setq str (concat str "| ")))
+      str))
 
-  (defvar yza/school-files "~/Dropbox/org/projects/future.school/")
-  (defvar yza/project-files "~/Dropbox/org/projects/")
+  (defun clocktable-by-tag/insert-tag (params)
+    (let ((tag (plist-get params :tags)))
+      (insert "|--\n")
+      (insert (format "| %s | *Tag time* |\n" tag))
+      (let ((total 0))
+        (mapcar
+         (lambda (file)
+           (let ((clock-data (with-current-buffer (find-file-noselect file)
+                               (org-clock-get-table-data (buffer-name) params))))
+             (when (> (nth 1 clock-data) 0)
+               (setq total (+ total (nth 1 clock-data)))
+               (insert (format "| | File *%s* | %.2f |\n"
+                               (file-name-nondirectory file)
+                               (/ (nth 1 clock-data) 60.0)))
+               (dolist (entry (nth 2 clock-data))
+                 (insert (format "| | . %s%s | %s %.2f |\n"
+                                 (org-clocktable-indent-string (nth 0 entry))
+                                 (nth 1 entry)
+                                 (clocktable-by-tag/shift-cell (nth 0 entry))
+                                 (/ (nth 4 entry) 60.0)))))))
+         (org-agenda-files))
+        (save-excursion
+          (re-search-backward "*Tag time*")
+          (org-table-next-field)
+          (org-table-blank-field)
+          (insert (format "*%.2f*" (/ total 60.0)))))
+      (org-table-align)))
+
+  (defun org-dblock-write:clocktable-by-tag (params)
+    (insert "| Tag | Headline | Time (h) |\n")
+    (insert "|     |          | <r>  |\n")
+    (let ((tags (plist-get params :tags)))
+      (mapcar (lambda (tag)
+                (clocktable-by-tag/insert-tag (plist-put (plist-put params :match tag) :tags tag)))
+              tags)))
+#+END_SRC
+*** Refile item to a new file
+[[https://superuser.com/questions/567916/org-mode-command-to-create-new-file-from-subtree/568300#568300][got from stackoverflow]]
+- switched the command that C-u triggers (this saves the refile in the  current dir, without asking the filename--that means the default is now asking a directory)
+#+BEGIN_SRC emacs-lisp
+  (defun zin/org-file-from-subtree (&optional name)
+    "Cut the subtree currently being edited and create a new file
+      from it.
+
+      If called with the universal argument, prompt for new filename,
+      otherwise use the subtree title."
+    (interactive "P")
+    (org-back-to-heading)
+    (let ((filename (cond
+                     (concat
+                      (expand-file-name
+                       (org-element-property :title
+                                             (org-element-at-point))
+                       default-directory)
+                      ".org")
+                     (t
+                      (current-prefix-arg
+                       (expand-file-name
+                        (read-file-name "New file name: ")))
+                      ))))
+      (org-cut-subtree)
+      (find-file-noselect filename)
+      (with-temp-file filename
+        (org-mode)
+        (yank))))
+
+  (defun zin/org-file-with-prefix ()
+    (interactive)
+    (setq current-prefix-arg '(4)) ; C-u
+    (call-interactively 'zin/org-file-from-subtree))
+
+  (global-set-key (kbd "C-c m g") 'zin/org-file-from-subtree)
+  (global-set-key (kbd "C-c m g") 'zin/org-file-from-subtree)
 #+END_SRC
 
+** Standard procedures
 *** COMMENT Custom  global bindings
 #+BEGIN_SRC emacs-lisp
 (global-set-key (kbd "H-p")  (lambda () (interactive)
@@ -1235,11 +1381,12 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
 *** Org-mode use-package declaration
 #+BEGIN_SRC emacs-lisp
   (use-package org
+    :pin gnu
     :hook ((org-mode . visual-line-mode)
            (org-mode . org-indent-mode))
     :bind (("H-/" . org-todo)
            ("H-." . yza/consult-org-headings-agenda)
-           ("H-p" . yza/consult-projects)
+           ("H-s p" . yza/consult-projects)
            ("C-c 1" . org-time-stamp-inactive)
            ("H-i" . do-org-show-all-inline-images)
            ("<H-left>" . org-clock-in)
@@ -1256,7 +1403,7 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
     (org-use-fast-todo-selection t)
     (org-hide-emphasis-markers t)
     (org-toggle-pretty-entities t)
-    (org-return-follows-link t)
+    (org-priority-default 71)
 
     (org-todo-keywords
      '((sequence "TODO(t!)" "NEXT(n)" "WAIT(w)" "SOMEDAY(s@)" "GOAL(1)" "|" "CNCL(c@)" "DONE(d!)")
@@ -1510,7 +1657,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
     )
 #+END_SRC
 
-*** TODO [#A] Org-capture use-package
+*** Org-capture use-package
 #+BEGIN_SRC emacs-lisp
   (use-package org-capture
     :preface
@@ -1521,18 +1668,24 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
       (unless (eq org-journal-file-type 'daily)
         (org-narrow-to-subtree))
       (goto-char (point-max)))
+    (defun yza/get-project-files ()
+      (find-lisp-find-files yza/project-files "\.org$")
+      )
     :ensure nil
     :bind (("<f12>" . org-capture))
+    :custom
+    (org-refile-use-outline-path 'file)
+    (org-outline-path-complete-in-steps nil)
+    (org-refile-allow-creating-parent-nodes 'confirm)
     :config
     (setq org-capture-templates (doct '(
                                         ("Ideas" :keys "i"
                                          :file (lambda () (concat yza/action-files "actionable.org"))
-                                         :template ("* IDEA %^{Description} %^g"
+                                         :template ("* IDEA %^{Description} %? %^g"
                                                     ":PROPERTIES:"
                                                     ":created: %U"
                                                     "%{add-prop}"
-                                                    ":END:"
-                                                    "%?")
+                                                    ":END:")
                                          :children (("Explore!" :keys "z"
                                                      :headline "Ideas"
                                                      :add-prop ":ref: %^{Reference}")
@@ -1541,13 +1694,12 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                                      :add-prop ":context: %^{Where will you do this?}")))
                                         ("Actions" :keys "a"
                                          :file (lambda () (concat yza/action-files "actionable.org"))
-                                         :template ("* %{todo-state}  %^{Description} %^g"
+                                         :template ("* %{todo-state}  %^{Description} %? %^g"
                                                     ":PROPERTIES:"
                                                     ":created: %U"
                                                     ":effort: %^{Effort}"
                                                     ":brainpower: %^{Brainpower (high/mid/low/chill)}"
-                                                    ":END:"
-                                                    "%?")
+                                                    ":END:")
                                          :children (("Single Actions" :keys "a" :todo-state "NEXT"
                                                      :headline "Actions")
                                                     ("Scheduled" :keys "s" :todo-state "TODO"
@@ -1562,26 +1714,27 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                          :clock-keep t
                                          :immediate-finish t
                                          :file (lambda () (concat yza/action-files "actionable.org"))
-                                         :template ("* %{todo-state} %^{Description} %^g"
+                                         :template ("* %{todo-state} %^{Description} %? %^g"
                                                     ":PROPERTIES:"
                                                     ":created: %U"
                                                     ":effort: %^{Effort}"
-                                                    ":END:"
-                                                    "%?")
+                                                    ":END:")
                                          :children (("Movie!" :keys "m"
                                                      :file (lambda () (concat yza/action-files "watch-history.org"))
-                                                     :template ("* TODO %^{Name}"
+                                                     :template ("* TODO %^{Name} %?"
                                                                 ":PROPERTIES:"
                                                                 ":watch-with: %^{Watch with who?}"
                                                                 ":watchlist-link: %^{Link to movie if in the list}"
-                                                                ":END:"
-                                                                "%?")
+                                                                ":END:")
                                                      )
                                                     ("Event now!" :keys "e" :todo-state "TODO"
                                                      :headline "Appointments"
                                                      )
                                                     ("Action now!" :keys "a" :todo-state "NEXT"
                                                      :headline "Actions"
+                                                     )
+                                                    ("New web content now!" :keys "w" :todo-state "READING"
+                                                     :headline "Web Content"
                                                      )))
                                         ("Record" :keys "r"
                                          :file (lambda () (concat yza/action-files "data.org"))
@@ -1594,7 +1747,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                                     ("nihon!" :keys "n")))
                                         ("Add to list" :keys "l"
                                          :file (lambda () (concat yza/action-files "list.org"))
-                                         :template ("* BACKLOG %^{Title}"
+                                         :template ("* BACKLOG %^{Title} %?"
                                                     ":PROPERTIES:"
                                                     ":added: %U"
                                                     ":list-group: %^{Movie/Series/Book/Article?}"
@@ -1609,24 +1762,104 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                                     ("shows" :keys "s"
                                                      :add-prop ":director: %^{Director}"
                                                      :headline "Shows")
-                                                    ("people" :keys "p"
-                                                     :add-prop ":author: ^%{Author}"
-                                                     :headline "People")))
+                                                    ("web" :keys "w"
+                                                     ;; :add-prop ":publisher: %^{Publisher}"
+                                                     :headline "Web Content"
+                                                     :template ("* BACKLOG %^{Title} %?"
+                                                                ":PROPERTIES:"
+                                                                ":added: %U"
+                                                                ":list-group: Web - %^{Video/Article/Wiki?}"
+                                                                ":published-on: %^{Published on}u"
+                                                                ":publisher: %^{Publisher}"
+                                                                ":END:"))))
+                                        ("Scratch!" :keys "s"
+                                         :kill-buffer t
+                                         :type plain
+                                         :template "** "
+                                         :children (("current file" :keys "b"
+                                                     :headline "Refile"
+                                                     :file buffer-name)
+                                                    ("refile to projects" :keys "p"
+                                                     :headline "Refile"
+                                                     :file "~/Dropbox/org/projects/refile.org"
+                                                     :refile-targets (( yza/get-project-files :maxlevel . 2)))
+                                                    ("refile to new file" :keys "n"
+                                                     :headline "Scratch"
+                                                     :file "~/Dropbox/org/projects/refile.org"
+                                                     :prepare-finalize (lambda () (call-interactively 'zin/org-file-from-subtree))
+                                                     )
+                                                    ))
                                         ("Journal" :keys "j"
-                                         ;; :jump-to-captured t
                                          :unnarrowed t
                                          :type plain
-                                         ;; :immediate-finish t
                                          :function (lambda() (org-journal-find-location))
-                                         ;; :template "* hello"
                                          :strfmt (lambda() (format-time-string org-journal-time-format))
                                          :template "** %{strfmt} %^{Title}\n%?")
-                                        ;; "%?"
                                         )))
     )
 #+END_SRC
 
 ** Org tiny plug-ins
+*** TODO addons from org-contrib
+*** unpackaged-extras
+#+BEGIN_SRC emacs-lisp
+    ;;;###autoload
+  (define-minor-mode unpackaged/org-table-face-mode
+    "Apply `org-table' face family to all text in Org tables.
+  Useful for forcibly applying the face to portions of table data
+  that might have a different face, which could affect alignment."
+    :global nil
+    (let ((keywords '((unpackaged/org-table-face-matcher 0 'org-table))))
+      (if unpackaged/org-table-face-mode
+          (font-lock-add-keywords nil keywords 'append)
+        (font-lock-remove-keywords nil keywords))
+      (font-lock-flush)))
+
+  (cl-defun unpackaged/org-table-face-matcher
+      (limit &optional (face `(:family ,(face-attribute 'org-table :family))))
+    "Apply FACE to entire Org tables.
+  A `font-lock-keywords' function that searches up to LIMIT."
+    (cl-flet* ((find-face (face &optional limit not)
+                          ;; Return next position up to LIMIT that has FACE, or doesn't if NOT.
+                          (cl-loop with prev-pos
+                                   with pos = (point)
+                                   while (not (eobp))
+                                   do (setf pos (next-single-property-change pos 'face nil limit))
+                                   while (and pos (not (equal pos prev-pos)))
+                                   for face-at = (get-text-property pos 'face)
+                                   for face-matches-p = (or (eq face-at face)
+                                                            (when (listp face-at)
+                                                              (member face face-at)))
+                                   when (or (and not (not face-matches-p))
+                                            face-matches-p)
+                                   return pos
+                                   do (setf prev-pos pos)))
+               (apply-face-from (pos face)
+                                (unless (eobp)
+                                  (let* ((property-at-start (get-text-property pos 'face))
+                                         (table-face-start (if (or (eq property-at-start 'org-table)
+                                                                   (when (listp property-at-start)
+                                                                     (member 'org-table property-at-start)))
+                                                               (point)
+                                                             (find-face 'org-table limit)))
+                                         table-face-end)
+                                    (when table-face-start
+                                      (goto-char table-face-start)
+                                      (setf table-face-end (line-end-position))
+                                      (add-face-text-property table-face-start table-face-end face)
+                                      (goto-char table-face-end))))))
+      (cl-loop with applied-p
+               for applied = (apply-face-from (point) face)
+               when applied
+               do (setf applied-p t)
+               while applied
+               finally return applied-p)))
+
+
+    (add-hook 'org-mode-hook 'unpackaged/org-table-face-mode)
+  
+#+END_SRC
+ 
 *** DOCT for more elegant org-capture templates
 #+BEGIN_SRC emacs-lisp
   (use-package doct
@@ -1645,12 +1878,14 @@ Org-appear for general org markups
   (use-package org-appear
     :hook ((org-mode . org-appear-mode)))
 #+END_SRC
+ 
 *** Flyspell-correct for spelling
 #+BEGIN_SRC emacs-lisp
   (use-package flyspell-correct
     :after flyspell
     :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
 #+END_SRC
+ 
 *** Olivetti for formatting
 #+BEGIN_SRC emacs-lisp
   (use-package olivetti
@@ -1670,6 +1905,7 @@ Org-appear for general org markups
     (add-hook 'dired-mode-hook 'org-download-enable)
     (setq-default org-download-image-dir "~/Dropbox/org_back"))
 #+END_SRC
+ 
 *** Org-clock-convenience
 #+BEGIN_SRC emacs-lisp
   (use-package org-clock-convenience
@@ -1679,6 +1915,7 @@ Org-appear for general org markups
                 ("<H-left>" . org-clock-convenience-fill-gap)
                 ("<H-right>" . org-clock-convenience-fill-gap-both)))
 #+END_SRC
+ 
 *** org-fancy-priorities
 #+BEGIN_SRC emacs-lisp
   (use-package org-fancy-priorities
@@ -1691,57 +1928,12 @@ Org-appear for general org markups
     )
 #+END_SRC
 
-*** Function: org clock table for tag-grouping
-from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2ee][githubgist]]
-#+BEGIN_SRC emacs-lisp
-(defun clocktable-by-tag/shift-cell (n)
-  (let ((str ""))
-    (dotimes (i n)
-      (setq str (concat str "| ")))
-    str))
-
-(defun clocktable-by-tag/insert-tag (params)
-  (let ((tag (plist-get params :tags)))
-    (insert "|--\n")
-    (insert (format "| %s | *Tag time* |\n" tag))
-    (let ((total 0))
-      (mapcar
-       (lambda (file)
-         (let ((clock-data (with-current-buffer (find-file-noselect file)
-                             (org-clock-get-table-data (buffer-name) params))))
-           (when (> (nth 1 clock-data) 0)
-             (setq total (+ total (nth 1 clock-data)))
-             (insert (format "| | File *%s* | %.2f |\n"
-                             (file-name-nondirectory file)
-                             (/ (nth 1 clock-data) 60.0)))
-             (dolist (entry (nth 2 clock-data))
-               (insert (format "| | . %s%s | %s %.2f |\n"
-                               (org-clocktable-indent-string (nth 0 entry))
-                               (nth 1 entry)
-                               (clocktable-by-tag/shift-cell (nth 0 entry))
-                               (/ (nth 4 entry) 60.0)))))))
-       (org-agenda-files))
-      (save-excursion
-        (re-search-backward "*Tag time*")
-        (org-table-next-field)
-        (org-table-blank-field)
-        (insert (format "*%.2f*" (/ total 60.0)))))
-    (org-table-align)))
-
-(defun org-dblock-write:clocktable-by-tag (params)
-  (insert "| Tag | Headline | Time (h) |\n")
-  (insert "|     |          | <r>  |\n")
-  (let ((tags (plist-get params :tags)))
-    (mapcar (lambda (tag)
-              (clocktable-by-tag/insert-tag (plist-put (plist-put params :match tag) :tags tag)))
-            tags)))
-#+END_SRC
 *** COMMENT org-starter for easy organization of refile and agenda files
 #+BEGIN_SRC emacs-lisp
-      (use-package org-starter
+  (use-package org-starter
     :custom
-  (org-starter-path "~/Dropbox/org")
-)
+    (org-starter-path "~/Dropbox/org")
+    )
 #+END_SRC
 
 *** TODO Org-visual-outline
@@ -1811,6 +2003,7 @@ Most of this came from wonderful [[https://gist.github.com/jeremyf/b1fb8414624e6
            :immediate-finish t
            :unnarrowed t)))
 #+END_SRC
+*** TODO org-cite
 *** deft
 found a nice short config here in [[https://www.reddit.com/r/emacs/comments/h0h4ix/how_to_configure_multile_directories_with_deft/][this reddit thread]]
 #+BEGIN_SRC emacs-lisp
@@ -1848,8 +2041,8 @@ found a nice short config here in [[https://www.reddit.com/r/emacs/comments/h0h4
     :commands (deft)
 
     :pretty-hydra
-    ((:color pink :quit-key "SPC")
-     ("Deft"
+    ((:color pink :quit-key "SPC" :title "Deft")
+     ("Default"
       (("k" kill-this-buffer "kill deft" :color blue)
        ("g" deft-refresh "refresh")
        ("r" deft-rename-file "rename")
