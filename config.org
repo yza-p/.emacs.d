@@ -639,9 +639,6 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
           (run-hook-with-args 'org-cycle-hook 'folded))))))
 #+END_SRC
 
-** TODO dynamic abbrevs / hippie expand
-[[https://www.emacswiki.org/emacs/DynamicAbbreviations][emacswiki]]
-
 ** Window configurations (defuns)
 #+BEGIN_SRC emacs-lisp
   (defun yza/default-window-setup ()
@@ -682,6 +679,19 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
 #+BEGIN_SRC emacs-lisp
 (setq browse-url-browser-function 'browse-url-default-macosx-browser)
 #+END_SRC
+
+** Put the cursor on the middle always
+got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.html][blog]]
+
+#+BEGIN_SRC emacs-lisp
+  (setq scroll-preserve-screen-position t
+        scroll-conservatively 0
+        maximum-scroll-margin 0.5
+        scroll-margin 99999)
+#+END_SRC
+ 
+** TODO dynamic abbrevs / hippie expand
+[[https://www.emacswiki.org/emacs/DynamicAbbreviations][emacswiki]]
 
 * Yza Config - Third-party
 ** Evil: Expansion packs
@@ -1733,6 +1743,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                                      :headline "Actions"
                                                      )
                                                     ("New web content now!" :keys "w" :todo-state "READING"
+                                                     :file (lambda () (concat yza/action-files "watch-history.org"))
                                                      :headline "Web Content"
                                                      )))
                                         ("Record" :keys "r"
