@@ -693,6 +693,34 @@ got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.
 ** TODO dynamic abbrevs / hippie expand
 [[https://www.emacswiki.org/emacs/DynamicAbbreviations][emacswiki]]
 
+** COMMENT orgcapture everywhere
+[[https://www.reddit.com/r/orgmode/comments/uycc8m/spawn_a_new_frame_for_orgcapture/][reddit src]]
+#+BEGIN_SRC emacs-lisp
+  (defadvice org-switch-to-buffer-other-window
+      (after supress-window-splitting activate)
+    "Delete the extra window if we're in a capture frame"
+    (if (equal "capture" (frame-parameter nil 'name))
+        (delete-other-windows)))
+
+  (defun activate-capture-frame ()
+    "run org-capture in capture frame"
+    (select-frame-by-name "capture")
+    (switch-to-buffer (get-buffer-create "*scratch*"))
+    (org-capture))
+
+  (defadvice org-capture-finalize
+      (after delete-capture-frame activate)
+    "Advise capture-finalize to close the frame"
+    (when (and (equal "capture" (frame-parameter nil 'name))
+               (not (eq this-command 'org-capture-refile)))
+      (delete-frame)))
+
+  (defadvice org-capture-refile
+      (after delete-capture-frame activate)
+    "Advise org-refile to close the frame"
+    (delete-frame))
+#+END_SRC
+ 
 * Yza Config - Third-party
 ** Evil: Expansion packs
 *** evil leader
@@ -1373,7 +1401,7 @@ otherwise use the subtree title."
   (defun zin/org-refile-new-select ()
     (interactive)
     (setq current-prefix-arg '(4)) ; C-u
-    (call-interactively 'zin/org-file-from-subtree))
+    (call-interactively 'zin/org-refile-new-noselect))
 
   (define-key org-mode-map (kbd "H-\\") 'zin/org-refile-new-select)
   (define-key org-mode-map (kbd "H-|") 'zin/org-refile-new-noselect)
@@ -1394,6 +1422,10 @@ otherwise use the subtree title."
     :hook ((org-mode . visual-line-mode)
            (org-mode . org-indent-mode))
     :bind (("H-/" . org-todo)
+           ("C-c l" . org-store-link)
+           ("H-l o" . org-id-get-create)  
+           ("H-l l" . org-id-store-link)
+           ("H-l p" . org-insert-last-stored-link)
            ("H-." . yza/consult-org-headings-agenda)
            ("H-s p" . yza/consult-projects)
            ("C-c 1" . org-time-stamp-inactive)
@@ -1785,20 +1817,22 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                         ("Scratch!" :keys "s"
                                          :kill-buffer t
                                          :type entry
-                                          ;      :template ("** %?")
                                          :children (("current file" :keys "b"
-                                                     :headline "Refile"
+                                                     :prepend t
+                                                     :headline "^refile"
                                                      :file buffer-name)
                                                     ("refile to projects" :keys "p"
                                                      :headline "Refile"
                                                      :file "~/Dropbox/org/projects/refile.org"
                                                      :refile-targets (( yza/get-project-files :maxlevel . 2)))
-                                                    ("refile to new file" :keys "n"
+                                                    ("refile to new file (focus)" :keys "n"
                                                      :file "~/Dropbox/org/projects/refile.org"
                                                      :hook (lambda () (call-interactively 'delete-other-windows))
-                                                     :before-finalize (lambda () (call-interactively 'zin/org-refile-new-select))
-                                          ;     :template ("* %?")
-                                                     )
+                                                     :before-finalize (lambda () (call-interactively 'zin/org-refile-new-select)))
+                                                    ("refile to orphans-roam (focus)" :keys "r"
+                                                     :file "~/Dropbox/org/projects/refile.org"
+                                                     :hook (lambda () (call-interactively 'delete-other-windows))
+                                                     :refile-targets (( "~/Dropbox/org/notes/0.slipbox/orphans.org" :maxlevel . 2)))
                                                     ))
                                         ("Journal" :keys "j"
                                          :unnarrowed t
@@ -1812,7 +1846,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
 
 ** Org tiny plug-ins
 *** TODO addons from org-contrib
-*** unpackaged-extras
+*** COMMENT unpackaged-extras
 #+BEGIN_SRC emacs-lisp
     ;;;###autoload
   (define-minor-mode unpackaged/org-table-face-mode
@@ -1939,6 +1973,11 @@ Org-appear for general org markups
     )
 #+END_SRC
 
+*** Thesaurus/Dictionary combo using Merriam Webster
+#+begin_src emacs-lisp
+  (use-package mw-thesaurus
+  :bind (:map org-mode-map ("H-z" . mw-thesaurus-lookup-dwim)))
+#+end_src
 *** COMMENT org-starter for easy organization of refile and agenda files
 #+BEGIN_SRC emacs-lisp
   (use-package org-starter
@@ -2099,3 +2138,4 @@ not working
 [[https://emacstil.com/til/2022/03/05/setting-up-vale-prose-linter-on-emacs/][short tut]]
 
 *** TODO reveal-js
+* ^refile
