@@ -751,10 +751,12 @@ got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.
     (global-evil-leader-mode)
     )
 #+END_SRC
+ 
 *** change key to normal state
 #+BEGIN_SRC emacs-lisp
     (global-set-key (kbd "s-j") 'evil-force-normal-state)
 #+END_SRC
+ 
 *** TODO evil-org
 #+BEGIN_SRC emacs-lisp
   (use-package evil-org
@@ -766,17 +768,6 @@ got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.
 #+END_SRC
  
 *** SOMEDAY Alternative modal editing: meow
-
-** Hammerspoon
-#+BEGIN_SRC emacs-lisp
-(load "~/emacs/hammerspoon.el")
-#+END_SRC
-
-** Buffer move
-#+BEGIN_SRC emacs-lisp
-(use-package buffer-move
-  :load-path "~/.emacs.d/external/buffer-move-master")
-#+END_SRC
 
 ** Themes
 *** Poet config
@@ -809,20 +800,259 @@ got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.
   (circadian-setup))
 #+END_SRC
 
-** Mode line
+** Big plug-ins
+*** Hydra
+most of this came from the official docs (all except org-roam)
+#+BEGIN_SRC emacs-lisp
+  (use-package hydra)
+  (use-package pretty-hydra)
+#+END_SRC
+
+**** oft-used keys with no modifiers
+#+BEGIN_SRC emacs-lisp
+    (defun x-hydra-pre ()
+      (insert "x")
+      (let ((timer (timer-create)))
+        (timer-set-time timer (timer-relative-time (current-time) 0.5))
+        (timer-set-function timer 'hydra-keyboard-quit)
+        (timer-activate timer)))
+
+    (defhydra x-hydra (:body-pre x-hydra-pre
+                                 :color blue
+                                 :hint nil)
+      ("f" (progn (zap-to-char -1 ?x) (ido-find-file)))
+      ("g" (progn (zap-to-char -1 ?x) (minibuffer-keyboard-quit)))
+      ("b" (progn (zap-to-char -1 ?x) (consult-buffer))))
+
+    (global-set-key "x" #'x-hydra/body)
+#+END_SRC
+**** outline minor mode
+#+BEGIN_SRC emacs-lisp
+  (pretty-hydra-define phydra-outline
+    (:color pink :quit-key "SPC" :title "Outline")
+    ("Hide..."
+     (("q" hide-sublevels "sublevels")
+      ("t" hide-body "body")
+      ("o" hide-other "other")
+      ("c" hide-entry "entry")
+      ("l" hide-leaves "leaves")
+      ("d" hide-subtree "subtree")
+      )
+     "Show..."
+     (("a" show-all "all")
+      ("e" show-entry "entry")
+      ("i" show-children "children")
+      ("k" show-branches "branches")
+      ("s" show-subtree "subtree")
+      )
+     "Move..."
+     (("u" outline-up-heading "up")
+      ("j" outline-next-visible-heading "next visible")
+      ("k" outline-previous-visible-heading "prev visible")
+      ("l" outline-forward-same-level "forward same level")
+      ("h" outline-backward-same-level "backward same level")
+      )
+     )
+    )
+
+  (global-set-key (kbd "s-z") 'phydra-outline/body)
+#+END_SRC
+
+**** window movement
+#+BEGIN_SRC emacs-lisp
+   (defhydra hydra-window ()
+     "
+  Movement^^        ^Split^         ^Switch^		^Resize^
+  ----------------------------------------------------------------
+  _h_ ←         _v_ertical      _b_uffer		_q_ X←
+  _j_ ↓         _x_ horizontal	_f_ind files	_w_ X↓
+  _k_ ↑         _z_ undo        _a_ce 1		_e_ X↑
+  _l_ →         _Z_ reset       _s_wap		_r_ X→
+  _F_ollow		_D_lt Other     _S_ave		max_i_mize
+  _SPC_ cancel	_o_nly this     _d_elete
+  "
+     ("h" windmove-left )
+     ("j" windmove-down )
+     ("k" windmove-up )
+     ("l" windmove-right )
+     ("q" hydra-move-splitter-left)
+     ("w" hydra-move-splitter-down)
+     ("e" hydra-move-splitter-up)
+     ("r" hydra-move-splitter-right)
+     ("b" helm-mini)
+     ("f" ido-find-files)
+     ("F" follow-mode)
+     ("a" (lambda ()
+            (interactive)
+            (ace-window 1)
+            (add-hook 'ace-window-end-once-hook
+                      'hydra-window/body))
+         )
+     ("v" (lambda ()
+            (interactive)
+            (split-window-right)
+            (windmove-right))
+         )
+     ("x" (lambda ()
+            (interactive)
+            (split-window-below)
+            (windmove-down))
+         )
+     ("s" (lambda ()
+            (interactive)
+            (ace-window 4)
+            (add-hook 'ace-window-end-once-hook
+                      'hydra-window/body)))
+     ("S" save-buffer)
+     ("d" delete-window)
+     ("D" (lambda ()
+            (interactive)
+            (ace-window 16)
+            (add-hook 'ace-window-end-once-hook
+                      'hydra-window/body))
+         )
+     ("o" delete-other-windows)
+     ("i" ace-maximize-window)
+     ("z" (progn
+            (winner-undo)
+            (setq this-command 'winner-undo))
+     )
+     ("Z" winner-redo)
+     ("SPC" nil)
+     )
+
+  (global-set-key (kbd "s-q") 'hydra-window/body)
+#+END_SRC
+
+**** ediff
+#+BEGIN_SRC emacs-lisp
+(defhydra hydra-ediff (:color blue :hint nil)
+  "
+^Buffers           Files           VC                     Ediff regions
+----------------------------------------------------------------------
+_b_uffers           _f_iles (_=_)       _r_evisions              _l_inewise
+_B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
+                  _c_urrent file
+"
+  ("b" ediff-buffers)
+  ("B" ediff-buffers3)
+  ("=" ediff-files)
+  ("f" ediff-files)
+  ("F" ediff-files3)
+  ("c" ediff-current-file)
+  ("r" ediff-revision)
+  ("l" ediff-regions-linewise)
+  ("w" ediff-regions-wordwise))
+  (global-set-key (kbd "s-e") 'hydra-ediff/body)
+#+END_SRC
+
+**** page navigation
+#+BEGIN_SRC emacs-lisp
+(defhydra hydra-page (ctl-x-map "" :pre (widen))
+  "page"
+  ("]" forward-page "next")
+  ("[" backward-page "prev")
+  ("n" narrow-to-page "narrow" :bind nil :exit t))
+#+END_SRC
+
+**** code folding
+#+BEGIN_SRC emacs-lisp
+  (defhydra hydra-hs (:idle 1.0)
+     "
+  Hide^^            ^Show^            ^Toggle^    ^Navigation^
+  ----------------------------------------------------------------
+  _h_ hide all      _s_ show all      _t_oggle    _n_ext line
+  _d_ hide block    _a_ show block              _p_revious line
+  _l_ hide level
+
+  _SPC_ cancel
+  "
+     ("s" hs-show-all)
+     ("h" hs-hide-all)
+     ("a" hs-show-block)
+     ("d" hs-hide-block)
+     ("t" hs-toggle-hiding)
+     ("l" hs-hide-level)
+     ("n" forward-line)
+     ("p" (forward-line -1))
+     ("SPC" nil)
+  )
+
+  (global-set-key (kbd "s-w") 'hydra-hs/body)
+#+END_SRC
+
+**** zooming
+[[https://ericjmritz.wordpress.com/2015/10/14/some-personal-hydras-for-gnu-emacs/][source]]
+#+BEGIN_SRC emacs-lisp
+  (pretty-hydra-define phydra-zoom
+    (:color pink :quit-key "SPC")
+    ("Zoom"
+     (("=" text-scale-increase "in")
+      ("-" text-scale-decrease "out")
+      ("0" (text-scale-adjust 0) "reset")
+      )))
+
+  (global-set-key (kbd "s-=") 'phydra-zoom/body)
+#+END_SRC
+ 
+*** Avy
+#+begin_src emacs-lisp 
+  (use-package avy
+    :bind (("C->" . avy-goto-char-timer))
+    :config
+    (defun avy-action-teleport-whole-line (pt)
+      (avy-action-kill-whole-line pt)
+      (save-excursion (yank)) t)
+    (setf (alist-get ?t avy-dispatch-alist) 'avy-action-teleport
+          (alist-get ?T avy-dispatch-alist) 'avy-action-teleport-whole-line)
+
+    (defun avy-action-flyspell (pt)
+      (avy-generic-command-action #'flyspell-auto-correct-word))
+    (setf (alist-get ?\C-. avy-dispatch-alist) 'avy-action-flyspell)
+
+    (defun avy-action-mark-to-char (pt)
+      (activate-mark)
+      (goto-char (+ 1 pt)))
+    (setf (alist-get 67108896 avy-dispatch-alist) 'avy-action-mark-to-char) ; C-SPC
+
+    (defun avy-action-embark (pt)
+      (unwind-protect
+          (save-excursion
+            (goto-char pt)
+            (embark-act))
+        (select-window
+         (cdr (ring-ref avy-ring 0))))
+      t)
+
+    (setf (alist-get ?. avy-dispatch-alist) 'avy-action-embark)
+    )
+#+end_src
+** Small plug-ins
+*** Hammerspoon
+#+BEGIN_SRC emacs-lisp
+(load "~/emacs/hammerspoon.el")
+#+END_SRC
+
+*** Buffer move
+#+BEGIN_SRC emacs-lisp
+(use-package buffer-move
+  :load-path "~/.emacs.d/external/buffer-move-master")
+#+END_SRC
+
+*** Mode line
 for minimalist modeline
 #+BEGIN_SRC emacs-lisp
   (use-package mood-line
     :config (mood-line-mode))
 #+END_SRC
 
-** Beacon for visible cursor
+*** Beacon for visible cursor
 #+BEGIN_SRC emacs-lisp
   (use-package beacon
     :config (beacon-mode 1))
 #+END_SRC
 
-** Better undo
+*** Better undo
 #+BEGIN_SRC emacs-lisp
   (use-package undo-fu
     :config
@@ -830,6 +1060,24 @@ for minimalist modeline
     (global-set-key (kbd "C-/")   'undo-fu-only-undo)
     (global-set-key (kbd "C-?") 'undo-fu-only-redo))
 #+END_SRC
+
+*** Yasnippets
+#+BEGIN_SRC emacs-lisp
+  (use-package yasnippet
+    :defer 3 ;; takes a while to load, so do it async
+    :config (yas-global-mode)
+    ;; :custom (yas-prompt-functions '(yas-completing-prompt))
+    )
+#+END_SRC
+
+*** link-hinting
+#+begin_src emacs-lisp
+(use-package link-hint
+  :ensure t
+  :bind
+  ("s-l o" . link-hint-open-link)
+  ("s-l c" . link-hint-copy-link))
+#+end_src
 
 ** Completion stack
 *** Vertico
@@ -848,6 +1096,7 @@ The main interface for completion. Comparing both selectrum and this, I decided 
     :init
     (vertico-mode))
 #+END_SRC
+ 
 **** Savehist (Built-in)
 In-built package that remembers the commands and such picked in the mini-buffer and places it on the top.
 #+BEGIN_SRC emacs-lisp
@@ -855,6 +1104,7 @@ In-built package that remembers the commands and such picked in the mini-buffer 
     :init
     (savehist-mode))
 #+END_SRC
+ 
 **** Orderless (Third-party)
 Completion style that allows spaces to be included in the narrowing. Can also match candidates regardless of order the user typed
 #+BEGIN_SRC emacs-lisp
@@ -864,6 +1114,7 @@ Completion style that allows spaces to be included in the narrowing. Can also ma
     (completion-styles '(orderless basic))
     (completion-category-overrides '((file (styles basic partial-completion)))))
 #+END_SRC
+ 
 *** Marginalia
 For hints in the completion (eg. commands bindings/meanings)
 #+BEGIN_SRC emacs-lisp
@@ -875,6 +1126,70 @@ For hints in the completion (eg. commands bindings/meanings)
     (marginalia-mode))
 #+END_SRC
 
+*** Corfu
+*** Cape
+** Completion: Expansion packs
+*** Embark
+for flipping the usual action-item movement of M-x; allowing to first select the thing BEFORE finalizing the action to be used.
+#+BEGIN_SRC emacs-lisp
+  (use-package embark
+    :preface
+    :bind
+    (("C-." . embark-act)         ;; pick some comfortable binding
+     ("M-." . embark-dwim)        ;; good alternative: M-.
+     ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+
+    :init
+
+    ;; Optionally replace the key help with a completing-read interface
+    (setq prefix-help-command #'embark-prefix-help-command)
+
+    :config
+    (setq prefix-help-command #'embark-prefix-help-command)
+    ;; Hide the mode line of the Embark live/completions buffers
+    (add-to-list 'display-buffer-alist
+                 '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                   nil
+                   (window-parameters (mode-line-format . none)))))
+
+  ;; Consult users will also want the embark-consult package.
+  (use-package embark-consult
+    :after (embark consult)
+    :demand t ; only necessary if you have the hook below
+    ;; if you want to have consult previews as you move around an
+    ;; auto-updating embark collect buffer
+    :hook
+    (embark-collect-mode . consult-preview-at-point-mode))
+#+END_SRC
+
+**** COMMENT Embark as helm
+Ported from [[https://karthinks.com/software/fifteen-ways-to-use-embark/][karthinks]]
+#+BEGIN_SRC emacs-lisp
+(defun with-minibuffer-keymap (keymap)
+  (lambda (fn &rest args)
+    (minibuffer-with-setup-hook
+        (lambda ()
+          (use-local-map
+           (make-composed-keymap keymap (current-local-map))))
+      (apply fn args))))
+
+(defvar embark-completing-read-prompter-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "<tab>") 'abort-recursive-edit)
+    map))
+
+(advice-add 'embark-completing-read-prompter :around
+            (with-minibuffer-keymap embark-completing-read-prompter-map))
+(define-key vertico-map (kbd "<tab>") 'embark-act-with-completing-read)
+
+  (defun embark-act-with-completing-read (&optional arg)
+    (interactive "P")
+    (let* ((embark-prompter 'embark-completing-read-prompter)
+           (act (propertize "Act" 'face 'highlight))
+           (embark-indicator (lambda (_keymap targets) nil)))
+      (embark-act arg)))
+#+END_SRC
+ 
 *** Consult
 for other useful functions
 #+BEGIN_SRC emacs-lisp
@@ -978,274 +1293,12 @@ for other useful functions
 #+END_SRC
 **** TODO [#A] Consult Bibtex
 **** TODO [#A]  have rg functions for agenda, projects, zettls
-*** Embark
-for flipping the usual action-item movement of M-x; allowing to first select the thing BEFORE finalizing the action to be used.
-#+BEGIN_SRC emacs-lisp
-  (use-package embark
-    :preface
-    :bind
-    (("C-." . embark-act)         ;; pick some comfortable binding
-     ("M-." . embark-dwim)        ;; good alternative: M-.
-     ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
-
-    :init
-
-    ;; Optionally replace the key help with a completing-read interface
-    (setq prefix-help-command #'embark-prefix-help-command)
-
-    :config
-    (setq prefix-help-command #'embark-prefix-help-command)
-    ;; Hide the mode line of the Embark live/completions buffers
-    (add-to-list 'display-buffer-alist
-                 '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-                   nil
-                   (window-parameters (mode-line-format . none)))))
-
-  ;; Consult users will also want the embark-consult package.
-  (use-package embark-consult
-    :after (embark consult)
-    :demand t ; only necessary if you have the hook below
-    ;; if you want to have consult previews as you move around an
-    ;; auto-updating embark collect buffer
-    :hook
-    (embark-collect-mode . consult-preview-at-point-mode))
-#+END_SRC
-
-**** COMMENT Embark as helm
-Ported from [[https://karthinks.com/software/fifteen-ways-to-use-embark/][karthinks]]
-#+BEGIN_SRC emacs-lisp
-(defun with-minibuffer-keymap (keymap)
-  (lambda (fn &rest args)
-    (minibuffer-with-setup-hook
-        (lambda ()
-          (use-local-map
-           (make-composed-keymap keymap (current-local-map))))
-      (apply fn args))))
-
-(defvar embark-completing-read-prompter-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "<tab>") 'abort-recursive-edit)
-    map))
-
-(advice-add 'embark-completing-read-prompter :around
-            (with-minibuffer-keymap embark-completing-read-prompter-map))
-(define-key vertico-map (kbd "<tab>") 'embark-act-with-completing-read)
-
-  (defun embark-act-with-completing-read (&optional arg)
-    (interactive "P")
-    (let* ((embark-prompter 'embark-completing-read-prompter)
-           (act (propertize "Act" 'face 'highlight))
-           (embark-indicator (lambda (_keymap targets) nil)))
-      (embark-act arg)))
-#+END_SRC
-** Completion: Expansion packs
 *** TODO consult-dir
 using consult for directory completion everywhere!
 *** TODO compose custom keymap for direct clocking?
-** Hydra
-most of this came from the official docs (all except org-roam)
-#+BEGIN_SRC emacs-lisp
-  (use-package hydra)
-  (use-package pretty-hydra)
-#+END_SRC
-
-*** oft-used keys with no modifiers
-#+BEGIN_SRC emacs-lisp
-    (defun x-hydra-pre ()
-      (insert "x")
-      (let ((timer (timer-create)))
-        (timer-set-time timer (timer-relative-time (current-time) 0.5))
-        (timer-set-function timer 'hydra-keyboard-quit)
-        (timer-activate timer)))
-
-    (defhydra x-hydra (:body-pre x-hydra-pre
-                                 :color blue
-                                 :hint nil)
-      ("f" (progn (zap-to-char -1 ?x) (ido-find-file)))
-      ("g" (progn (zap-to-char -1 ?x) (minibuffer-keyboard-quit)))
-      ("b" (progn (zap-to-char -1 ?x) (consult-buffer))))
-
-    (global-set-key "x" #'x-hydra/body)
-#+END_SRC
-*** outline minor mode
-#+BEGIN_SRC emacs-lisp
-  (pretty-hydra-define phydra-outline
-    (:color pink :quit-key "SPC" :title "Outline")
-    ("Hide..."
-     (("q" hide-sublevels "sublevels")
-      ("t" hide-body "body")
-      ("o" hide-other "other")
-      ("c" hide-entry "entry")
-      ("l" hide-leaves "leaves")
-      ("d" hide-subtree "subtree")
-      )
-     "Show..."
-     (("a" show-all "all")
-      ("e" show-entry "entry")
-      ("i" show-children "children")
-      ("k" show-branches "branches")
-      ("s" show-subtree "subtree")
-      )
-     "Move..."
-     (("u" outline-up-heading "up")
-      ("j" outline-next-visible-heading "next visible")
-      ("k" outline-previous-visible-heading "prev visible")
-      ("l" outline-forward-same-level "forward same level")
-      ("h" outline-backward-same-level "backward same level")
-      )
-     )
-    )
-
-  (global-set-key (kbd "s-z") 'phydra-outline/body)
-#+END_SRC
-
-*** window movement
-#+BEGIN_SRC emacs-lisp
-   (defhydra hydra-window ()
-     "
-  Movement^^        ^Split^         ^Switch^		^Resize^
-  ----------------------------------------------------------------
-  _h_ ←         _v_ertical      _b_uffer		_q_ X←
-  _j_ ↓         _x_ horizontal	_f_ind files	_w_ X↓
-  _k_ ↑         _z_ undo        _a_ce 1		_e_ X↑
-  _l_ →         _Z_ reset       _s_wap		_r_ X→
-  _F_ollow		_D_lt Other     _S_ave		max_i_mize
-  _SPC_ cancel	_o_nly this     _d_elete
-  "
-     ("h" windmove-left )
-     ("j" windmove-down )
-     ("k" windmove-up )
-     ("l" windmove-right )
-     ("q" hydra-move-splitter-left)
-     ("w" hydra-move-splitter-down)
-     ("e" hydra-move-splitter-up)
-     ("r" hydra-move-splitter-right)
-     ("b" helm-mini)
-     ("f" ido-find-files)
-     ("F" follow-mode)
-     ("a" (lambda ()
-            (interactive)
-            (ace-window 1)
-            (add-hook 'ace-window-end-once-hook
-                      'hydra-window/body))
-         )
-     ("v" (lambda ()
-            (interactive)
-            (split-window-right)
-            (windmove-right))
-         )
-     ("x" (lambda ()
-            (interactive)
-            (split-window-below)
-            (windmove-down))
-         )
-     ("s" (lambda ()
-            (interactive)
-            (ace-window 4)
-            (add-hook 'ace-window-end-once-hook
-                      'hydra-window/body)))
-     ("S" save-buffer)
-     ("d" delete-window)
-     ("D" (lambda ()
-            (interactive)
-            (ace-window 16)
-            (add-hook 'ace-window-end-once-hook
-                      'hydra-window/body))
-         )
-     ("o" delete-other-windows)
-     ("i" ace-maximize-window)
-     ("z" (progn
-            (winner-undo)
-            (setq this-command 'winner-undo))
-     )
-     ("Z" winner-redo)
-     ("SPC" nil)
-     )
-
-  (global-set-key (kbd "s-q") 'hydra-window/body)
-#+END_SRC
-
-*** ediff
-#+BEGIN_SRC emacs-lisp
-(defhydra hydra-ediff (:color blue :hint nil)
-  "
-^Buffers           Files           VC                     Ediff regions
-----------------------------------------------------------------------
-_b_uffers           _f_iles (_=_)       _r_evisions              _l_inewise
-_B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
-                  _c_urrent file
-"
-  ("b" ediff-buffers)
-  ("B" ediff-buffers3)
-  ("=" ediff-files)
-  ("f" ediff-files)
-  ("F" ediff-files3)
-  ("c" ediff-current-file)
-  ("r" ediff-revision)
-  ("l" ediff-regions-linewise)
-  ("w" ediff-regions-wordwise))
-  (global-set-key (kbd "s-e") 'hydra-ediff/body)
-#+END_SRC
-
-*** page navigation
-#+BEGIN_SRC emacs-lisp
-(defhydra hydra-page (ctl-x-map "" :pre (widen))
-  "page"
-  ("]" forward-page "next")
-  ("[" backward-page "prev")
-  ("n" narrow-to-page "narrow" :bind nil :exit t))
-#+END_SRC
-
-*** code folding
-#+BEGIN_SRC emacs-lisp
-  (defhydra hydra-hs (:idle 1.0)
-     "
-  Hide^^            ^Show^            ^Toggle^    ^Navigation^
-  ----------------------------------------------------------------
-  _h_ hide all      _s_ show all      _t_oggle    _n_ext line
-  _d_ hide block    _a_ show block              _p_revious line
-  _l_ hide level
-
-  _SPC_ cancel
-  "
-     ("s" hs-show-all)
-     ("h" hs-hide-all)
-     ("a" hs-show-block)
-     ("d" hs-hide-block)
-     ("t" hs-toggle-hiding)
-     ("l" hs-hide-level)
-     ("n" forward-line)
-     ("p" (forward-line -1))
-     ("SPC" nil)
-  )
-
-  (global-set-key (kbd "s-w") 'hydra-hs/body)
-#+END_SRC
-
-*** zooming
-[[https://ericjmritz.wordpress.com/2015/10/14/some-personal-hydras-for-gnu-emacs/][source]]
-#+BEGIN_SRC emacs-lisp
-  (pretty-hydra-define phydra-zoom
-    (:color pink :quit-key "SPC")
-    ("Zoom"
-     (("=" text-scale-increase "in")
-      ("-" text-scale-decrease "out")
-      ("0" (text-scale-adjust 0) "reset")
-      )))
-
-  (global-set-key (kbd "s-=") 'phydra-zoom/body)
-#+END_SRC
- 
-** Yasnippets
-#+BEGIN_SRC emacs-lisp
-  (use-package yasnippet
-    :defer 3 ;; takes a while to load, so do it async
-    :config (yas-global-mode)
-    ;; :custom (yas-prompt-functions '(yas-completing-prompt))
-    )
-#+END_SRC
-
 ** TODO [#F] hippie expand
+** TODO Ace-window for fast swaps
+** TODO vundo for visualized undo-tree
 ** COMMENT Helpful for verbose help
 #+BEGIN_SRC emacs-lisp
   (use-package helpful
@@ -1255,9 +1308,6 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
            ("C-c C-d" . helpful-at-point))
 #+END_SRC
 
-** TODO Avy
-** TODO Ace-window for fast swaps
-** TODO vundo for visualized undo-tree
 * Yza Config - Programming
 ** Showing diffs (git)
 *** Diff-hl
@@ -1298,6 +1348,7 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
   (defvar yza/review-files "~/Dropbox/org/life/reviews/")
   (defvar yza/journal-files "~/Dropbox/org/life/journal/")
   (defvar yza/slipbox-files "~/Dropbox/org/notes/0.slipbox/")
+  (defvar yza/dashboard-files "~/Dropbox/org/life/dashboards/")
 
   (defvar yza/school-files "~/Dropbox/org/projects/future.school/")
   (defvar yza/project-files "~/Dropbox/org/projects/")
@@ -1324,6 +1375,7 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
     (interactive)
     (org-display-inline-images t))
 #+END_SRC
+ 
 *** Function: org clock table for tag-grouping
 from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2ee][githubgist]]
 #+BEGIN_SRC emacs-lisp
@@ -1369,6 +1421,7 @@ from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2e
                 (clocktable-by-tag/insert-tag (plist-put (plist-put params :match tag) :tags tag)))
               tags)))
 #+END_SRC
+ 
 *** Refile item to a new file
 [[https://superuser.com/questions/567916/org-mode-command-to-create-new-file-from-subtree/568300#568300][got from stackoverflo w]]
 - switched the command that C-u triggers (this saves the refile in the  current dir, without asking the filename--that means the default is now asking a directory)
@@ -1406,7 +1459,7 @@ otherwise use the subtree title."
   (define-key org-mode-map (kbd "H-\\") 'zin/org-refile-new-select)
   (define-key org-mode-map (kbd "H-|") 'zin/org-refile-new-noselect)
 #+END_SRC
-
+ 
 ** Standard procedures
 *** COMMENT Custom  global bindings
 #+BEGIN_SRC emacs-lisp
@@ -1679,6 +1732,9 @@ otherwise use the subtree title."
                          ))
             ))
           ))
+
+#+END_SRC
+ 
 #+END_SRC
 
 *** Org-agenda use-package declaration
@@ -1690,11 +1746,10 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
     :ensure nil
     :bind (("<f9>" . org-agenda))
     :config
-    ;; (setq org-agenda-files (append (find-lisp-find-files yza/action-files "\.org$")
-                                   ;; (find-lisp-find-files yza/review-files "\.org$")))
     :custom
     (org-agenda-files (append (find-lisp-find-files yza/action-files "\.org$")
-                              (find-lisp-find-files yza/review-files "\.org$")))
+                              (find-lisp-find-files yza/review-files "\.org$")
+                              (find-lisp-find-files yza/dashboard-files "\.org$")))
     (org-agenda-start-with-log-mode t)
     )
 #+END_SRC
@@ -2031,30 +2086,76 @@ Most of this came from wonderful [[https://gist.github.com/jeremyf/b1fb8414624e6
     (setq org-roam-completion-everywhere t)
     (setq org-roam-v2-ack t)
     (org-roam-db-autosync-mode)
-    (add-to-list 'display-buffer-alist
-                 '("\\*org-roam\\#"
-                   (display-buffer-in-side-window)
-                   (side . right)
-                   (slot . 0)
-                   (window-width . 0.33)
-                   (window-parameters . ((no-other-window . t)
-                                         (no-delete-other-windows . t)))))
+    
     :custom
     (org-roam-directory (file-truename yza/slipbox-files))
     (org-roam-node-display-template "${hierarchy}:${title:*} ${tags:40}")
     )
 #+END_SRC
+ 
+**** mini: org-buffer on the side
+from the [[https://www.orgroam.com/manual.html#Configuring-the-Org_002droam-buffer-display][official docs]]
+#+begin_src emacs-lisp
+  (add-to-list 'display-buffer-alist
+               '("\\*org-roam\\*"
+                 (display-buffer-in-direction)
+                 (direction . right)
+                 (window-width . 0.33)
+                 (window-height . fit-window-to-buffer)))
+
+  (setq org-roam-mode-sections
+        (list #'org-roam-backlinks-section
+              #'org-roam-reflinks-section
+              ;; #'org-roam-unlinked-references-section -- slow so do this in own discretion
+              ))
+#+end_src
+ 
 **** org-roam capture templates
+combining doct to org-roam came from this [[https://github.com/progfolio/doct/issues/16][issue]] and this [[https://gist.github.com/vherrmann/f9b21eeea7d7c9123dc400a30599d50d#file-doct-org-roam-el=][gist provided the doct-org-roam.el]]
 #+BEGIN_SRC emacs-lisp
+  (use-package doct-org-roam
+    :load-path "~/.emacs.d/external/doct-org-roam")
+
   (setq org-roam-capture-templates
-        '(("d" "default" plain
-           "%?"
-           :if-new (file+head "${slug}.org"
-                              "#+title: ${hierarchy-title}\n")
-           :immediate-finish t
-           :unnarrowed t)))
+        (doct-org-roam
+         '(("default (focus)" :keys "n"
+            :template "%?"
+            :type plain
+            :unnarrowed t
+            :file "${slug}.org"
+            :jump-to-captured t
+            :hook (lambda () (call-interactively 'delete-other-windows))
+            :head ("#+title: ${hierarchy-title}"
+                   ""
+                   ""))
+           ("default" :keys "f"
+            :template "%?"
+            :type plain
+            :unnarrowed t
+            :file "${slug}.org"
+            :hook (lambda () (call-interactively 'delete-other-windows))
+            :head ("#+title: ${hierarchy-title}"
+                   ""
+                   ""))
+           ("orphan" :keys "r"
+            :template "* ${title}%?"
+            :headline "No Category" 
+            :type entry
+            :hook (lambda () (call-interactively 'delete-other-windows))
+            :prepare-finalize (lambda () (call-interactively 'org-id-get-create))
+            :file "orphans.org"
+            :refile-targets (( "~/Dropbox/org/notes/0.slipbox/orphans.org" :maxlevel . 4))
+            ))))
+
+  ;; (setq org-roam-capture-templates
+  ;;       '(("d" "default" plain
+  ;;          "%?"
+  ;;          :if-new (file+head "${slug}.org"
+  ;;                             "#+title: ${hierarchy-title}\n")
+  ;;          :immediate-finish t
+  ;;          :unnarrowed t)))
 #+END_SRC
-*** TODO org-cite
+ 
 *** deft
 found a nice short config here in [[https://www.reddit.com/r/emacs/comments/h0h4ix/how_to_configure_multile_directories_with_deft/][this reddit thread]]
 #+BEGIN_SRC emacs-lisp
@@ -2113,6 +2214,7 @@ found a nice short config here in [[https://www.reddit.com/r/emacs/comments/h0h4
     (deft-use-filter-string-for-filename t)
     )
 #+END_SRC
+ 
 *** COMMENT org-multi-wiki
 not working
 #+BEGIN_SRC emacs-lisp
