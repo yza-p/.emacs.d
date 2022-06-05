@@ -1791,48 +1791,74 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                                      :add-prop ":context: %^{Where will you do this?}")))
                                         ("Actions" :keys "a"
                                          :file (lambda () (concat yza/action-files "actionable.org"))
-                                         :template ("* %{todo-state}  %^{Description} %? %^g"
-                                                    ":PROPERTIES:"
-                                                    ":created: %U"
-                                                    ":effort: %^{Effort}"
-                                                    ":brainpower: %^{Brainpower (high/mid/low/chill)}"
-                                                    ":END:")
                                          :children (("Single Actions" :keys "a" :todo-state "NEXT"
+                                                     :template ("* %{todo-state}  %^{Description} %? %^g"
+                                                                ":PROPERTIES:"
+                                                                ":created: %U"
+                                                                ":project: %^{Project ID: | orphan}"
+                                                                ":p_order: %^{Project order: | 0}"
+                                                                ":effort: %^{Effort}"
+                                                                ":brainpower: %^{Brainpower (high/mid/low/chill)}"
+                                                                ":END:")
                                                      :headline "Actions")
                                                     ("Scheduled" :keys "s" :todo-state "TODO"
+                                                     :template ("* %{todo-state} %^{Description} %? %^g"
+                                                                ":PROPERTIES:"
+                                                                ":created: %U"
+                                                                ":effort: %^{Effort}"
+                                                                ":END:")
                                                      :headline "Appointments")
-                                                    ("Waiting on" :keys "w" ;:todo-state "WAIT"
+                                                    ("Waiting on" :keys "w"
                                                      :headline "Waiting on"
                                                      :template ("* WAIT %^{Description}"))
-                                                    ("Projects" :keys "p" :todo-state ""
+                                                    ("Multi-step" :keys "m" :todo-state ""
+                                                     :template ("* IDEA %^{Description} %^g"
+                                                                ":PROPERTIES:"
+                                                                ":created: %U"
+                                                                ":project: %^{Project ID: | orphan}"
+                                                                ":p_order: %^{Project order: | 0}"
+                                                                ":END:"
+                                                                "%?")
                                                      :headline "Projects")))
                                         ("Fast-clocking" :keys "c"
                                          :clock-in t
                                          :clock-keep t
                                          :immediate-finish t
                                          :file (lambda () (concat yza/action-files "actionable.org"))
-                                         :template ("* %{todo-state} %^{Description} %? %^g"
-                                                    ":PROPERTIES:"
-                                                    ":created: %U"
-                                                    ":effort: %^{Effort}"
-                                                    ":END:")
                                          :children (("Movie!" :keys "m"
                                                      :file (lambda () (concat yza/action-files "watch-history.org"))
                                                      :template ("* TODO %^{Name} %?"
                                                                 ":PROPERTIES:"
                                                                 ":watch-with: %^{Watch with who?}"
                                                                 ":watchlist-link: %^{Link to movie if in the list}"
-                                                                ":END:")
-                                                     )
+                                                                ":END:"))
                                                     ("Event now!" :keys "e" :todo-state "TODO"
                                                      :headline "Appointments"
-                                                     )
+                                                     :template ("* %{todo-state} %^{Description} %? %^g"
+                                                                ":PROPERTIES:"
+                                                                ":created: %U"
+                                                                ":effort: %^{Effort}"
+                                                                ":END:"))
                                                     ("Action now!" :keys "a" :todo-state "NEXT"
                                                      :headline "Actions"
-                                                     )
+                                                     :template ("* %{todo-state}  %^{Description} %? %^g"
+                                                                ":PROPERTIES:"
+                                                                ":created: %U"
+                                                                ":effort: %^{Effort}"
+                                                                ":brainpower: %^{Brainpower (high/mid/low/chill)}"
+                                                                ":END:"))
                                                     ("New web content now!" :keys "w" :todo-state "READING"
                                                      :file (lambda () (concat yza/action-files "watch-history.org"))
                                                      :headline "Web Content"
+                                                     :clock-keep nil
+                                                     :immediate-finish nil
+                                                     :template ("* BACKLOG %^{Title} %?"
+                                                                ":PROPERTIES:"
+                                                                ":added: %U"
+                                                                ":list-group: Web - %^{Video/Article/Wiki?}"
+                                                                ":published-on: %^{Published on}u"
+                                                                ":publisher: %^{Publisher}"
+                                                                ":END:")
                                                      )))
                                         ("Record" :keys "r"
                                          :file (lambda () (concat yza/action-files "data.org"))
