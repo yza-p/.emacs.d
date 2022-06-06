@@ -1127,6 +1127,51 @@ For hints in the completion (eg. commands bindings/meanings)
 #+END_SRC
 
 *** Corfu
+#+begin_src emacs-lisp
+  (use-package corfu
+    :bind (:map corfu-map
+                ("C-n" . corfu-next)
+                ("C-p" . corfu-previous)
+                ("<escape>" . corfu-quit)
+                ("<return>" . corfu-insert)
+                ("M-d" . corfu-show-documentation)
+                ("M-l" . corfu-show-location))
+    :config
+    (global-corfu-mode)
+    :custom
+    (corfu-auto t)
+    (corfu-auto-prefix 2)
+    (corfu-auto-delay 0.25)
+
+    (corfu-min-width 80)
+    (corfu-max-width corfu-min-width)
+    (corfu-count 14)
+    (corfu-scroll-margin 4)
+    (corfu-cycle nil)
+
+    ;; `nil' means to ignore `corfu-separator' behavior, that is, use the older
+    ;; `corfu-quit-at-boundary' = nil behavior. Set this to separator if using
+    ;; `corfu-auto' = `t' workflow (in that case, make sure you also set up
+    ;; `corfu-separator' and a keybind for `corfu-insert-separator', which my
+    ;; configuration already has pre-prepared). Necessary for manual corfu usage with
+    ;; orderless, otherwise first component is ignored, unless `corfu-separator'
+    ;; is inserted.
+    (corfu-quit-at-boundary nil)
+    (corfu-preselect-first t)
+
+    ;; for built-in settings
+    (tab-always-indent 'complete)
+    (completion-cycle-threshold nil)
+    )
+   
+  (defun corfu-enable-in-minibuffer ()
+    "Enable Corfu in the minibuffer if `completion-at-point' is bound."
+    (when (where-is-internal #'completion-at-point (list (current-local-map)))
+      ;; (setq-local corfu-auto nil) Enable/disable auto completion
+      (corfu-mode 1)))
+  (add-hook 'minibuffer-setup-hook #'corfu-enable-in-minibuffer)
+#+end_src
+ 
 *** Cape
 ** Completion: Expansion packs
 *** Embark
@@ -1293,6 +1338,7 @@ for other useful functions
 #+END_SRC
 **** TODO [#A] Consult Bibtex
 **** TODO [#A]  have rg functions for agenda, projects, zettls
+
 *** TODO consult-dir
 using consult for directory completion everywhere!
 *** TODO compose custom keymap for direct clocking?
@@ -1460,6 +1506,46 @@ otherwise use the subtree title."
   (define-key org-mode-map (kbd "H-|") 'zin/org-refile-new-noselect)
 #+END_SRC
  
+*** COMMENT capturing org-agenda
+#+begin_src emacs-lisp
+  (defun save-screenshot-svg ()
+    "Save a screenshot of the current frame as an SVG image.
+    Saves to a chosen file and puts the filename in the kill ring."
+    (interactive)
+    (let* ((file-name (concat
+                       (make-temp-name "Emacs-") ".svg"))
+           (path "~/")
+           (full-file-name (concat path file-name))
+           (data (mac-export-frames nil 'png))
+           (index-file-template "~/.emacs.d/org-agenda.html.template")
+           (index-file (concat path "index.html")))
+      (dolist
+          (var (directory-files path t "Emacs.*svg"))
+        (delete-file var))
+      (with-temp-file full-file-name
+        (insert data))
+      (with-temp-file index-file
+        (progn
+          (insert-file-contents index-file-template)
+          (goto-char (point-min))
+          (while (search-forward "{{ FILENAME }}" nil t)
+            (replace-match file-name t))))
+      (message (concat "Saved screenshot to " file-name))))
+
+  (defun sync-agenda-svg ()
+    "Save a screenshot of the current frame as an SVG image.
+    Saves to a chosen file and puts the filename in the kill ring."
+    (interactive)
+    (progn
+      (org-agenda nil "0")
+      (hl-line-mode -1)
+      (org-agenda-redo-all)
+      (goto-char 100000)
+      (setq cursor-type nil)
+      (save-screenshot-svg)
+      (setq cursor-type 'box)))
+#+end_src
+ 
 ** Standard procedures
 *** COMMENT Custom  global bindings
 #+BEGIN_SRC emacs-lisp
@@ -1470,110 +1556,111 @@ otherwise use the subtree title."
 
 *** Org-mode use-package declaration
 #+BEGIN_SRC emacs-lisp
-    (use-package org
-      :pin gnu
-      :hook ((org-mode . visual-line-mode)
-             (org-mode . org-indent-mode))
-      :bind (("H-/" . org-todo)
-             ("C-c l" . org-store-link)
-             ("H-l o" . org-id-get-create)  
-             ("H-l l" . org-id-store-link)
-             ("H-l p" . org-insert-last-stored-link)
-             ("H-." . yza/consult-org-headings-agenda)
-             ("H-s p" . yza/consult-projects)
-             ("C-c 1" . org-time-stamp-inactive)
-             ("H-i" . do-org-show-all-inline-images)
-             ("<H-left>" . org-clock-in)
-             ("<H-right>" . org-clock-out))
-      :custom
-      (org-extend-today-until 5)
-      (org-log-into-drawer t)
-      (org-latex-create-formula-image-program 'dvisvgm)
-      (org-ellipsis " ▾")
-      (org-directory "~/Dropbox/org")
-      (org-use-sub-superscripts '{})
-      (org-return-follows-link t)
-      (org-log-reschedule 'note)
-      (org-use-fast-todo-selection t)
-      (org-hide-emphasis-markers t)
-      (org-toggle-pretty-entities t)
-      (org-priority-default 71)
+  (use-package org
+    :pin gnu
+    :hook ((org-mode . visual-line-mode)
+           (org-mode . org-indent-mode))
+    :bind (("H-/" . org-todo)
+           ("C-c l" . org-store-link)
+           ("H-l o" . org-id-get-create)  
+           ("H-l l" . org-id-store-link)
+           ("H-l p" . org-insert-last-stored-link)
+           ("H-." . yza/consult-org-headings-agenda)
+           ("H-s p" . yza/consult-projects)
+           ("C-c 1" . org-time-stamp-inactive)
+           ("H-i" . do-org-show-all-inline-images)
+           ("C-c o" . org-edit-src-code)
+           ("<H-left>" . org-clock-in)
+           ("<H-right>" . org-clock-out))
+    :custom
+    (org-extend-today-until 5)
+    (org-log-into-drawer t)
+    (org-latex-create-formula-image-program 'dvisvgm)
+    (org-ellipsis " ▾")
+    (org-directory "~/Dropbox/org")
+    (org-use-sub-superscripts '{})
+    (org-return-follows-link t)
+    (org-log-reschedule 'note)
+    (org-use-fast-todo-selection t)
+    (org-hide-emphasis-markers t)
+    (org-toggle-pretty-entities t)
+    (org-priority-default 71)
 
-      (org-todo-keywords
-       '((sequence "TODO(t!)" "NEXT(n)" "WAIT(w)" "SOMEDAY(s@)" "GOAL(1)" "|" "CNCL(c@)" "DONE(d!)")
-         (sequence "IDEA(i!)" "WORKING(k!)" "INCUBATE(y!)" "MATURE(m!)" "|" "REJECT(j@/@)")
-         (sequence "BACKLOG(b)" "READING(a!)" "PROCESS(p!)" "|" "CONSUMED(p@)" "DROPPED(d@/@)")))
+    (org-todo-keywords
+     '((sequence "TODO(t!)" "NEXT(n)" "WAIT(w)" "SOMEDAY(s@)" "GOAL(1)" "|" "CNCL(c@)" "DONE(d!)")
+       (sequence "IDEA(i!)" "WORKING(k!)" "INCUBATE(y!)" "MATURE(m!)" "|" "REJECT(j@/@)")
+       (sequence "BACKLOG(b)" "READING(a!)" "PROCESS(p!)" "|" "CONSUMED(p@)" "DROPPED(d@/@)")))
 
-      (org-todo-keyword-faces
-       (quote (("TODO" :foreground "OrangeRed" :weight bold)
-               ("NEXT" :foreground "RoyalBlue1" :weight bold)
-               ("SOMEDAY" :foreground "DarkOrange1" :weight bold)
-               ("DONE" :foreground "MediumSpringGreen" :weight bold)
-               ("WAIT" :foreground "yellow" :weight bold)
-               ("CNCL" :foreground "SaddleBrown" :weight bold)
+    (org-todo-keyword-faces
+     (quote (("TODO" :foreground "OrangeRed" :weight bold)
+             ("NEXT" :foreground "RoyalBlue1" :weight bold)
+             ("SOMEDAY" :foreground "DarkOrange1" :weight bold)
+             ("DONE" :foreground "MediumSpringGreen" :weight bold)
+             ("WAIT" :foreground "yellow" :weight bold)
+             ("CNCL" :foreground "SaddleBrown" :weight bold)
 
-               ("IDEA" :foreground "White" :background "OrangeRed1" :weight bold)
-               ("WORKING" :foreground "White" :background "OrangeRed4" :weight bold)
-               ("INCUBATE" :foreground "White" :background "DodgerBlue4" :weight bold)
-               ("MATURE" :foreground "White" :background "blue3" :weight bold)
-               ("REJECT" :foreground "White" :background "DarkRed" :weight bold)
+             ("IDEA" :foreground "White" :background "OrangeRed1" :weight bold)
+             ("WORKING" :foreground "White" :background "OrangeRed4" :weight bold)
+             ("INCUBATE" :foreground "White" :background "DodgerBlue4" :weight bold)
+             ("MATURE" :foreground "White" :background "blue3" :weight bold)
+             ("REJECT" :foreground "White" :background "DarkRed" :weight bold)
 
-               ("BACKLOG" :foreground "PaleVioletRed" :weight bold)
-               ("READING" :foreground "LightPink" :weight bold)
-               ("PROCESS" :foreground "gold" :weight bold)
-               ("CONSUMED" :foreground "MediumSpringGreen" :weight bold)
-               ("DROPPED" :foreground "LightSlateGrey" :weight bold)
+             ("BACKLOG" :foreground "PaleVioletRed" :weight bold)
+             ("READING" :foreground "LightPink" :weight bold)
+             ("PROCESS" :foreground "gold" :weight bold)
+             ("CONSUMED" :foreground "MediumSpringGreen" :weight bold)
+             ("DROPPED" :foreground "LightSlateGrey" :weight bold)
 
-               ("GOAL" :foreground "DeepPink" :weight bold)
-               )))
+             ("GOAL" :foreground "DeepPink" :weight bold)
+             )))
 
-      (org-tag-alist '(;(:startgroup)
-                       ;; ("Learning")
-                       ;; (:grouptags)
-                       ;; ("Computer")
-                       ;; ("Art")
-                       ;; ("Math")
-                       ;; ("Science")
-                       ;; (:endgroup)
+    (org-tag-alist '(;(:startgroup)
+                     ;; ("Learning")
+                     ;; (:grouptags)
+                     ;; ("Computer")
+                     ;; ("Art")
+                     ;; ("Math")
+                     ;; ("Science")
+                     ;; (:endgroup)
 
-                       ;; (:startgroup)
-                       ;; ("Computer")
-                       ;; (:grouptags)
-                       ;; (:startgroup)
-                       ;; ("lc@.+")
-                       ;; (:endgroup)
-                       ;; (:endgroup)
-                       ;; (:startgroup)
+                     ;; (:startgroup)
+                     ;; ("Computer")
+                     ;; (:grouptags)
+                     ;; (:startgroup)
+                     ;; ("lc@.+")
+                     ;; (:endgroup)
+                     ;; (:endgroup)
+                     ;; (:startgroup)
 
-                       ;; ("Art")
-                       ;; (:grouptags)
-                       ;; (:startgroup)
-                       ;; ("la@.+")
-                       ;; (:endgroup)
-                       ;; (:endgroup)
+                     ;; ("Art")
+                     ;; (:grouptags)
+                     ;; (:startgroup)
+                     ;; ("la@.+")
+                     ;; (:endgroup)
+                     ;; (:endgroup)
 
-                       ;; (:startgroup)
-                       ;; ("School")
-                       ;; (:grouptags)
-                       ;; (:startgroup)
-                       ;; ("S@.+")
-                       ;; (:endgroup)
-                       ;; (:endgroup)
+                     ;; (:startgroup)
+                     ;; ("School")
+                     ;; (:grouptags)
+                     ;; (:startgroup)
+                     ;; ("S@.+")
+                     ;; (:endgroup)
+                     ;; (:endgroup)
 
-                       (:startgroup)
-                       ("Brainpower")
-                       (:grouptags)
-                       ("high" . ?1)
-                       ("mid" . ?2)
-                       ("low" . ?3)
-                       ("chill" . ?4)
-                       (:endgroup)))
+                     (:startgroup)
+                     ("Brainpower")
+                     (:grouptags)
+                     ("high" . ?1)
+                     ("mid" . ?2)
+                     ("low" . ?3)
+                     ("chill" . ?4)
+                     (:endgroup)))
 
-      :custom-face
-      (org-link ((t (:inherit link :family "Roboto Mono"))))
-      (org-document-title ((t (:weight bold :height 1.5))))
-      (org-headline-done ((t (:strike-through t))))
-      (org-image-actual-width '(600)))
+    :custom-face
+    (org-link ((t (:inherit link :family "Roboto Mono"))))
+    (org-document-title ((t (:weight bold :height 1.5))))
+    (org-headline-done ((t (:strike-through t))))
+    (org-image-actual-width '(600)))
 #+END_SRC
 
 *** Org-agenda custom views
@@ -1672,7 +1759,7 @@ otherwise use the subtree title."
                         (org-super-agenda-groups
                          '((:discard (:log t))
                            (:discard (:tag "longrun"))
-                           (:discard (:deadline future))
+                           ;; (:discard (:deadline future))
                            (:name "Nice!"
                                   :todo "DONE"
                                   :todo "CNCL")
@@ -1734,9 +1821,7 @@ otherwise use the subtree title."
           ))
 
 #+END_SRC
- 
-#+END_SRC
-
+  
 *** Org-agenda use-package declaration
 the tip for finding org files recursively using find-lisp is from [[https://stackoverflow.com/a/41969460][stackoverflow]]
 #+BEGIN_SRC emacs-lisp
@@ -1819,7 +1904,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                                                 ":p_order: %^{Project order: | 0}"
                                                                 ":END:"
                                                                 "%?")
-                                                     :headline "Projects")))
+                                                     :headline "Multi-steps")))
                                         ("Fast-clocking" :keys "c"
                                          :clock-in t
                                          :clock-keep t
@@ -1907,14 +1992,10 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                                      :headline "Refile"
                                                      :file "~/Dropbox/org/projects/refile.org"
                                                      :refile-targets (( yza/get-project-files :maxlevel . 2)))
-                                                    ("refile to new file (focus)" :keys "n"
-                                                     :file "~/Dropbox/org/projects/refile.org"
-                                                     :hook (lambda () (call-interactively 'delete-other-windows))
-                                                     :before-finalize (lambda () (call-interactively 'zin/org-refile-new-select)))
-                                                    ("refile to orphans-roam (focus)" :keys "r"
-                                                     :file "~/Dropbox/org/projects/refile.org"
-                                                     :hook (lambda () (call-interactively 'delete-other-windows))
-                                                     :refile-targets (( "~/Dropbox/org/notes/0.slipbox/orphans.org" :maxlevel . 2)))
+                                                    ;; ("refile to new file (focus)" :keys "n"
+                                                    ;;  :file "~/Dropbox/org/projects/refile.org"
+                                                    ;;  :hook (lambda () (call-interactively 'delete-other-windows))
+                                                    ;;  :before-finalize (lambda () (call-interactively 'zin/org-refile-new-select)))
                                                     ))
                                         ("Journal" :keys "j"
                                          :unnarrowed t
@@ -2092,6 +2173,7 @@ Org-appear for general org markups
     )
 
 #+END_SRC
+ 
 *** org-roam
 Most of this came from wonderful [[https://gist.github.com/jeremyf/b1fb8414624e639c9d3b9fec2f22564a][config]]
 #+BEGIN_SRC emacs-lisp
@@ -2194,6 +2276,8 @@ found a nice short config here in [[https://www.reddit.com/r/emacs/comments/h0h4
                              "~/Dropbox/org/projects/school/"
                              "~/Dropbox/org/projects/school-agmnt/"
                              "~/Dropbox/org/projects/yza/"
+                             "~/Dropbox/org/life/dashboards/"
+                             ;; "~/Dropbox/org/notes/1.piles"
                              ))
     ;; (setq my/deft-dir-list '((lambda () (concat yza/project-files "fics/"))
     ;;                          (lambda () (concat yza/project-files "school/"))
@@ -2228,11 +2312,12 @@ found a nice short config here in [[https://www.reddit.com/r/emacs/comments/h0h4
        ("a" deft-archive-file "archive")
        ("n" deft-new-file "new file"))
       "Switch Dir"
-      (("1" (my/prog-deft-dir "~/Dropbox/org/projects/yza/") "personal")
+      (("0" (my/prog-deft-dir "~/Dropbox/org/life/dashboards/") "dashboards")
+       ("1" (my/prog-deft-dir "~/Dropbox/org/projects/yza/") "personal")
        ("2" (my/prog-deft-dir "~/Dropbox/org/projects/fics/") "fics")
        ("3" (my/prog-deft-dir "~/Dropbox/org/projects/school-agmnt/") "sch assignments")
-       ("4" (my/prog-deft-dir "~/Dropbox/org/projects/school/") "sch notes"))
-      ))
+       ("4" (my/prog-deft-dir "~/Dropbox/org/projects/school/") "sch notes")
+      )))
 
     :custom
     (deft-directory "~/Dropbox/org/projects/yza/")
@@ -2240,7 +2325,7 @@ found a nice short config here in [[https://www.reddit.com/r/emacs/comments/h0h4
     (deft-use-filter-string-for-filename t)
     )
 #+END_SRC
- 
+
 *** COMMENT org-multi-wiki
 not working
 #+BEGIN_SRC emacs-lisp
