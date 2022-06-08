@@ -1027,6 +1027,7 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
     (setf (alist-get ?. avy-dispatch-alist) 'avy-action-embark)
     )
 #+end_src
+ 
 ** Small plug-ins
 *** Hammerspoon
 #+BEGIN_SRC emacs-lisp
@@ -1400,28 +1401,6 @@ using consult for directory completion everywhere!
   (defvar yza/project-files "~/Dropbox/org/projects/")
 #+END_SRC
 
-*** Custom functions
-#+BEGIN_SRC emacs-lisp
-  (defun yza/consult-org-headings-agenda ()
-    (interactive)
-    (consult-org-heading t 'agenda))
-  (defun yza/consult-slipbox ()
-    (interactive)
-    (consult-ripgrep yza/slipbox-files))
-  (defun yza/consult-projects ()
-    (interactive)
-    (consult-ripgrep yza/project-files))
-
-  (defun dfeich/helm-org-clock-in (marker)
-    "Clock into the item at MARKER"
-    (with-current-buffer (marker-buffer marker)
-      (goto-char (marker-position marker))
-      (org-clock-in)))
-  (defun do-org-show-all-inline-images ()
-    (interactive)
-    (org-display-inline-images t))
-#+END_SRC
- 
 *** Function: org clock table for tag-grouping
 from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2ee][githubgist]]
 #+BEGIN_SRC emacs-lisp
@@ -1473,29 +1452,29 @@ from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2e
 - switched the command that C-u triggers (this saves the refile in the  current dir, without asking the filename--that means the default is now asking a directory)
 #+BEGIN_SRC emacs-lisp
   (defun zin/org-refile-new-noselect (&optional name)
-  "Cut the subtree currently being edited and create a new file
-from it.
+    "Cut the subtree currently being edited and create a new file
+  from it.
 
-If called with the universal argument, prompt for new filename,
-otherwise use the subtree title."
-  (interactive "P")
-  (org-back-to-heading)
-  (let ((filename (cond
-                   (current-prefix-arg
-                    (expand-file-name
-                     (read-file-name "New file name: ")))
-                   (t
-                    (concat
-                     (expand-file-name
-                      (org-element-property :title
-                                            (org-element-at-point))
-                      default-directory)
-                     ".org")))))
-    (org-cut-subtree)
-    (find-file-noselect filename)
-    (with-temp-file filename
-      (org-mode)
-      (yank))))
+  If called with the universal argument, prompt for new filename,
+  otherwise use the subtree title."
+    (interactive "P")
+    (org-back-to-heading)
+    (let ((filename (cond
+                     (current-prefix-arg
+                      (expand-file-name
+                       (read-file-name "New file name: ")))
+                     (t
+                      (concat
+                       (expand-file-name
+                        (org-element-property :title
+                                              (org-element-at-point))
+                        default-directory)
+                       ".org")))))
+      (org-cut-subtree)
+      (find-file-noselect filename)
+      (with-temp-file filename
+        (org-mode)
+        (yank))))
 
   (defun zin/org-refile-new-select ()
     (interactive)
@@ -1549,9 +1528,9 @@ otherwise use the subtree title."
 ** Standard procedures
 *** COMMENT Custom  global bindings
 #+BEGIN_SRC emacs-lisp
-(global-set-key (kbd "H-p")  (lambda () (interactive)
-                                   (cd "~/Dropbox/org/projects/")
-                                   (call-interactively 'find-file)))
+  (global-set-key (kbd "H-p")  (lambda () (interactive)
+                                 (cd "~/Dropbox/org/projects/")
+                                 (call-interactively 'find-file)))
 #+END_SRC
 
 *** Org-mode use-package declaration
@@ -1566,7 +1545,6 @@ otherwise use the subtree title."
            ("H-l l" . org-id-store-link)
            ("H-l p" . org-insert-last-stored-link)
            ("H-." . yza/consult-org-headings-agenda)
-           ("H-s p" . yza/consult-projects)
            ("C-c 1" . org-time-stamp-inactive)
            ("H-i" . do-org-show-all-inline-images)
            ("C-c o" . org-edit-src-code)
@@ -1759,7 +1737,7 @@ otherwise use the subtree title."
             ))
           ("0" "Focus"
            ((agenda "" ((org-agenda-span 'day)
-                        (org-agenda-entry-types '(:scheduled :deadline :timestamp))
+                        (org-agenda-entry-types '(:scheduled :timestamp))
                         (org-super-agenda-groups
                          '((:discard (:log t))
                            (:discard (:tag "longrun"))
@@ -1788,7 +1766,9 @@ otherwise use the subtree title."
                            (:name "" :deadline future)
                            ))
                         ))
-            (agenda "" ((org-agenda-span 'day) (org-agenda-sorting-strategy '(time-up todo-state-up priority-down))))
+            (agenda "" ((org-agenda-span 'day)
+                        (org-agenda-entry-types '(:timestamp))
+                        (org-agenda-sorting-strategy '(time-up todo-state-up priority-down))))
             ))
           ("w" "Weekly Review"
            ((agenda "" ((org-agenda-start-day "-Mon")
@@ -1894,12 +1874,18 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                                      :template ("* %{todo-state} %^{Description} %? %^g"
                                                                 ":PROPERTIES:"
                                                                 ":created: %U"
-                                                                ":effort: %^{Effort}"
+                                                                ":project: %^{Project ID: | orphan}"
+                                                                ":p_order: %^{Project order: | 0}"
                                                                 ":END:")
                                                      :headline "Appointments")
                                                     ("Waiting on" :keys "w"
                                                      :headline "Waiting on"
-                                                     :template ("* WAIT %^{Description}"))
+                                                     :template ("* WAIT %^{Description}"
+                                                                ":PROPERTIES:"
+                                                                ":created: %U"
+                                                                ":project: %^{Project ID: | orphan}"
+                                                                ":p_order: %^{Project order: | 0}"
+                                                                ":END:"))
                                                     ("Multi-step" :keys "m" :todo-state ""
                                                      :template ("* IDEA %^{Description} %^g"
                                                                 ":PROPERTIES:"
@@ -2068,8 +2054,8 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                finally return applied-p)))
 
 
-    (add-hook 'org-mode-hook 'unpackaged/org-table-face-mode)
-  
+  (add-hook 'org-mode-hook 'unpackaged/org-table-face-mode)
+
 #+END_SRC
  
 *** DOCT for more elegant org-capture templates
@@ -2143,7 +2129,7 @@ Org-appear for general org markups
 *** Thesaurus/Dictionary combo using Merriam Webster
 #+begin_src emacs-lisp
   (use-package mw-thesaurus
-  :bind (:map org-mode-map ("H-z" . mw-thesaurus-lookup-dwim)))
+    :bind (:map org-mode-map ("H-z" . mw-thesaurus-lookup-dwim)))
 #+end_src
 *** COMMENT org-starter for easy organization of refile and agenda files
 #+BEGIN_SRC emacs-lisp
@@ -2178,6 +2164,62 @@ Org-appear for general org markups
 
 #+END_SRC
  
+*** org-roam-bibtex
+the defun came from this [[https://github.com/emacs-citar/citar/issues/431][github issue]]
+#+begin_src emacs-lisp
+  (use-package org-roam-bibtex
+    :custom
+    (citar-open-note-function 'my/citar-org-roam-note-format)
+    (citar-create-note-function 'my/citar-org-roam-note-format)
+    (citar-notes-paths '("~/Dropbox/org/notes/0.slipbox"))
+    (orb-preformat-keywords '("citekey" "title" "url" "author-or-editor" "keywords" "file"))
+    (orb-process-file-keyword t)
+    (orb-file-field-extensions '("pdf"))
+    )
+#+end_src
+[cite:@haverbeke2019] 
+*** citar
+#+begin_src emacs-lisp
+  (use-package citar
+    :no-require
+    :preface
+    (defun my/citar-org-roam-note-format (citekey entry filepath)
+      (let ((title (citar--format-entry-no-widths entry
+                                                  "${author editor} :: ${title}")))
+        (org-roam-capture- :templates
+                           '(("1" "reference" plain "%?" :if-new
+                              (file+head "${citekey}.org" ; FIX how do I use the filepath arg here?
+                                         ":PROPERTIES:
+    :ROAM_REFS: [cite:@${citekey}]
+    :END:
+    ,#+title: ${title}\n")
+                              :immediate-finish t
+                              :unnarrowed t)
+                             ("2" "reference small" plain "%?" :if-new
+                              (file+head "short_refs.org" ; FIX how do I use the filepath arg here?
+                                         ":PROPERTIES:
+  :ROAM_REFS: [cite:@${citekey}]
+  :END:
+  ,#+title: ${title}\n")
+                              :immediate-finish t
+                              :unnarrowed t))
+                           :info (list :citekey citekey)
+                           :node (org-roam-node-create :title title)
+                           :props '(:finalize find-file))))
+    :custom
+    (org-cite-global-bibliography '("~/Dropbox/org/meta/slipbox.bib"))
+    (org-cite-insert-processor 'citar)
+    (org-cite-follow-processor 'citar)
+    (org-cite-activate-processor 'citar)
+    (citar-bibliography org-cite-global-bibliography)
+    (citar-at-point-function 'embark-act)
+
+    (citar-open-note-function 'my/citar-org-roam-note-format)
+    (citar-create-note-function 'my/citar-org-roam-note-format)
+    :bind
+    (:map org-mode-map :package org ("C-c b" . #'org-cite-insert)))
+#+end_src
+ 
 *** org-roam
 Most of this came from wonderful [[https://gist.github.com/jeremyf/b1fb8414624e639c9d3b9fec2f22564a][config]]
 #+BEGIN_SRC emacs-lisp
@@ -2193,12 +2235,12 @@ Most of this came from wonderful [[https://gist.github.com/jeremyf/b1fb8414624e6
      ("H-r i" . org-roam-node-insert)
      ("H-r t" . org-roam-buffer-toggle)
      ("H-r o" . org-roam-node-random)
-     ("H-r s" . yza/consult-slipbox))
+     )
     :init
     (setq org-roam-completion-everywhere t)
     (setq org-roam-v2-ack t)
     (org-roam-db-autosync-mode)
-    
+
     :custom
     (org-roam-directory (file-truename yza/slipbox-files))
     (org-roam-node-display-template "${hierarchy}:${title:*} ${tags:40}")
@@ -2230,7 +2272,7 @@ combining doct to org-roam came from this [[https://github.com/progfolio/doct/is
 
   (setq org-roam-capture-templates
         (doct-org-roam
-         '(("default (focus)" :keys "n"
+         '(("default (jump after finish)" :keys "n"
             :template "%?"
             :type plain
             :unnarrowed t
@@ -2240,7 +2282,7 @@ combining doct to org-roam came from this [[https://github.com/progfolio/doct/is
             :head ("#+title: ${hierarchy-title}"
                    ""
                    ""))
-           ("default" :keys "f"
+           ("default (quick jot)" :keys "f"
             :template "%?"
             :type plain
             :unnarrowed t
@@ -2249,15 +2291,35 @@ combining doct to org-roam came from this [[https://github.com/progfolio/doct/is
             :head ("#+title: ${hierarchy-title}"
                    ""
                    ""))
-           ("orphan" :keys "r"
+           ("orphan" :keys "o"
             :template "* ${title}%?"
-            :headline "No Category" 
+            :headline "No Category"
             :type entry
             :hook (lambda () (call-interactively 'delete-other-windows))
             :prepare-finalize (lambda () (call-interactively 'org-id-get-create))
             :file "orphans.org"
-            :refile-targets (( "~/Dropbox/org/notes/0.slipbox/orphans.org" :maxlevel . 4))
-            ))))
+            :refile-targets (( "~/Dropbox/org/notes/0.slipbox/orphans.org" :maxlevel . 4)))
+
+           ("ref" :keys "r"
+            :template "%?"
+            :type plain
+            :unnarrowed t
+            :orb-entry t
+            :file "${slug}.${citekey}.org"
+            :jump-to-captured t
+            :hook (lambda () (call-interactively 'delete-other-windows))
+            :head ("#+title: ${hierarchy-title}: ${title}"
+                   ""
+                   ""))
+           ("ref (aggregate, quick)" :keys "a"
+            :template "%?"
+            :type plain
+            :orb-entry t
+            :unnarrowed t
+            :file "short_refs.org"
+            :headline "* ${title} [cite:@%^{citekey}]\n%?"
+            )
+           )))
 
   ;; (setq org-roam-capture-templates
   ;;       '(("d" "default" plain
@@ -2267,7 +2329,7 @@ combining doct to org-roam came from this [[https://github.com/progfolio/doct/is
   ;;          :immediate-finish t
   ;;          :unnarrowed t)))
 #+END_SRC
- 
+[cite:@haverbeke2019] 
 *** deft
 found a nice short config here in [[https://www.reddit.com/r/emacs/comments/h0h4ix/how_to_configure_multile_directories_with_deft/][this reddit thread]]
 #+BEGIN_SRC emacs-lisp
@@ -2321,7 +2383,7 @@ found a nice short config here in [[https://www.reddit.com/r/emacs/comments/h0h4
        ("2" (my/prog-deft-dir "~/Dropbox/org/projects/fics/") "fics")
        ("3" (my/prog-deft-dir "~/Dropbox/org/projects/school-agmnt/") "sch assignments")
        ("4" (my/prog-deft-dir "~/Dropbox/org/projects/school/") "sch notes")
-      )))
+       )))
 
     :custom
     (deft-directory "~/Dropbox/org/projects/yza/")
@@ -2342,12 +2404,12 @@ not working
     :custom
     ;; (org-multi-wiki-namespace-list '((personal (concat yza/project-files "yza/"))))
     ;; (org-multi-wiki-namespace-list '((huh "~/Dropbox/org/projects/yza/")
-                                     ;; (schnotes "~/Dropbox/org/projects/future.school/")
-                                     ;; (schprojs "~/Dropbox/org/projects/future.school/projects/")
-                                     ;; (computer "~/Dropbox/org/projects/learn.computer/")
-                                     ;; (fandom "~/Dropbox/org/projects/social.fandom/")
-                                     ;; (writeups "~/Dropbox/org/projects/future.writing/")
-                                     ;; ))
+    ;; (schnotes "~/Dropbox/org/projects/future.school/")
+    ;; (schprojs "~/Dropbox/org/projects/future.school/projects/")
+    ;; (computer "~/Dropbox/org/projects/learn.computer/")
+    ;; (fandom "~/Dropbox/org/projects/social.fandom/")
+    ;; (writeups "~/Dropbox/org/projects/future.writing/")
+    ;; ))
     (org-multi-wiki-default-namespace 'personal)
     )
 #+END_SRC
@@ -2356,3 +2418,33 @@ not working
 [[https://emacstil.com/til/2022/03/05/setting-up-vale-prose-linter-on-emacs/][short tut]]
 
 *** TODO reveal-js
+** Custom functions
+#+BEGIN_SRC emacs-lisp
+  (defun yza/consult-org-headings-agenda ()
+    (interactive)
+    (consult-org-heading t 'agenda))
+
+  (defun yza/rg-consult-slipbox ()
+    (interactive)
+    (consult-ripgrep yza/slipbox-files))
+  (defun yza/rg-consult-projects ()
+    (interactive)
+    (consult-ripgrep yza/project-files))
+  (defun yza/rg-consult-dashboards ()
+    (interactive)
+    (consult-ripgrep yza/dashboard-files))
+
+  (global-set-key (kbd "H-s r") 'yza/rg-consult-slipbox)
+  (global-set-key (kbd "H-s p") 'yza/rg-consult-projects)
+  (global-set-key (kbd "H-s d") 'yza/rg-consult-dashboards)
+
+  (defun dfeich/helm-org-clock-in (marker)
+    "Clock into the item at MARKER"
+    (with-current-buffer (marker-buffer marker)
+      (goto-char (marker-position marker))
+      (org-clock-in)))
+  (defun do-org-show-all-inline-images ()
+    (interactive)
+    (org-display-inline-images t))
+#+END_SRC
+ 
