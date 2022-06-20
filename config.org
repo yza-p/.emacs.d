@@ -437,12 +437,11 @@ Provides us with hints on available keystroke combinations.
 #+END_SRC
 
 * Yza Config - Built-in
-** binding return to include indent
+** Binding return to include indent
 [[http://www.emacslife.com/read-lisp-tweak-emacs/beginner-3-make-things-more-convenient.html][newbie res here]]
 #+BEGIN_SRC emacs-lisp
   (global-set-key (kbd "RET") 'newline-and-indent)
 #+END_SRC
- 
 ** Daemon Server
 #+BEGIN_SRC emacs-lisp
   (use-package server
@@ -1137,10 +1136,10 @@ For hints in the completion (eg. commands bindings/meanings)
                 ("<return>" . corfu-insert)
                 ("M-d" . corfu-show-documentation)
                 ("M-l" . corfu-show-location))
-    :config
+    :init
     (global-corfu-mode)
     :custom
-    (corfu-auto t)
+    (corfu-auto nil)
     (corfu-auto-prefix 2)
     (corfu-auto-delay 0.25)
 
@@ -1525,6 +1524,69 @@ from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2e
       (setq cursor-type 'box)))
 #+end_src
  
+*** Custom functions
+#+BEGIN_SRC emacs-lisp
+  (defun yza/consult-org-headings-agenda ()
+    (interactive)
+    (consult-org-heading t 'agenda))
+
+  (defun yza/rg-consult-slipbox ()
+    (interactive)
+    (consult-ripgrep yza/slipbox-files))
+  (defun yza/rg-consult-projects ()
+    (interactive)
+    (consult-ripgrep yza/project-files))
+  (defun yza/rg-consult-dashboards ()
+    (interactive)
+    (consult-ripgrep yza/dashboard-files))
+
+  (global-set-key (kbd "H-s r") 'yza/rg-consult-slipbox)
+  (global-set-key (kbd "H-s p") 'yza/rg-consult-projects)
+  (global-set-key (kbd "H-s d") 'yza/rg-consult-dashboards)
+
+  (defun dfeich/helm-org-clock-in (marker)
+    "Clock into the item at MARKER"
+    (with-current-buffer (marker-buffer marker)
+      (goto-char (marker-position marker))
+      (org-clock-in)))
+  (defun do-org-show-all-inline-images ()
+    (interactive)
+    (org-display-inline-images t))
+#+END_SRC
+ 
+*** Editting and joining lines like a god!
+#+begin_src emacs-lisp
+  (defun xah-reformat-to-sentence-lines ()
+    "Break a long line or text block into multiple lines by ending period.
+    Work on text selection if there is one, else the current text block.
+    URL `http://xahlee.info/emacs/emacs/elisp_reformat_to_sentence_lines.html'
+    Version 2020-12-02 2021-04-14 2021-08-01"
+    (interactive)
+    (let ($p1 $p2)
+      (if (use-region-p)
+          (setq $p1 (region-beginning) $p2 (region-end))
+        (progn
+          (if (re-search-backward "\n[ \t]*\n+" nil "move")
+              (progn (re-search-forward "\n[ \t]*\n+")
+                     (setq $p1 (point)))
+            (setq $p1 (point)))
+          (re-search-forward "\n[ \t]*\n" nil "move")
+          (setq $p2 (point))))
+      (save-restriction
+        (narrow-to-region $p1 $p2)
+        (progn (goto-char (point-min)) (while (search-forward "\n" nil t) (replace-match " " )))
+        (progn (goto-char (point-min)) (while (re-search-forward "  +" nil t) (replace-match " " )))
+        (progn (goto-char (point-min)) (while (re-search-forward "\\. +\\([0-9A-Za-z]+\\)" nil t) (replace-match ".\n\\1" )))
+        (progn (goto-char (point-min)) (while (search-forward " <a " nil t) (replace-match "\n<a " )))
+        (progn (goto-char (point-min)) (while (search-forward "</a>" nil t) (replace-match "</a>\n" )))
+        (goto-char (point-max))
+        (while (eq (char-before ) 32) (delete-char -1))
+        (insert "\n\n"))))
+
+  (global-set-key (kbd "M-s-j") 'org-drag-line-backward)
+  (global-set-key (kbd "M-s-k") 'org-drag-line-forward)
+  (define-key org-mode-map (kbd "M-s-l") 'xah-reformat-to-sentence-lines)
+#+end_src
 ** Standard procedures
 *** COMMENT Custom  global bindings
 #+BEGIN_SRC emacs-lisp
@@ -1762,8 +1824,9 @@ from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2e
                         (org-agenda-overriding-header "Deadlines!")
                         (org-agenda-entry-types '(:deadline))
                         (org-super-agenda-groups
-                         '((:discard (:not (:deadline future)))
+                         '((:name "" :deadline today)
                            (:name "" :deadline future)
+                           (:discard (:anything t))
                            ))
                         ))
             (agenda "" ((org-agenda-span 'day)
@@ -1977,6 +2040,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                          :children (("current file" :keys "b"
                                                      :prepend t
                                                      :headline "^refile"
+                                                     :hook (lambda () (call-interactively 'delete-other-windows))
                                                      :file buffer-name)
                                                     ("refile to projects" :keys "p"
                                                      :headline "Refile"
@@ -2131,6 +2195,7 @@ Org-appear for general org markups
   (use-package mw-thesaurus
     :bind (:map org-mode-map ("H-z" . mw-thesaurus-lookup-dwim)))
 #+end_src
+ 
 *** COMMENT org-starter for easy organization of refile and agenda files
 #+BEGIN_SRC emacs-lisp
   (use-package org-starter
@@ -2141,6 +2206,30 @@ Org-appear for general org markups
 
 *** TODO Org-visual-outline
 *** TODO Org-projectile
+*** consult-notes for viewing notes
+#+begin_src emacs-lisp
+  (use-package consult-notes
+    :load-path "~/.emacs.d/external/consult-notes-main/"
+    :bind (("H-]" . consult-notes)
+           ("H-}" . consult-notes-search-all))
+    :commands (consult-notes
+               consult-notes-search-all
+               consult-notes-org-roam-find-node
+               consult-notes-org-roam-find-node-relation)
+    :config
+    (setq consult-notes-data-dirs '(("Dashboards"  ?d  "~/Dropbox/org/life/dashboards/")
+                                    ("School Assignments" ?a "~/Dropbox/org/projects/school-agmnt/"))) ;; Set notes dir(s), see below
+    ;; Define sources 
+    (setq consult-notes-sources '(consult-notes-data-dirs
+                                  consult-notes--org-roam-nodes
+                                  consult-notes--org-roam-refs
+                                  ))
+    ) ;; Set org-roam integration
+    (consult-notes-org-roam-mode)
+
+  (use-package consult-notes-org-roam
+    :load-path "~/.emacs.d/external/consult-notes-main/")
+#+end_src
 ** Main extensions
 *** org-journal
 #+BEGIN_SRC emacs-lisp
@@ -2158,27 +2247,23 @@ Org-appear for general org markups
           org-journal-file-header "#+STARTUP: folded\n"
           org-journal-date-format "%A, %d %B %Y"
           org-journal-file-format "%Y-%m.org")
-    ;; (global-set-key (kbd "H-j j") 'org-journal-new-entry)
-    ;; (global-set-key (kbd "H-j s") 'org-journal-search)
     )
 
 #+END_SRC
  
 *** org-roam-bibtex
-the defun came from this [[https://github.com/emacs-citar/citar/issues/431][github issue]]
 #+begin_src emacs-lisp
   (use-package org-roam-bibtex
     :custom
-    (citar-open-note-function 'my/citar-org-roam-note-format)
-    (citar-create-note-function 'my/citar-org-roam-note-format)
-    (citar-notes-paths '("~/Dropbox/org/notes/0.slipbox"))
     (orb-preformat-keywords '("citekey" "title" "url" "author-or-editor" "keywords" "file"))
     (orb-process-file-keyword t)
     (orb-file-field-extensions '("pdf"))
+    (orb-roam-ref-format 'org-cite)
     )
 #+end_src
-[cite:@haverbeke2019] 
+ 
 *** citar
+the defun came from this [[https://github.com/emacs-citar/citar/issues/431][github issue]]
 #+begin_src emacs-lisp
   (use-package citar
     :no-require
@@ -2187,39 +2272,43 @@ the defun came from this [[https://github.com/emacs-citar/citar/issues/431][gith
       (let ((title (citar--format-entry-no-widths entry
                                                   "${author editor} :: ${title}")))
         (org-roam-capture- :templates
-                           '(("1" "reference" plain "%?" :if-new
-                              (file+head "${citekey}.org" ; FIX how do I use the filepath arg here?
-                                         ":PROPERTIES:
-    :ROAM_REFS: [cite:@${citekey}]
-    :END:
-    ,#+title: ${title}\n")
-                              :immediate-finish t
+                           '(("r" "ref" plain "%?" :if-new
+                              (file+head "%^{slug}.${citekey}.org" ; FIX how do I use the filepath arg here?
+                                         ":PROPERTIES:"
+                                         ":ROAM_REFS: [cite:@${citekey}]"
+                                         ":END:"
+                                         "#+title: ${title}\n")
+                              ;; :immediate-finish t
                               :unnarrowed t)
-                             ("2" "reference small" plain "%?" :if-new
-                              (file+head "short_refs.org" ; FIX how do I use the filepath arg here?
-                                         ":PROPERTIES:
-  :ROAM_REFS: [cite:@${citekey}]
-  :END:
-  ,#+title: ${title}\n")
-                              :immediate-finish t
+                             ("2" "reference small" plain "* ${title} [cite:@${citekey}]\n%?" :if-new
+                              (file+head "short_refs.org")
+                              ;; :immediate-finish t
                               :unnarrowed t))
                            :info (list :citekey citekey)
                            :node (org-roam-node-create :title title)
-                           :props '(:finalize find-file))))
+                           ;; :props '(:finalize find-file)
+                           )))
+
     :custom
-    (org-cite-global-bibliography '("~/Dropbox/org/meta/slipbox.bib"))
     (org-cite-insert-processor 'citar)
     (org-cite-follow-processor 'citar)
     (org-cite-activate-processor 'citar)
-    (citar-bibliography org-cite-global-bibliography)
     (citar-at-point-function 'embark-act)
+
+    (citar-notes-paths '("~/Dropbox/org/notes/0.slipbox"))
+    (org-cite-global-bibliography '("~/Dropbox/org/meta/slipbox.bib"))
+    (citar-bibliography org-cite-global-bibliography)
 
     (citar-open-note-function 'my/citar-org-roam-note-format)
     (citar-create-note-function 'my/citar-org-roam-note-format)
-    :bind
-    (:map org-mode-map :package org ("C-c b" . #'org-cite-insert)))
+
+
+    :bind (("C-c b" . org-cite-insert))
+    ;; :bind
+    ;; (:map org-mode-map :package org ("C-c b" . #'org-cite-insert))
+    )
 #+end_src
- 
+[cite:@haverbeke2019] 
 *** org-roam
 Most of this came from wonderful [[https://gist.github.com/jeremyf/b1fb8414624e639c9d3b9fec2f22564a][config]]
 #+BEGIN_SRC emacs-lisp
@@ -2304,17 +2393,18 @@ combining doct to org-roam came from this [[https://github.com/progfolio/doct/is
             :template "%?"
             :type plain
             :unnarrowed t
-            :orb-entry t
             :file "${slug}.${citekey}.org"
             :jump-to-captured t
             :hook (lambda () (call-interactively 'delete-other-windows))
-            :head ("#+title: ${hierarchy-title}: ${title}"
+            :head (":PROPERTIES:"
+                   ":ROAM_REFS: ${citekey}"
+                   ":END:"
+                   "#+title: ${title}"
                    ""
                    ""))
            ("ref (aggregate, quick)" :keys "a"
             :template "%?"
             :type plain
-            :orb-entry t
             :unnarrowed t
             :file "short_refs.org"
             :headline "* ${title} [cite:@%^{citekey}]\n%?"
@@ -2329,7 +2419,7 @@ combining doct to org-roam came from this [[https://github.com/progfolio/doct/is
   ;;          :immediate-finish t
   ;;          :unnarrowed t)))
 #+END_SRC
-[cite:@haverbeke2019] 
+ 
 *** deft
 found a nice short config here in [[https://www.reddit.com/r/emacs/comments/h0h4ix/how_to_configure_multile_directories_with_deft/][this reddit thread]]
 #+BEGIN_SRC emacs-lisp
@@ -2418,33 +2508,3 @@ not working
 [[https://emacstil.com/til/2022/03/05/setting-up-vale-prose-linter-on-emacs/][short tut]]
 
 *** TODO reveal-js
-** Custom functions
-#+BEGIN_SRC emacs-lisp
-  (defun yza/consult-org-headings-agenda ()
-    (interactive)
-    (consult-org-heading t 'agenda))
-
-  (defun yza/rg-consult-slipbox ()
-    (interactive)
-    (consult-ripgrep yza/slipbox-files))
-  (defun yza/rg-consult-projects ()
-    (interactive)
-    (consult-ripgrep yza/project-files))
-  (defun yza/rg-consult-dashboards ()
-    (interactive)
-    (consult-ripgrep yza/dashboard-files))
-
-  (global-set-key (kbd "H-s r") 'yza/rg-consult-slipbox)
-  (global-set-key (kbd "H-s p") 'yza/rg-consult-projects)
-  (global-set-key (kbd "H-s d") 'yza/rg-consult-dashboards)
-
-  (defun dfeich/helm-org-clock-in (marker)
-    "Clock into the item at MARKER"
-    (with-current-buffer (marker-buffer marker)
-      (goto-char (marker-position marker))
-      (org-clock-in)))
-  (defun do-org-show-all-inline-images ()
-    (interactive)
-    (org-display-inline-images t))
-#+END_SRC
- 
