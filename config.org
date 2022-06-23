@@ -1799,11 +1799,10 @@ from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2e
             ))
           ("0" "Focus"
            ((agenda "" ((org-agenda-span 'day)
-                        (org-agenda-entry-types '(:scheduled :timestamp))
+                        (org-agenda-entry-types '(:scheduled :timestamp :sexp))
                         (org-super-agenda-groups
                          '((:discard (:log t))
                            (:discard (:tag "longrun"))
-                           ;; (:discard (:deadline future))
                            (:name "Nice!"
                                   :todo "DONE"
                                   :todo "CNCL")
@@ -1814,7 +1813,6 @@ from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2e
                                   :deadline today)
                            (:name "Past"
                                   :scheduled past)
-                                          ;   :and (:not (:deadline today) :scheduled today))
                            (:discard (:anything t))
                            ))
                         ))
@@ -2196,11 +2194,26 @@ Org-appear for general org markups
     :bind (:map org-mode-map ("H-z" . mw-thesaurus-lookup-dwim)))
 #+end_src
  
-*** COMMENT org-starter for easy organization of refile and agenda files
+*** org-edna
+#+begin_src emacs-lisp
+(org-edna-mode)
+#+end_src
+*** org-starter for easy organization of refile and agenda files
 #+BEGIN_SRC emacs-lisp
   (use-package org-starter
+    :bind (("C-c s-w" . org-starter-refile-by-key))
     :custom
-    (org-starter-path "~/Dropbox/org")
+    (org-starter-path '(("~/Dropbox/org/meta/")
+                        ))
+    (org-starter-load-config-files t)
+    :config
+    (org-starter-define-directory  "~/Dropbox/org/life/project-dashboards/"
+      :id "p"
+      :refile '(:maxlevel . 3))
+    (org-starter-define-file "~/Dropbox/org/life/actions/actionable.org"
+      :agenda t
+      :key "a"
+      :refile '(:maxlevel . 2))
     )
 #+END_SRC
 
@@ -2217,18 +2230,20 @@ Org-appear for general org markups
                consult-notes-org-roam-find-node
                consult-notes-org-roam-find-node-relation)
     :config
-    (setq consult-notes-data-dirs '(("Dashboards"  ?d  "~/Dropbox/org/life/dashboards/")
-                                    ("School Assignments" ?a "~/Dropbox/org/projects/school-agmnt/"))) ;; Set notes dir(s), see below
+    (setq consult-notes-data-dirs '(("School Assignments" ?a "~/Dropbox/org/projects/school-agmnt/")
+                                    ("Project Dashboards" ?d "~/Dropbox/org/life/project-dashboards/")
+                                    )) ;; Set notes dir(s), see below
     ;; Define sources 
     (setq consult-notes-sources '(consult-notes-data-dirs
                                   consult-notes--org-roam-nodes
+
                                   consult-notes--org-roam-refs
                                   ))
-    ) ;; Set org-roam integration
     (consult-notes-org-roam-mode)
+    )
+  
+  (load "~/.emacs.d/external/consult-notes-main/consult-notes-org-roam.el")
 
-  (use-package consult-notes-org-roam
-    :load-path "~/.emacs.d/external/consult-notes-main/")
 #+end_src
 ** Main extensions
 *** org-journal
