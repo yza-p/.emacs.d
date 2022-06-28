@@ -1378,7 +1378,6 @@ using consult for directory completion everywhere!
 ** TODO [#G] EAF for browser?
 ** TODO [#D] git gutter
 ** TODO [#D] Projectile
-** TODO [#D] Company
 ** TODO Parrot?
 ** TODO Outshine to navigate code like org-mode?
 ** TODO [#G] Tree sitter for better parsing of lang?
@@ -1587,6 +1586,7 @@ from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2e
   (global-set-key (kbd "M-s-k") 'org-drag-line-forward)
   (define-key org-mode-map (kbd "M-s-l") 'xah-reformat-to-sentence-lines)
 #+end_src
+ 
 ** Standard procedures
 *** COMMENT Custom  global bindings
 #+BEGIN_SRC emacs-lisp
@@ -1988,7 +1988,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                                      :headline "Web Content"
                                                      :clock-keep nil
                                                      :immediate-finish nil
-                                                     :template ("* BACKLOG %^{Title} %?"
+                                                     :template ("* BACKLOG %^{Title} ([[%^{Link}][^]])%?"
                                                                 ":PROPERTIES:"
                                                                 ":added: %U"
                                                                 ":list-group: Web - %^{Video/Article/Wiki?}"
@@ -2025,7 +2025,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                                     ("web" :keys "w"
                                                      ;; :add-prop ":publisher: %^{Publisher}"
                                                      :headline "Web Content"
-                                                     :template ("* BACKLOG %^{Title} %?"
+                                                     :template ("* BACKLOG %^{Title} ([[%^{Link}][^]])%?"
                                                                 ":PROPERTIES:"
                                                                 ":added: %U"
                                                                 ":list-group: Web - %^{Video/Article/Wiki?}"
@@ -2198,10 +2198,10 @@ Org-appear for general org markups
 #+begin_src emacs-lisp
 (org-edna-mode)
 #+end_src
-*** org-starter for easy organization of refile and agenda files
+*** COMMENT org-starter for easy organization of refile and agenda files
 #+BEGIN_SRC emacs-lisp
   (use-package org-starter
-    :bind (("C-c s-w" . org-starter-refile-by-key))
+    ;; :bind (("C-c s-w" . org-starter-refile-by-key))
     :custom
     (org-starter-path '(("~/Dropbox/org/meta/")
                         ))
@@ -2221,8 +2221,16 @@ Org-appear for general org markups
 *** TODO Org-projectile
 *** consult-notes for viewing notes
 #+begin_src emacs-lisp
+  ;; (load "~/.emacs.d/external/consult-notes-main/consult-notes-org-roam.el")
+
+   (use-package consult-notes-org-roam
+    :load-path "~/.emacs.d/external/consult-notes-main/"
+    :ensure nil
+    )
+
   (use-package consult-notes
     :load-path "~/.emacs.d/external/consult-notes-main/"
+    :ensure nil
     :bind (("H-]" . consult-notes)
            ("H-}" . consult-notes-search-all))
     :commands (consult-notes
@@ -2241,10 +2249,10 @@ Org-appear for general org markups
                                   ))
     (consult-notes-org-roam-mode)
     )
-  
-  (load "~/.emacs.d/external/consult-notes-main/consult-notes-org-roam.el")
+
 
 #+end_src
+ 
 ** Main extensions
 *** org-journal
 #+BEGIN_SRC emacs-lisp
