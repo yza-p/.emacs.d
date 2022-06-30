@@ -1342,6 +1342,22 @@ for other useful functions
 *** TODO consult-dir
 using consult for directory completion everywhere!
 *** TODO compose custom keymap for direct clocking?
+** EMMS for music
+#+begin_src emacs-lisp
+  (require 'emms-mode-line)
+  (require 'emms-mode-line-icon)
+  (use-package emms
+    :custom
+    (emms-source-file-default-directory "~/Music/self indexed/")
+    (emms-mode-line-icon-enabled-p t)
+    :config
+    (emms-lyrics nil)
+    (emms-all)
+    (emms-default-players)
+    (emms-mode-line 1)
+    )
+#+end_src
+
 ** TODO [#F] hippie expand
 ** TODO Ace-window for fast swaps
 ** TODO vundo for visualized undo-tree
@@ -1925,8 +1941,6 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                                      :template ("* %{todo-state}  %^{Description} %? %^g"
                                                                 ":PROPERTIES:"
                                                                 ":created: %U"
-                                                                ":project: %^{Project ID: | orphan}"
-                                                                ":p_order: %^{Project order: | 0}"
                                                                 ":effort: %^{Effort}"
                                                                 ":brainpower: %^{Brainpower (high/mid/low/chill)}"
                                                                 ":END:")
@@ -1935,8 +1949,6 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                                      :template ("* %{todo-state} %^{Description} %? %^g"
                                                                 ":PROPERTIES:"
                                                                 ":created: %U"
-                                                                ":project: %^{Project ID: | orphan}"
-                                                                ":p_order: %^{Project order: | 0}"
                                                                 ":END:")
                                                      :headline "Appointments")
                                                     ("Waiting on" :keys "w"
@@ -1944,15 +1956,11 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                                      :template ("* WAIT %^{Description}"
                                                                 ":PROPERTIES:"
                                                                 ":created: %U"
-                                                                ":project: %^{Project ID: | orphan}"
-                                                                ":p_order: %^{Project order: | 0}"
                                                                 ":END:"))
                                                     ("Multi-step" :keys "m" :todo-state ""
                                                      :template ("* IDEA %^{Description} %^g"
                                                                 ":PROPERTIES:"
                                                                 ":created: %U"
-                                                                ":project: %^{Project ID: | orphan}"
-                                                                ":p_order: %^{Project order: | 0}"
                                                                 ":END:"
                                                                 "%?")
                                                      :headline "Multi-steps")))
@@ -2196,24 +2204,30 @@ Org-appear for general org markups
  
 *** org-edna
 #+begin_src emacs-lisp
-(org-edna-mode)
+  (use-package org-edna
+    :custom
+    (org-edna-use-inheritance t)
+    :config
+    (org-edna-mode)
+    )
 #+end_src
 *** COMMENT org-starter for easy organization of refile and agenda files
 #+BEGIN_SRC emacs-lisp
   (use-package org-starter
+    :after org
     ;; :bind (("C-c s-w" . org-starter-refile-by-key))
     :custom
     (org-starter-path '(("~/Dropbox/org/meta/")
                         ))
     (org-starter-load-config-files t)
     :config
-    (org-starter-define-directory  "~/Dropbox/org/life/project-dashboards/"
-      :id "p"
-      :refile '(:maxlevel . 3))
+    (org-starter-define-directory  "~/Dropbox/org/life/dashboards/"
+                                   :id "p"
+                                   :refile '(:maxlevel . 3))
     (org-starter-define-file "~/Dropbox/org/life/actions/actionable.org"
-      :agenda t
-      :key "a"
-      :refile '(:maxlevel . 2))
+                             :agenda t
+                             :key "a"
+                             :refile '(:maxlevel . 2))
     )
 #+END_SRC
 
@@ -2223,7 +2237,7 @@ Org-appear for general org markups
 #+begin_src emacs-lisp
   ;; (load "~/.emacs.d/external/consult-notes-main/consult-notes-org-roam.el")
 
-   (use-package consult-notes-org-roam
+  (use-package consult-notes-org-roam
     :load-path "~/.emacs.d/external/consult-notes-main/"
     :ensure nil
     )
@@ -2231,16 +2245,17 @@ Org-appear for general org markups
   (use-package consult-notes
     :load-path "~/.emacs.d/external/consult-notes-main/"
     :ensure nil
-    :bind (("H-]" . consult-notes)
-           ("H-}" . consult-notes-search-all))
+    :bind (("H-]" . consult-notes))
     :commands (consult-notes
                consult-notes-search-all
                consult-notes-org-roam-find-node
                consult-notes-org-roam-find-node-relation)
     :config
     (setq consult-notes-data-dirs '(("School Assignments" ?a "~/Dropbox/org/projects/school-agmnt/")
-                                    ("Project Dashboards" ?d "~/Dropbox/org/life/project-dashboards/")
-                                    )) ;; Set notes dir(s), see below
+                                    ("School Notes" ?s "~/Dropbox/org/projects/school/")
+                                    ("Project Dashboards" ?d "~/Dropbox/org/life/dashboards/")
+                                    ("Fics" ?f "~/Dropbox/org/projects/fics/")
+                                    )) 
     ;; Define sources 
     (setq consult-notes-sources '(consult-notes-data-dirs
                                   consult-notes--org-roam-nodes
