@@ -198,7 +198,7 @@ differences.
     (setq ediff-split-window-function #'split-window-horizontally))
 #+END_SRC
 
-** Auto-pairing quotes and parentheses etc.
+** COMMENT Auto-pairing quotes and parentheses etc.
 Electric-pair-mode has improved quite a bit in recent Emacs
 versions. No longer need an extra package for this. It also takes care
 of the new-line-and-push-brace feature.
@@ -1046,7 +1046,7 @@ for minimalist modeline
     :config (mood-line-mode))
 #+END_SRC
 
-*** Beacon for visible cursor
+*** COMMENT Beacon for visible cursor
 #+BEGIN_SRC emacs-lisp
   (use-package beacon
     :config (beacon-mode 1))
@@ -1351,7 +1351,6 @@ using consult for directory completion everywhere!
     (emms-source-file-default-directory "~/Music/self indexed/")
     (emms-mode-line-icon-enabled-p t)
     :config
-    (emms-lyrics nil)
     (emms-all)
     (emms-default-players)
     (emms-mode-line 1)
@@ -1539,36 +1538,6 @@ from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2e
       (setq cursor-type 'box)))
 #+end_src
  
-*** Custom functions
-#+BEGIN_SRC emacs-lisp
-  (defun yza/consult-org-headings-agenda ()
-    (interactive)
-    (consult-org-heading t 'agenda))
-
-  (defun yza/rg-consult-slipbox ()
-    (interactive)
-    (consult-ripgrep yza/slipbox-files))
-  (defun yza/rg-consult-projects ()
-    (interactive)
-    (consult-ripgrep yza/project-files))
-  (defun yza/rg-consult-dashboards ()
-    (interactive)
-    (consult-ripgrep yza/dashboard-files))
-
-  (global-set-key (kbd "H-s r") 'yza/rg-consult-slipbox)
-  (global-set-key (kbd "H-s p") 'yza/rg-consult-projects)
-  (global-set-key (kbd "H-s d") 'yza/rg-consult-dashboards)
-
-  (defun dfeich/helm-org-clock-in (marker)
-    "Clock into the item at MARKER"
-    (with-current-buffer (marker-buffer marker)
-      (goto-char (marker-position marker))
-      (org-clock-in)))
-  (defun do-org-show-all-inline-images ()
-    (interactive)
-    (org-display-inline-images t))
-#+END_SRC
- 
 *** Editting and joining lines like a god!
 #+begin_src emacs-lisp
   (defun xah-reformat-to-sentence-lines ()
@@ -1598,10 +1567,44 @@ from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2e
         (while (eq (char-before ) 32) (delete-char -1))
         (insert "\n\n"))))
 
-  (global-set-key (kbd "M-s-j") 'org-drag-line-backward)
-  (global-set-key (kbd "M-s-k") 'org-drag-line-forward)
+  (global-set-key (kbd "M-s-k") 'org-drag-line-backward)
+  (global-set-key (kbd "M-s-j") 'org-drag-line-forward)
   (define-key org-mode-map (kbd "M-s-l") 'xah-reformat-to-sentence-lines)
 #+end_src
+ 
+*** Custom functions
+#+BEGIN_SRC emacs-lisp
+  (defun yza/consult-org-headings-agenda ()
+    (interactive)
+    (consult-org-heading t 'agenda))
+
+  (defun yza/rg-consult-slipbox ()
+    (interactive)
+    (consult-ripgrep yza/slipbox-files))
+  (defun yza/rg-consult-projects ()
+    (interactive)
+    (consult-ripgrep yza/project-files))
+  (defun yza/rg-consult-dashboards ()
+    (interactive)
+    (consult-ripgrep yza/dashboard-files))
+  (defun yza/rg-current-dir ()
+    (interactive)
+    (consult-ripgrep default-directory))
+
+  (global-set-key (kbd "H-s r") 'yza/rg-consult-slipbox)
+  (global-set-key (kbd "H-s p") 'yza/rg-consult-projects)
+  (global-set-key (kbd "H-s d") 'yza/rg-consult-dashboards)
+  (global-set-key (kbd "H-s c") 'yza/rg-current-dir)
+
+  (defun dfeich/helm-org-clock-in (marker)
+    "Clock into the item at MARKER"
+    (with-current-buffer (marker-buffer marker)
+      (goto-char (marker-position marker))
+      (org-clock-in)))
+  (defun do-org-show-all-inline-images ()
+    (interactive)
+    (org-display-inline-images t))
+#+END_SRC
  
 ** Standard procedures
 *** COMMENT Custom  global bindings
@@ -1819,6 +1822,7 @@ from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2e
                         (org-super-agenda-groups
                          '((:discard (:log t))
                            (:discard (:tag "longrun"))
+                           ;; (:discard (:todo "HABT"))
                            (:name "Nice!"
                                   :todo "DONE"
                                   :todo "CNCL")
@@ -1832,6 +1836,17 @@ from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2e
                            (:discard (:anything t))
                            ))
                         ))
+            ;; (org-ql-block '(and (not (clocked :on 0)) (todo "HABT") (tags "_daily"))
+            ;;               ((org-ql-block-header "Daily Habits")))
+            ;; (org-ql-block '(and (not (clocked :on -7)) (todo "HABT") (tags "_weekly"))
+            ;;               ((org-ql-block-header "Weekly Habits")))
+            (alltodo "" ((org-agenda-overriding-header "Project Masterlists")
+                         (org-super-agenda-groups
+                          '((:name "Daily" :and(:scheduled (today past) :todo "HABT" :tag "_daily"))
+                            (:name "Weekly" :and(:scheduled (today past) :todo "HABT" :tag "_weekly"))
+                            (:discard (:anything t))
+                            ))
+                         ))
             (org-ql-block '(and (not (clocked :on 0)) (tags "longrun") (ts-active :to 0))
                           ((org-ql-block-header "Longruns!")))
             (agenda "" ((org-agenda-span 'day)
@@ -1945,8 +1960,8 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                                                 ":brainpower: %^{Brainpower (high/mid/low/chill)}"
                                                                 ":END:")
                                                      :headline "Actions")
-                                                    ("Scheduled" :keys "s" :todo-state "TODO"
-                                                     :template ("* %{todo-state} %^{Description} %? %^g"
+                                                    ("Scheduled" :keys "s"
+                                                     :template ("* %^{Description} %? %^g"
                                                                 ":PROPERTIES:"
                                                                 ":created: %U"
                                                                 ":END:")
@@ -1968,20 +1983,19 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                          :clock-in t
                                          :clock-keep t
                                          :immediate-finish t
-                                         :file (lambda () (concat yza/action-files "actionable.org"))
+                                         :file (lambda () (concat yza/action-files "unlisted.org"))
                                          :children (("Movie!" :keys "m"
-                                                     :file (lambda () (concat yza/action-files "watch-history.org"))
                                                      :template ("* TODO %^{Name} %?"
                                                                 ":PROPERTIES:"
                                                                 ":watch-with: %^{Watch with who?}"
                                                                 ":watchlist-link: %^{Link to movie if in the list}"
                                                                 ":END:"))
                                                     ("Event now!" :keys "e" :todo-state "TODO"
+                                                     :file (lambda () (concat yza/action-files "actionable.org"))
                                                      :headline "Appointments"
                                                      :template ("* %{todo-state} %^{Description} %? %^g"
                                                                 ":PROPERTIES:"
                                                                 ":created: %U"
-                                                                ":effort: %^{Effort}"
                                                                 ":END:"))
                                                     ("Action now!" :keys "a" :todo-state "NEXT"
                                                      :headline "Actions"
@@ -1989,10 +2003,8 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                                                 ":PROPERTIES:"
                                                                 ":created: %U"
                                                                 ":effort: %^{Effort}"
-                                                                ":brainpower: %^{Brainpower (high/mid/low/chill)}"
                                                                 ":END:"))
                                                     ("New web content now!" :keys "w" :todo-state "READING"
-                                                     :file (lambda () (concat yza/action-files "watch-history.org"))
                                                      :headline "Web Content"
                                                      :clock-keep nil
                                                      :immediate-finish nil
@@ -2015,7 +2027,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                                     ("nihon!" :keys "n")))
                                         ("Add to list" :keys "l"
                                          :file (lambda () (concat yza/action-files "list.org"))
-                                         :template ("* BACKLOG %^{Title} %?"
+                                         :template ("* BACKLOG %^{Title} %? %^g"
                                                     ":PROPERTIES:"
                                                     ":added: %U"
                                                     ":list-group: %^{Movie/Series/Book/Article?}"
@@ -2031,15 +2043,21 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                                      :add-prop ":director: %^{Director}"
                                                      :headline "Shows")
                                                     ("web" :keys "w"
-                                                     ;; :add-prop ":publisher: %^{Publisher}"
                                                      :headline "Web Content"
-                                                     :template ("* BACKLOG %^{Title} ([[%^{Link}][^]])%?"
+                                                     :template ("* BACKLOG %^{Title} ([[%^{Link}][^]])%? %^g"
                                                                 ":PROPERTIES:"
                                                                 ":added: %U"
                                                                 ":list-group: Web - %^{Video/Article/Wiki?}"
                                                                 ":published-on: %^{Published on}u"
                                                                 ":publisher: %^{Publisher}"
-                                                                ":END:"))))
+                                                                ":END:"))
+                                                    ("search" :keys "s"
+                                                     :headline "Web Content"
+                                                     :template ("* BACKLOG %^{Title}%? %^g"
+                                                                ":PROPERTIES:"
+                                                                ":added: %U"
+                                                                ":END:"))
+                                                    ))
                                         ("Scratch!" :keys "s"
                                          :kill-buffer t
                                          :type entry
