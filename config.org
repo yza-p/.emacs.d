@@ -440,6 +440,7 @@ Provides us with hints on available keystroke combinations.
 ** Binding return to include indent
 [[http://www.emacslife.com/read-lisp-tweak-emacs/beginner-3-make-things-more-convenient.html][newbie res here]]
 #+BEGIN_SRC emacs-lisp
+  (server-start)
   (global-set-key (kbd "RET") 'newline-and-indent)
 #+END_SRC
 ** Daemon Server
@@ -1356,7 +1357,10 @@ using consult for directory completion everywhere!
     (emms-mode-line 1)
     )
 #+end_src
-
+** Quelpa
+#+begin_src emacs-lisp
+  (require 'quelpa-use-package)
+#+end_src
 ** TODO [#F] hippie expand
 ** TODO Ace-window for fast swaps
 ** TODO vundo for visualized undo-tree
@@ -1368,7 +1372,8 @@ using consult for directory completion everywhere!
            ("C-h k" . helpful-key)
            ("C-c C-d" . helpful-at-point))
 #+END_SRC
-
+** TODO termkeys
+[[https://github.com/CyberShadow/term-keys]]
 * Yza Config - Programming
 ** Showing diffs (git)
 *** Diff-hl
@@ -2179,6 +2184,7 @@ Org-appear for general org markups
     :custom
     (olivetti-body-width 175))
 #+END_SRC
+ 
 *** Org-download
 #+BEGIN_SRC emacs-lisp
   (use-package org-download
@@ -2229,6 +2235,23 @@ Org-appear for general org markups
     (org-edna-mode)
     )
 #+end_src
+ 
+*** linkmarks for bookmarks
+#+begin_src emacs-lisp
+  (use-package linkmarks
+    :quelpa (linkmarks :fetcher github :repo "dustinlacewell/linkmarks")
+    :config
+    (setq linkmarks-file (concat yza/slipbox-files "bookmarks.org")))
+#+end_src
+
+*** hammy
+#+begin_src emacs-lisp
+  (use-package hammy
+    :quelpa (hammy :fetcher github :repo "alphapapa/hammy.el"))
+#+end_src
+
+#+RESULTS:
+
 *** COMMENT org-starter for easy organization of refile and agenda files
 #+BEGIN_SRC emacs-lisp
   (use-package org-starter
