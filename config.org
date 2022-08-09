@@ -4,6 +4,20 @@
 
 :: [[https://github.com/ianyepan/.macOS-emacs.d/blob/master/init.el][pan's short config]]
 
+* Quelpa
+#+begin_src emacs-lisp
+  (require 'quelpa-use-package)
+  (quelpa-use-package-activate-advice)
+#+end_src
+* scratch fortunes
+#+begin_src emacs-lisp
+  (setq fortune-file "/usr/local/Cellar/fortune/9708/share/games/fortunes/yza")
+  (use-package scratch-message
+    :quelpa (scratch-message :fetcher github :repo "thisirs/scratch-message")
+    :config
+    (add-hook 'after-init-hook 'scratch-message-mode)
+    (setq scratch-message-function #'scratch-message-fortune))
+#+end_src
 * Settings without corresponding packages
 Clean up the UI and enhance some basic defaults defined in "C Source Code". The variable ~ian/indent-width~ controls the default indentation across various programming modes. The default is 4, you can change this variable to 2 or any other indentation width you prefer, and the change will be made across all programming language modes including C, C++, Java, Python etc. (Exception: JavaScript defaults to 2-space indent, you can still set it to any other indentation width you prefer in the ~web-mode~ section.)
 #+BEGIN_SRC emacs-lisp
@@ -11,7 +25,7 @@ Clean up the UI and enhance some basic defaults defined in "C Source Code". The 
     :preface
     (defvar ian/indent-width 4) ; change this value to your preferred width
     :config
-    (setq frame-title-format '("yzaa - ಠ_ಠ") ; Yayyyyy Evil!
+    (setq ;; frame-title-format '("yzaa - ಠ_ಠ") ; Yayyyyy Evil!
           ring-bell-function 'ignore       ; minimize distraction
           frame-resize-pixelwise t
           default-directory "~/")
@@ -60,10 +74,10 @@ Clean up the UI and enhance some basic defaults defined in "C Source Code". The 
     (global-set-key (kbd "C-x 2") #'ian/split-and-follow-horizontally)
     (global-set-key (kbd "C-x 3") #'ian/split-and-follow-vertically))
 
-  (use-package "startup"
-    :ensure nil
-    :config
-    (setq initial-scratch-message ""))
+  ;; (use-package "startup"
+  ;;   :ensure nil
+  ;;   :config
+  ;;   (setq initial-scratch-message ""))
 #+END_SRC
 
 * Configuration for built-in packages
@@ -256,7 +270,7 @@ Normally, we need to add ~:ensure t~ to tell ~use-package~ to download packages 
   (load-theme 'poet-dark t)
 #+END_SRC
 
-*** Dashboard welcome page
+*** COMMENT Dashboard welcome page
 #+BEGIN_SRC emacs-lisp
   (use-package dashboard
     :config
@@ -440,17 +454,9 @@ Provides us with hints on available keystroke combinations.
 ** Binding return to include indent
 [[http://www.emacslife.com/read-lisp-tweak-emacs/beginner-3-make-things-more-convenient.html][newbie res here]]
 #+BEGIN_SRC emacs-lisp
-  (server-start)
+  ;; (server-start)
   (global-set-key (kbd "RET") 'newline-and-indent)
 #+END_SRC
-** Daemon Server
-#+BEGIN_SRC emacs-lisp
-  (use-package server
-    :ensure nil
-    :config
-    (unless (server-running-p) (server-start)))
-#+END_SRC
-
 ** Modifiers for mac
 #+BEGIN_SRC emacs-lisp
   (when (memq window-system '(mac ns x))
@@ -722,6 +728,18 @@ got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.
 #+END_SRC
  
 * Yza Config - Third-party
+** COMMENT Daemon Server
+#+BEGIN_SRC emacs-lisp
+  (use-package server
+    :ensure nil
+    :config
+    (unless (server-running-p) (server-start)))
+
+  (use-package mac-pseudo-daemon
+    :quelpa (mac-pseudo-daemon :fetcher github :repo "DarwinAwardWinner/mac-pseudo-daemon")
+    :custom (mac-pseudo-daemon-mode t))
+ #+END_SRC
+
 ** Evil: Expansion packs
 *** evil leader
 #+BEGIN_SRC emacs-lisp
@@ -1357,10 +1375,6 @@ using consult for directory completion everywhere!
     (emms-mode-line 1)
     )
 #+end_src
-** Quelpa
-#+begin_src emacs-lisp
-  (require 'quelpa-use-package)
-#+end_src
 ** TODO [#F] hippie expand
 ** TODO Ace-window for fast swaps
 ** TODO vundo for visualized undo-tree
@@ -1611,6 +1625,20 @@ from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2e
     (org-display-inline-images t))
 #+END_SRC
  
+*** List all org buffer files
+function came from here
+#+begin_src emacs-lisp
+  (defun yza/list-opened-buffer-files ()
+    "Return the list of files currently opened in emacs"
+    (delq nil
+          (mapcar (lambda (x)
+                    (if (and (buffer-file-name x)
+                             (string-match "\\.org$"
+                                           (buffer-file-name x)))
+                        (buffer-file-name x)))
+                  (buffer-list))))
+#+end_src
+
 ** Standard procedures
 *** COMMENT Custom  global bindings
 #+BEGIN_SRC emacs-lisp
@@ -1733,7 +1761,6 @@ from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2e
 
 *** Org-agenda custom views
 #+BEGIN_SRC emacs-lisp
-  (use-package org-ql)
   (use-package org-super-agenda
     :hook ((org-agenda-mode . org-super-agenda-mode)))
 
@@ -2091,6 +2118,14 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
 #+END_SRC
 
 ** Org tiny plug-ins
+*** org-ql
+#+begin_src emacs-lisp 
+  (use-package org-ql)
+  (use-package helm-org-ql
+  :quelpa (helm-org-ql :fetcher github :repo "alphapapa/org-ql"
+                       :files ("helm-org-ql.el")))
+#+end_src
+
 *** TODO addons from org-contrib
 *** COMMENT unpackaged-extras
 #+BEGIN_SRC emacs-lisp
@@ -2236,10 +2271,12 @@ Org-appear for general org markups
     )
 #+end_src
  
-*** linkmarks for bookmarks
+**** linkmarks for bookmarks
 #+begin_src emacs-lisp
   (use-package linkmarks
     :quelpa (linkmarks :fetcher github :repo "dustinlacewell/linkmarks")
+    :bind (("H-b b" . linkmarks-capture)
+           ("H-b s" . linkmarks-select))
     :config
     (setq linkmarks-file (concat yza/slipbox-files "bookmarks.org")))
 #+end_src
@@ -2250,8 +2287,29 @@ Org-appear for general org markups
     :quelpa (hammy :fetcher github :repo "alphapapa/hammy.el"))
 #+end_src
 
-#+RESULTS:
+*** org-super-links
+#+begin_src emacs-lisp 
+  (use-package org-super-links
+    ;; :quelpa (org-super-links :repo "toshism/org-super-links" :fetcher github :commit "0.4")
+    :load-path "~/.emacs.d/external/org-super-links/"
+    :bind (("C-c s s" . org-super-links-link)
+           ("C-c s l" . org-super-links-store-link)
+           ("C-c s C-l" . org-super-links-insert-link)
+           ("C-c s d" . org-super-links-quick-insert-drawer-link)
+           ("C-c s i" . org-super-links-quick-insert-inline-link)
+           ("C-c s C-d" . org-super-links-delete-link))
+    :config
+    (setq org-super-links-related-into-drawer t
+          org-super-links-link-prefix 'org-super-links-link-prefix-timestamp)
+    )
 
+  (setq org-super-links-default-description-formatter 'prompt-for-desc)
+  (defun prompt-for-desc (link desc)
+    (let ((new-desc (read-string "Description: " desc)))
+      (if (string=  new-desc "")
+          nil
+        new-desc)))
+#+end_src
 *** COMMENT org-starter for easy organization of refile and agenda files
 #+BEGIN_SRC emacs-lisp
   (use-package org-starter
@@ -2587,3 +2645,25 @@ not working
 [[https://emacstil.com/til/2022/03/05/setting-up-vale-prose-linter-on-emacs/][short tut]]
 
 *** TODO reveal-js
+* Scratch displaying useful info
+#+begin_src emacs-lisp
+  (defun yza/gen-scratch-info ()
+    (let ((package-count 0) (time (emacs-init-time)))
+      (when (bound-and-true-p package-alist)
+        (setq package-count (length package-activated-list)))
+      (when (boundp 'straight--profile-cache)
+        (setq package-count (+ (hash-table-count straight--profile-cache) package-count)))
+      (setq yza/scratch-info (format "%d packages loaded in %s" package-count time))
+      )
+    )
+  (setq yza/title ";;
+;; :::   ::: :::::::::     :::     ::::    ::::      :::      ::::::::   ::::::::          :::   
+;; :+:   :+:      :+:    :+: :+:   +:+:+: :+:+:+   :+: :+:   :+:    :+: :+:    :+:     :+:  :+:  
+;;  +:+ +:+      +:+    +:+   +:+  +:+ +:+:+ +:+  +:+   +:+  +:+        +:+                  +:+ 
+;;   +#++:      +#+    +#++:++#++: +#+  +:+  +#+ +#++:++#++: +#+        +#++:++#++           +#+ 
+;;    +#+      +#+     +#+     +#+ +#+       +#+ +#+     +#+ +#+               +#+           +#+ 
+;;    #+#     #+#      #+#     #+# #+#       #+# #+#     #+# #+#    #+# #+#    #+#     #+#  #+#  
+;;    ###    ######### ###     ### ###       ### ###     ###  ########   ########          ###   
+;;")
+  (add-hook 'after-init-hook (lambda() (yza/gen-scratch-info) (setq initial-scratch-message (concat yza/title "\n;; " yza/scratch-info "\n;;"))))
+#+end_src
