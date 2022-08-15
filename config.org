@@ -392,15 +392,15 @@ A modern on-the-fly syntax checking extension -- absolute essential
   (use-package flycheck :config (global-flycheck-mode +1))
 #+END_SRC
 
-*** Org Mode
+*** COMMENT Org Mode
 Some minimal org mode tweaks: org-bullets gives our headings (h1, h2,
 h3...) a more visually pleasing look.
 #+BEGIN_SRC emacs-lisp
-  ;; (use-package org
-  ;; :hook ((org-mode . visual-line-mode)
-  ;;        (org-mode . org-indent-mode)))
+  (use-package org
+  :hook ((org-mode . visual-line-mode)
+         (org-mode . org-indent-mode)))
 
-  ;; (use-package org-bullets :hook (org-mode . org-bullets-mode))
+  (use-package org-bullets :hook (org-mode . org-bullets-mode))
 #+END_SRC
 
 *** Useful major modes
@@ -1854,7 +1854,7 @@ function came from here
                         (org-super-agenda-groups
                          '((:discard (:log t))
                            (:discard (:tag "longrun"))
-                           ;; (:discard (:todo "HABT"))
+                           (:discard (:todo "HABT"))
                            (:name "Nice!"
                                   :todo "DONE"
                                   :todo "CNCL")
@@ -1872,13 +1872,17 @@ function came from here
             ;;               ((org-ql-block-header "Daily Habits")))
             ;; (org-ql-block '(and (not (clocked :on -7)) (todo "HABT") (tags "_weekly"))
             ;;               ((org-ql-block-header "Weekly Habits")))
-            (alltodo "" ((org-agenda-overriding-header "Project Masterlists")
-                         (org-super-agenda-groups
-                          '((:name "Daily" :and(:scheduled (today past) :todo "HABT" :tag "_daily"))
-                            (:name "Weekly" :and(:scheduled (today past) :todo "HABT" :tag "_weekly"))
-                            (:discard (:anything t))
-                            ))
-                         ))
+            (agenda "" ((org-agenda-overriding-header "Repeating Tasks")
+                        (org-agenda-span 'day)
+                        (org-super-agenda-groups
+                         '((:discard (:not (:todo "HABT")))
+                           (:name "Daily" :and(:tag "_daily"))
+                           (:name "Weekly" :and(:tag "_weekly"))
+                           (:name "Weekly" :and(:tag "_monthly"))
+                           (:name "Special" :scheduled (today past))
+                           (:discard (:anything t))
+                           ))
+                        ))
             (org-ql-block '(and (not (clocked :on 0)) (tags "longrun") (ts-active :to 0))
                           ((org-ql-block-header "Longruns!")))
             (agenda "" ((org-agenda-span 'day)
@@ -2283,8 +2287,7 @@ Org-appear for general org markups
 
 *** hammy
 #+begin_src emacs-lisp
-  (use-package hammy
-    :quelpa (hammy :fetcher github :repo "alphapapa/hammy.el"))
+  (use-package hammy)
 #+end_src
 
 *** org-super-links
