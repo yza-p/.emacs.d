@@ -451,22 +451,78 @@ Provides us with hints on available keystroke combinations.
 #+END_SRC
 
 * Yza Config - Built-in
-** Binding return to include indent
-[[http://www.emacslife.com/read-lisp-tweak-emacs/beginner-3-make-things-more-convenient.html][newbie res here]]
+** use-package / requires declarations
+*** org-mode
 #+BEGIN_SRC emacs-lisp
-  ;; (server-start)
-  (global-set-key (kbd "RET") 'newline-and-indent)
-#+END_SRC
-** Modifiers for mac
-#+BEGIN_SRC emacs-lisp
-  (when (memq window-system '(mac ns x))
-    (setq mac-command-modifier 'super
-          mac-option-modifier 'meta
-          mac-control-modifier 'control
-          mac-function-modifier 'hyper))
+  (use-package org
+    :pin gnu
+    :hook ((org-mode . visual-line-mode)
+           (org-mode . org-indent-mode))
+    :bind (("H-/" . org-todo)
+           ("C-c l" . org-store-link)
+           ("H-l o" . org-id-get-create)  
+           ("H-l l" . org-id-store-link)
+           ("H-l p" . org-insert-last-stored-link)
+           ("C-c 1" . org-time-stamp-inactive)
+           ("H-i" . do-org-show-all-inline-images)
+           ("C-c o" . org-edit-src-code)
+           ("<H-left>" . org-clock-in)
+           ("<H-right>" . org-clock-out))
+    :custom
+    (org-extend-today-until 5)
+    (org-log-into-drawer t)
+    (org-latex-create-formula-image-program 'dvisvgm)
+    (org-ellipsis " ▾")
+    (org-directory "~/Dropbox/org")
+    (org-use-sub-superscripts '{})
+    (org-return-follows-link t)
+    (org-log-reschedule 'note)
+    (org-use-fast-todo-selection t)
+    (org-hide-emphasis-markers t)
+    (org-toggle-pretty-entities t)
+    (org-priority-default 71)
+
+    (org-todo-keywords
+     '((sequence "TODO(t!)" "NEXT(n)" "WAIT(w)" "SOMEDAY(s@)" "|" "CNCL(c@)" "DONE(d!)")
+       (sequence "IDEA(i!)" "WORKING(k!)" "INCUBATE(y!)" "MATURE(m!)" "|" "REJECT(j@/@)")
+       (sequence "BACKLOG(b)" "READING(a!)" "PROCESS(p!)" "|" "CONSUMED(p@)" "DROPPED(d@/@)")))
+
+    (org-todo-keyword-faces
+     (quote (("TODO" :foreground "OrangeRed" :weight bold)
+             ("NEXT" :foreground "RoyalBlue1" :weight bold)
+             ("SOMEDAY" :foreground "DarkOrange1" :weight bold)
+             ("DONE" :foreground "MediumSpringGreen" :weight bold)
+             ("WAIT" :foreground "yellow" :weight bold)
+             ("CNCL" :foreground "SaddleBrown" :weight bold)
+
+             ("IDEA" :foreground "White" :background "OrangeRed1" :weight bold)
+             ("WORKING" :foreground "White" :background "OrangeRed4" :weight bold)
+             ("INCUBATE" :foreground "White" :background "DodgerBlue4" :weight bold)
+             ("MATURE" :foreground "White" :background "blue3" :weight bold)
+             ("REJECT" :foreground "White" :background "DarkRed" :weight bold)
+
+             ("BACKLOG" :foreground "PaleVioletRed" :weight bold :underline t)
+             ("READING" :foreground "LightPink" :weight bold :underline t)
+             ("PROCESS" :foreground "gold" :weight bold :underline t)
+             ("CONSUMED" :foreground "MediumSpringGreen" :weight bold :underline t)
+             ("DROPPED" :foreground "LightSlateGrey" :weight bold :underline t)
+
+             ("GOAL" :foreground "DeepPink" :weight bold :box t)
+             ("HABT" :foreground "khaki1" :weight bold :box t)
+             ("FRZE" :foreground "turquoise2" :weight bold :box t)
+             ("NICE" :foreground "MediumSpringGreen" :weight bold :box t)
+             ("ABDN" :foreground "SaddleBrown" :weight bold :box t)
+             )))
+    :custom-face
+    (org-link ((t (:inherit link :family "Roboto Mono"))))
+    (org-document-title ((t (:weight bold :height 1.5))))
+    (org-headline-done ((t (:strike-through t))))
+    (org-headline-done ((t (:strike-through t))))
+    (org-drawer ((t (:inherit (shadow fixed-pitch) :background "gray11"))))
+    (org-image-actual-width '(600)))
 #+END_SRC
 
-** Alerts
+*** Alerts
 #+BEGIN_SRC emacs-lisp
   (use-package alert
     :ensure nil
@@ -477,22 +533,52 @@ Provides us with hints on available keystroke combinations.
          )))
 #+END_SRC
 
-** Buffer travel using windmove
+*** Recentf
+#+BEGIN_SRC emacs-lisp
+  (require 'recentf) ;; so that the recentfiles don't show the installed packages
+  (recentf-mode 1)
+  (add-to-list 'recentf-exclude "\\elpa")
+#+END_SRC
+
+*** COMMENT orgcapture everywhere
+[[https://www.reddit.com/r/orgmode/comments/uycc8m/spawn_a_new_frame_for_orgcapture/][reddit src]]
+#+BEGIN_SRC emacs-lisp
+  (defadvice org-switch-to-buffer-other-window
+      (after supress-window-splitting activate)
+    "Delete the extra window if we're in a capture frame"
+    (if (equal "capture" (frame-parameter nil 'name))
+        (delete-other-windows)))
+
+  (defun activate-capture-frame ()
+    "run org-capture in capture frame"
+    (select-frame-by-name "capture")
+    (switch-to-buffer (get-buffer-create "*scratch*"))
+    (org-capture))
+
+  (defadvice org-capture-finalize
+      (after delete-capture-frame activate)
+    "Advise capture-finalize to close the frame"
+    (when (and (equal "capture" (frame-parameter nil 'name))
+               (not (eq this-command 'org-capture-refile)))
+      (delete-frame)))
+
+  (defadvice org-capture-refile
+      (after delete-capture-frame activate)
+    "Advise org-refile to close the frame"
+    (delete-frame))
+#+END_SRC
+ 
+*** Buffer travel using windmove
 #+BEGIN_SRC emacs-lisp
   (windmove-default-keybindings 'super)
   (winner-mode 1)
 #+END_SRC
 
-** Switch to scratch
-#+BEGIN_SRC emacs-lisp
-  (defun switch-to-scratch-buffer ()
-    "Switch to the current session's scratch buffer."
-    (interactive)
-    (switch-to-buffer "*scratch*"))
-  (bind-key "H-," #'switch-to-scratch-buffer)
-#+END_SRC
+*** TODO dynamic abbrevs / hippie expand
+[[https://www.emacswiki.org/emacs/DynamicAbbreviations][emacswiki]]
 
-** Replace default org-cycle to include properties too
+** functions, main functionalities
+*** Replace default org-cycle to include properties too
 Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[link]​]]
 #+BEGIN_SRC emacs-lisp
   (defun org-cycle-hide-drawers (state)
@@ -644,8 +730,16 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
         (unless (org-before-first-heading-p)
           (run-hook-with-args 'org-cycle-hook 'folded))))))
 #+END_SRC
+*** Switch to scratch
+#+BEGIN_SRC emacs-lisp
+  (defun switch-to-scratch-buffer ()
+    "Switch to the current session's scratch buffer."
+    (interactive)
+    (switch-to-buffer "*scratch*"))
+  (bind-key "H-," #'switch-to-scratch-buffer)
+#+END_SRC
 
-** Window configurations (defuns)
+*** Window configurations (defuns)
 #+BEGIN_SRC emacs-lisp
   (defun yza/default-window-setup ()
     "Called by emacs-startup-hook to set up my initial window configuration."
@@ -669,24 +763,7 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
   (global-set-key (kbd "H-0") #'yza/switch-to-agenda)
 #+END_SRC
 
-** Recentf
-#+BEGIN_SRC emacs-lisp
-  (require 'recentf) ;; so that the recentfiles don't show the installed packages
-  (recentf-mode 1)
-  (add-to-list 'recentf-exclude "\\elpa")
-#+END_SRC
-
-** Remember cursor position
-#+BEGIN_SRC emacs-lisp
-  (save-place-mode 1)
-#+END_SRC
-
-** open links via firefox
-#+BEGIN_SRC emacs-lisp
-(setq browse-url-browser-function 'browse-url-default-macosx-browser)
-#+END_SRC
-
-** Put the cursor on the middle always
+*** Put the cursor on the middle always
 got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.html][blog]]
 
 #+BEGIN_SRC emacs-lisp
@@ -696,37 +773,32 @@ got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.
         scroll-margin 99999)
 #+END_SRC
  
-** TODO dynamic abbrevs / hippie expand
-[[https://www.emacswiki.org/emacs/DynamicAbbreviations][emacswiki]]
-
-** COMMENT orgcapture everywhere
-[[https://www.reddit.com/r/orgmode/comments/uycc8m/spawn_a_new_frame_for_orgcapture/][reddit src]]
+** modifying variables / keybinds
+*** Binding return to include indent
+[[http://www.emacslife.com/read-lisp-tweak-emacs/beginner-3-make-things-more-convenient.html][newbie res here]]
 #+BEGIN_SRC emacs-lisp
-  (defadvice org-switch-to-buffer-other-window
-      (after supress-window-splitting activate)
-    "Delete the extra window if we're in a capture frame"
-    (if (equal "capture" (frame-parameter nil 'name))
-        (delete-other-windows)))
-
-  (defun activate-capture-frame ()
-    "run org-capture in capture frame"
-    (select-frame-by-name "capture")
-    (switch-to-buffer (get-buffer-create "*scratch*"))
-    (org-capture))
-
-  (defadvice org-capture-finalize
-      (after delete-capture-frame activate)
-    "Advise capture-finalize to close the frame"
-    (when (and (equal "capture" (frame-parameter nil 'name))
-               (not (eq this-command 'org-capture-refile)))
-      (delete-frame)))
-
-  (defadvice org-capture-refile
-      (after delete-capture-frame activate)
-    "Advise org-refile to close the frame"
-    (delete-frame))
+  (global-set-key (kbd "RET") 'newline-and-indent)
 #+END_SRC
  
+*** Modifiers for mac
+#+BEGIN_SRC emacs-lisp
+  (when (memq window-system '(mac ns x))
+    (setq mac-command-modifier 'super
+          mac-option-modifier 'meta
+          mac-control-modifier 'control
+          mac-function-modifier 'hyper))
+#+END_SRC
+
+*** open links via firefox
+#+BEGIN_SRC emacs-lisp
+(setq browse-url-browser-function 'browse-url-default-macosx-browser)
+#+END_SRC
+
+*** Remember cursor position
+#+BEGIN_SRC emacs-lisp
+  (save-place-mode 1)
+#+END_SRC
+
 * Yza Config - Third-party
 ** COMMENT Daemon Server
 #+BEGIN_SRC emacs-lisp
@@ -1130,7 +1202,7 @@ Completion style that allows spaces to be included in the narrowing. Can also ma
   (use-package orderless
     :ensure t
     :custom
-    (completion-styles '(orderless basic))
+    (completion-styles '(substring orderless basic))
     (completion-category-overrides '((file (styles basic partial-completion)))))
 #+END_SRC
  
@@ -1310,7 +1382,6 @@ for other useful functions
            :map minibuffer-local-map
            ("M-s" . consult-history)                 ;; orig. next-matching-history-element
            ("M-r" . consult-history)                ;; orig. previous-matching-history-element
-           ;; Custom shit
            )
 
     ;; The :init configuration is always executed (Not lazy)
@@ -1610,6 +1681,7 @@ from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2e
     (interactive)
     (consult-ripgrep default-directory))
 
+  (global-set-key (kbd "H-.") 'yza/consult-org-headings-agenda)
   (global-set-key (kbd "H-s r") 'yza/rg-consult-slipbox)
   (global-set-key (kbd "H-s p") 'yza/rg-consult-projects)
   (global-set-key (kbd "H-s d") 'yza/rg-consult-dashboards)
@@ -1645,118 +1717,6 @@ function came from here
   (global-set-key (kbd "H-p")  (lambda () (interactive)
                                  (cd "~/Dropbox/org/projects/")
                                  (call-interactively 'find-file)))
-#+END_SRC
-
-*** Org-mode use-package declaration
-#+BEGIN_SRC emacs-lisp
-  (use-package org
-    :pin gnu
-    :hook ((org-mode . visual-line-mode)
-           (org-mode . org-indent-mode))
-    :bind (("H-/" . org-todo)
-           ("C-c l" . org-store-link)
-           ("H-l o" . org-id-get-create)  
-           ("H-l l" . org-id-store-link)
-           ("H-l p" . org-insert-last-stored-link)
-           ("H-." . yza/consult-org-headings-agenda)
-           ("C-c 1" . org-time-stamp-inactive)
-           ("H-i" . do-org-show-all-inline-images)
-           ("C-c o" . org-edit-src-code)
-           ("<H-left>" . org-clock-in)
-           ("<H-right>" . org-clock-out))
-    :custom
-    (org-extend-today-until 5)
-    (org-log-into-drawer t)
-    (org-latex-create-formula-image-program 'dvisvgm)
-    (org-ellipsis " ▾")
-    (org-directory "~/Dropbox/org")
-    (org-use-sub-superscripts '{})
-    (org-return-follows-link t)
-    (org-log-reschedule 'note)
-    (org-use-fast-todo-selection t)
-    (org-hide-emphasis-markers t)
-    (org-toggle-pretty-entities t)
-    (org-priority-default 71)
-
-    (org-todo-keywords
-     '((sequence "TODO(t!)" "NEXT(n)" "WAIT(w)" "SOMEDAY(s@)" "|" "CNCL(c@)" "DONE(d!)")
-       (sequence "IDEA(i!)" "WORKING(k!)" "INCUBATE(y!)" "MATURE(m!)" "|" "REJECT(j@/@)")
-       (sequence "BACKLOG(b)" "READING(a!)" "PROCESS(p!)" "|" "CONSUMED(p@)" "DROPPED(d@/@)")))
-
-    (org-todo-keyword-faces
-     (quote (("TODO" :foreground "OrangeRed" :weight bold)
-             ("NEXT" :foreground "RoyalBlue1" :weight bold)
-             ("SOMEDAY" :foreground "DarkOrange1" :weight bold)
-             ("DONE" :foreground "MediumSpringGreen" :weight bold)
-             ("WAIT" :foreground "yellow" :weight bold)
-             ("CNCL" :foreground "SaddleBrown" :weight bold)
-
-             ("IDEA" :foreground "White" :background "OrangeRed1" :weight bold)
-             ("WORKING" :foreground "White" :background "OrangeRed4" :weight bold)
-             ("INCUBATE" :foreground "White" :background "DodgerBlue4" :weight bold)
-             ("MATURE" :foreground "White" :background "blue3" :weight bold)
-             ("REJECT" :foreground "White" :background "DarkRed" :weight bold)
-
-             ("BACKLOG" :foreground "PaleVioletRed" :weight bold :underline t)
-             ("READING" :foreground "LightPink" :weight bold :underline t)
-             ("PROCESS" :foreground "gold" :weight bold :underline t)
-             ("CONSUMED" :foreground "MediumSpringGreen" :weight bold :underline t)
-             ("DROPPED" :foreground "LightSlateGrey" :weight bold :underline t)
-
-             ("GOAL" :foreground "DeepPink" :weight bold :box t)
-             ("HABT" :foreground "khaki1" :weight bold :box t)
-             ("FRZE" :foreground "turquoise2" :weight bold :box t)
-             ("NICE" :foreground "MediumSpringGreen" :weight bold :box t)
-             ("ABDN" :foreground "SaddleBrown" :weight bold :box t)
-             )))
-
-    (org-tag-alist '(;(:startgroup)
-                     ;; ("Learning")
-                     ;; (:grouptags)
-                     ;; ("Computer")
-                     ;; ("Art")
-                     ;; ("Math")
-                     ;; ("Science")
-                     ;; (:endgroup)
-
-                     ;; (:startgroup)
-                     ;; ("Computer")
-                     ;; (:grouptags)
-                     ;; (:startgroup)
-                     ;; ("lc@.+")
-                     ;; (:endgroup)
-                     ;; (:endgroup)
-                     ;; (:startgroup)
-
-                     ;; ("Art")
-                     ;; (:grouptags)
-                     ;; (:startgroup)
-                     ;; ("la@.+")
-                     ;; (:endgroup)
-                     ;; (:endgroup)
-
-                     ;; (:startgroup)
-                     ;; ("School")
-                     ;; (:grouptags)
-                     ;; (:startgroup)
-                     ;; ("S@.+")
-                     ;; (:endgroup)
-                     ;; (:endgroup)
-
-                     (:startgroup)
-                     ("Brainpower")
-                     (:grouptags)
-                     ("high" . ?1)
-                     ("mid" . ?2)
-                     ("low" . ?3)
-                     ("chill" . ?4)
-                     (:endgroup)))
-
-    :custom-face
-    (org-link ((t (:inherit link :family "Roboto Mono"))))
-    (org-document-title ((t (:weight bold :height 1.5))))
-    (org-headline-done ((t (:strike-through t))))
-    (org-image-actual-width '(600)))
 #+END_SRC
 
 *** Org-agenda custom views
@@ -1876,11 +1836,12 @@ function came from here
                         (org-agenda-span 'day)
                         (org-super-agenda-groups
                          '((:discard (:not (:todo "HABT")))
+                           (:discard (:log t))
                            (:name "Daily" :and(:tag "_daily"))
                            (:name "Weekly" :and(:tag "_weekly"))
-                           (:name "Weekly" :and(:tag "_monthly"))
-                           (:name "Special" :scheduled (today past))
-                           (:discard (:anything t))
+                           (:name "Monthly" :and(:tag "_monthly"))
+                           (:name "Special" :and (:todo "HABT" :scheduled (today past)))
+                           ;; (:discard (:anything t))
                            ))
                         ))
             (org-ql-block '(and (not (clocked :on 0)) (tags "longrun") (ts-active :to 0))
@@ -1895,7 +1856,8 @@ function came from here
                            ))
                         ))
             (agenda "" ((org-agenda-span 'day)
-                        (org-agenda-entry-types '(:timestamp))
+                        (org-agenda-skip-function
+                         '(org-agenda-skip-entry-if 'regexp "\\* HABT"))
                         (org-agenda-sorting-strategy '(time-up todo-state-up priority-down))))
             ))
           ("w" "Weekly Review"
