@@ -483,16 +483,16 @@ Provides us with hints on available keystroke combinations.
     (org-priority-default 71)
 
     (org-todo-keywords
-     '((sequence "TODO(t!)" "NEXT(n)" "WAIT(w)" "SOMEDAY(s@)" "|" "CNCL(c@)" "DONE(d!)")
-       (sequence "IDEA(i!)" "WORKING(k!)" "INCUBATE(y!)" "MATURE(m!)" "|" "REJECT(j@/@)")
-       (sequence "BACKLOG(b)" "READING(a!)" "PROCESS(p!)" "|" "CONSUMED(p@)" "DROPPED(d@/@)")))
+     '((sequence "TODO(t!)" "NEXT(n)" "WAIT(w)" "|" "CNCL(c@)" "DONE(d!)")
+       (sequence "FRZE(f@/@)" "HABT(h)")
+       (sequence "IDEA(1!)" "WORKING(2!)" "INCUBATE(3!)" "MATURE(4!)" "|" "REJECT(5@/@)")
+       (sequence "BACKLOG(b)" "READING(r!)" "PROCESS(p!)" "|" "CONSUMED(o@)" "DROPPED(d@/@)")))
 
     (org-todo-keyword-faces
      (quote (("TODO" :foreground "OrangeRed" :weight bold)
              ("NEXT" :foreground "RoyalBlue1" :weight bold)
-             ("SOMEDAY" :foreground "DarkOrange1" :weight bold)
-             ("DONE" :foreground "MediumSpringGreen" :weight bold)
              ("WAIT" :foreground "yellow" :weight bold)
+             ("DONE" :foreground "MediumSpringGreen" :weight bold)
              ("CNCL" :foreground "SaddleBrown" :weight bold)
 
              ("IDEA" :foreground "White" :background "OrangeRed1" :weight bold)
@@ -507,10 +507,14 @@ Provides us with hints on available keystroke combinations.
              ("CONSUMED" :foreground "MediumSpringGreen" :weight bold :underline t)
              ("DROPPED" :foreground "LightSlateGrey" :weight bold :underline t)
 
-             ("GOAL" :foreground "DeepPink" :weight bold :box t)
+             ;;;; Special TODOs (can be used everywhere, especially FRZE)
+             ("FRZE" :foreground "turquoise" :weight bold :box t)
              ("HABT" :foreground "khaki1" :weight bold :box t)
-             ("FRZE" :foreground "turquoise2" :weight bold :box t)
-             ("NICE" :foreground "MediumSpringGreen" :weight bold :box t)
+             ;;;; For goals and its commitments
+             ("GOAL" :foreground "DeepPink" :weight bold :box t)
+             ("CMMT" :foreground "YellowGreen" :weight bold :box t)
+             ;;;; Complete states for GOAL/CMMT
+             ("PASS" :foreground "MediumSpringGreen" :weight bold :box t)
              ("ABDN" :foreground "SaddleBrown" :weight bold :box t)
              )))
     :custom-face
@@ -1832,6 +1836,15 @@ function came from here
             ;;               ((org-ql-block-header "Daily Habits")))
             ;; (org-ql-block '(and (not (clocked :on -7)) (todo "HABT") (tags "_weekly"))
             ;;               ((org-ql-block-header "Weekly Habits")))
+            (agenda "" ((org-agenda-span 'day)
+                        (org-agenda-overriding-header "Deadlines!")
+                        (org-agenda-entry-types '(:deadline))
+                        (org-super-agenda-groups
+                         '((:name "" :deadline today)
+                           (:name "" :deadline future)
+                           (:discard (:anything t))
+                           ))
+                        ))
             (agenda "" ((org-agenda-overriding-header "Repeating Tasks")
                         (org-agenda-span 'day)
                         (org-super-agenda-groups
@@ -1846,15 +1859,7 @@ function came from here
                         ))
             (org-ql-block '(and (not (clocked :on 0)) (tags "longrun") (ts-active :to 0))
                           ((org-ql-block-header "Longruns!")))
-            (agenda "" ((org-agenda-span 'day)
-                        (org-agenda-overriding-header "Deadlines!")
-                        (org-agenda-entry-types '(:deadline))
-                        (org-super-agenda-groups
-                         '((:name "" :deadline today)
-                           (:name "" :deadline future)
-                           (:discard (:anything t))
-                           ))
-                        ))
+
             (agenda "" ((org-agenda-span 'day)
                         (org-agenda-skip-function
                          '(org-agenda-skip-entry-if 'regexp "\\* HABT"))
