@@ -1945,6 +1945,11 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
     :config
     (setq org-capture-templates
           (doct '(
+                  ("Sticky" :keys "y"
+                   :olp ("Reminders" "Stickies")
+                   :file (lambda () (concat yza/action-files "tracker.org"))
+                   :template ("* STICKY %^{Reminder} %?\n%^{Display at}t")
+                   )
                   ("Ideas" :keys "i"
                    :file (lambda () (concat yza/action-files "actionable.org"))
                    :template ("* IDEA %^{Description} %? %^g"
@@ -1989,7 +1994,6 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                :headline "Multi-steps")))
                   ("Fast-clocking" :keys "c"
                    :clock-in t
-                   :clock-keep t
                    :immediate-finish t
                    :file (lambda () (concat yza/action-files "unlisted.org"))
                    :children (("Movie!" :keys "m"
