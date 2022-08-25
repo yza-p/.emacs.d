@@ -9,6 +9,7 @@
   (require 'quelpa-use-package)
   (quelpa-use-package-activate-advice)
 #+end_src
+ 
 * scratch fortunes
 #+begin_src emacs-lisp
   (setq fortune-file "/usr/local/Cellar/fortune/9708/share/games/fortunes/yza")
@@ -18,6 +19,7 @@
     (add-hook 'after-init-hook 'scratch-message-mode)
     (setq scratch-message-function #'scratch-message-fortune))
 #+end_src
+ 
 * Settings without corresponding packages
 Clean up the UI and enhance some basic defaults defined in "C Source Code". The variable ~ian/indent-width~ controls the default indentation across various programming modes. The default is 4, you can change this variable to 2 or any other indentation width you prefer, and the change will be made across all programming language modes including C, C++, Java, Python etc. (Exception: JavaScript defaults to 2-space indent, you can still set it to any other indentation width you prefer in the ~web-mode~ section.)
 #+BEGIN_SRC emacs-lisp
@@ -469,6 +471,7 @@ Provides us with hints on available keystroke combinations.
            ("<H-left>" . org-clock-in)
            ("<H-right>" . org-clock-out))
     :custom
+    (org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
     (org-extend-today-until 5)
     (org-log-into-drawer t)
     (org-latex-create-formula-image-program 'dvisvgm)
@@ -483,10 +486,9 @@ Provides us with hints on available keystroke combinations.
     (org-priority-default 71)
 
     (org-todo-keywords
-     '((sequence "TODO(t!)" "NEXT(n)" "WAIT(w)" "|" "CNCL(c@)" "DONE(d!)")
-       (sequence "FRZE(f@/@)" "HABT(h)")
+     '((sequence "TODO(t!)" "NEXT(n)" "WAIT(w)" "FRZE(f@/@)" "HABT(h)" "|" "CNCL(c@)" "DONE(d!)")
        (sequence "IDEA(1!)" "WORKING(2!)" "INCUBATE(3!)" "MATURE(4!)" "|" "REJECT(5@/@)")
-       (sequence "BACKLOG(b)" "READING(r!)" "PROCESS(p!)" "|" "CONSUMED(o@)" "DROPPED(d@/@)")))
+       (sequence "BACKLOG(b)" "READING(r!)" "PROCESS(p!)" "|" "CONSUMED(o@)" "DROPPED(t@/@)")))
 
     (org-todo-keyword-faces
      (quote (("TODO" :foreground "OrangeRed" :weight bold)
@@ -1501,6 +1503,7 @@ using consult for directory completion everywhere!
   (defvar yza/action-files "~/Dropbox/org/life/actions/")
   (defvar yza/review-files "~/Dropbox/org/life/reviews/")
   (defvar yza/journal-files "~/Dropbox/org/life/journal/")
+  (defvar yza/special-journal-files "~/Dropbox/org/life/journal/0special/")
   (defvar yza/slipbox-files "~/Dropbox/org/notes/0.slipbox/")
   (defvar yza/dashboard-files "~/Dropbox/org/life/dashboards/")
 
@@ -1912,8 +1915,9 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
     :config
     :custom
     (org-agenda-files (append (find-lisp-find-files yza/action-files "\.org$")
-                              (find-lisp-find-files yza/review-files "\.org$")
-                              (find-lisp-find-files yza/dashboard-files "\.org$")))
+                              ;; (find-lisp-find-files yza/review-files "\.org$")
+                              ;; (find-lisp-find-files yza/dashboard-files "\.org$")
+                              ))
     (org-agenda-start-with-log-mode t)
     )
 #+END_SRC
@@ -1939,152 +1943,178 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
     (org-outline-path-complete-in-steps nil)
     (org-refile-allow-creating-parent-nodes 'confirm)
     :config
-    (setq org-capture-templates (doct '(
-                                        ("Ideas" :keys "i"
-                                         :file (lambda () (concat yza/action-files "actionable.org"))
-                                         :template ("* IDEA %^{Description} %? %^g"
-                                                    ":PROPERTIES:"
-                                                    ":created: %U"
-                                                    "%{add-prop}"
-                                                    ":END:")
-                                         :children (("Explore!" :keys "z"
-                                                     :headline "Ideas"
-                                                     :add-prop ":ref: %^{Reference}")
-                                                    ("Maybe todos?" :keys "t"
-                                                     :headline "Ideas"
-                                                     :add-prop ":context: %^{Where will you do this?}")))
-                                        ("Actions" :keys "a"
-                                         :file (lambda () (concat yza/action-files "actionable.org"))
-                                         :children (("Single Actions" :keys "a" :todo-state "NEXT"
-                                                     :template ("* %{todo-state}  %^{Description} %? %^g"
-                                                                ":PROPERTIES:"
-                                                                ":created: %U"
-                                                                ":effort: %^{Effort}"
-                                                                ":brainpower: %^{Brainpower (high/mid/low/chill)}"
-                                                                ":END:")
-                                                     :headline "Actions")
-                                                    ("Scheduled" :keys "s"
-                                                     :template ("* %^{Description} %? %^g"
-                                                                ":PROPERTIES:"
-                                                                ":created: %U"
-                                                                ":END:")
-                                                     :headline "Appointments")
-                                                    ("Waiting on" :keys "w"
-                                                     :headline "Waiting on"
-                                                     :template ("* WAIT %^{Description}"
-                                                                ":PROPERTIES:"
-                                                                ":created: %U"
-                                                                ":END:"))
-                                                    ("Multi-step" :keys "m" :todo-state ""
-                                                     :template ("* IDEA %^{Description} %^g"
-                                                                ":PROPERTIES:"
-                                                                ":created: %U"
-                                                                ":END:"
-                                                                "%?")
-                                                     :headline "Multi-steps")))
-                                        ("Fast-clocking" :keys "c"
-                                         :clock-in t
-                                         :clock-keep t
-                                         :immediate-finish t
-                                         :file (lambda () (concat yza/action-files "unlisted.org"))
-                                         :children (("Movie!" :keys "m"
-                                                     :template ("* TODO %^{Name} %?"
-                                                                ":PROPERTIES:"
-                                                                ":watch-with: %^{Watch with who?}"
-                                                                ":watchlist-link: %^{Link to movie if in the list}"
-                                                                ":END:"))
-                                                    ("Event now!" :keys "e" :todo-state "TODO"
-                                                     :file (lambda () (concat yza/action-files "actionable.org"))
-                                                     :headline "Appointments"
-                                                     :template ("* %{todo-state} %^{Description} %? %^g"
-                                                                ":PROPERTIES:"
-                                                                ":created: %U"
-                                                                ":END:"))
-                                                    ("Action now!" :keys "a" :todo-state "NEXT"
-                                                     :headline "Actions"
-                                                     :template ("* %{todo-state}  %^{Description} %? %^g"
-                                                                ":PROPERTIES:"
-                                                                ":created: %U"
-                                                                ":effort: %^{Effort}"
-                                                                ":END:"))
-                                                    ("New web content now!" :keys "w" :todo-state "READING"
-                                                     :headline "Web Content"
-                                                     :clock-keep nil
-                                                     :immediate-finish nil
-                                                     :template ("* BACKLOG %^{Title} ([[%^{Link}][^]])%?"
-                                                                ":PROPERTIES:"
-                                                                ":added: %U"
-                                                                ":list-group: Web - %^{Video/Article/Wiki?}"
-                                                                ":published-on: %^{Published on}u"
-                                                                ":publisher: %^{Publisher}"
-                                                                ":END:")
-                                                     )))
-                                        ("Record" :keys "r"
-                                         :file (lambda () (concat yza/action-files "data.org"))
-                                         :type table-line
-                                         :template ("| NEXT %^{Description} |")
-                                         :children (("daily hours" :keys "z"
-                                                     :headline "Ideas")
-                                                    ("sleep" :keys "z"
-                                                     :headline "Ideas")
-                                                    ("nihon!" :keys "n")))
-                                        ("Add to list" :keys "l"
-                                         :file (lambda () (concat yza/action-files "list.org"))
-                                         :template ("* BACKLOG %^{Title} %? %^g"
-                                                    ":PROPERTIES:"
-                                                    ":added: %U"
-                                                    ":list-group: %^{Movie/Series/Book/Article?}"
-                                                    ":published-on: %^{Published on}u"
-                                                    "%{add-prop}"
-                                                    ":gist: %^{Gist}"
-                                                    ":END:"
-                                                    )
-                                         :children (("book" :keys "b"
-                                                     :add-prop ":author: %^{Author}"
-                                                     :headline "Books")
-                                                    ("shows" :keys "s"
-                                                     :add-prop ":director: %^{Director}"
-                                                     :headline "Shows")
-                                                    ("web" :keys "w"
-                                                     :headline "Web Content"
-                                                     :template ("* BACKLOG %^{Title} ([[%^{Link}][^]])%? %^g"
-                                                                ":PROPERTIES:"
-                                                                ":added: %U"
-                                                                ":list-group: Web - %^{Video/Article/Wiki?}"
-                                                                ":published-on: %^{Published on}u"
-                                                                ":publisher: %^{Publisher}"
-                                                                ":END:"))
-                                                    ("search" :keys "s"
-                                                     :headline "Web Content"
-                                                     :template ("* BACKLOG %^{Title}%? %^g"
-                                                                ":PROPERTIES:"
-                                                                ":added: %U"
-                                                                ":END:"))
-                                                    ))
-                                        ("Scratch!" :keys "s"
-                                         :kill-buffer t
-                                         :type entry
-                                         :children (("current file" :keys "b"
-                                                     :prepend t
-                                                     :headline "^refile"
-                                                     :hook (lambda () (call-interactively 'delete-other-windows))
-                                                     :file buffer-name)
-                                                    ("refile to projects" :keys "p"
-                                                     :headline "Refile"
-                                                     :file "~/Dropbox/org/projects/refile.org"
-                                                     :refile-targets (( yza/get-project-files :maxlevel . 2)))
-                                                    ;; ("refile to new file (focus)" :keys "n"
-                                                    ;;  :file "~/Dropbox/org/projects/refile.org"
-                                                    ;;  :hook (lambda () (call-interactively 'delete-other-windows))
-                                                    ;;  :before-finalize (lambda () (call-interactively 'zin/org-refile-new-select)))
-                                                    ))
-                                        ("Journal" :keys "j"
-                                         :unnarrowed t
-                                         :type plain
-                                         :function (lambda() (org-journal-find-location))
-                                         :strfmt (lambda() (format-time-string org-journal-time-format))
-                                         :template "** %{strfmt} %^{Title}\n%?")
-                                        )))
+    (setq org-capture-templates
+          (doct '(
+                  ("Ideas" :keys "i"
+                   :file (lambda () (concat yza/action-files "actionable.org"))
+                   :template ("* IDEA %^{Description} %? %^g"
+                              ":PROPERTIES:"
+                              ":created: %U"
+                              "%{add-prop}"
+                              ":END:")
+                   :children (("Explore!" :keys "z"
+                               :headline "Ideas"
+                               :add-prop ":ref: %^{Reference}")
+                              ("Maybe todos?" :keys "t"
+                               :headline "Ideas"
+                               :add-prop ":context: %^{Where will you do this?}")))
+                  ("Actions" :keys "a"
+                   :file (lambda () (concat yza/action-files "actionable.org"))
+                   :children (("Single Actions" :keys "a" :todo-state "NEXT"
+                               :template ("* %{todo-state}  %^{Description} %? %^g"
+                                          ":PROPERTIES:"
+                                          ":created: %U"
+                                          ":effort: %^{Effort}"
+                                          ":brainpower: %^{Brainpower (high/mid/low/chill)}"
+                                          ":END:")
+                               :headline "Actions")
+                              ("Scheduled" :keys "s"
+                               :template ("* %^{Description} %? %^g"
+                                          ":PROPERTIES:"
+                                          ":created: %U"
+                                          ":END:")
+                               :headline "Appointments")
+                              ("Waiting on" :keys "w"
+                               :headline "Waiting on"
+                               :template ("* WAIT %^{Description}"
+                                          ":PROPERTIES:"
+                                          ":created: %U"
+                                          ":END:"))
+                              ("Multi-step" :keys "m" :todo-state ""
+                               :template ("* IDEA %^{Description} %^g"
+                                          ":PROPERTIES:"
+                                          ":created: %U"
+                                          ":END:"
+                                          "%?")
+                               :headline "Multi-steps")))
+                  ("Fast-clocking" :keys "c"
+                   :clock-in t
+                   :clock-keep t
+                   :immediate-finish t
+                   :file (lambda () (concat yza/action-files "unlisted.org"))
+                   :children (("Movie!" :keys "m"
+                               :template ("* TODO %^{Name} %?"
+                                          ":PROPERTIES:"
+                                          ":watch-with: %^{Watch with who?}"
+                                          ":END:"))
+                              ("Event now!" :keys "e" :todo-state "TODO"
+                               :file (lambda () (concat yza/action-files "actionable.org"))
+                               :headline "Appointments"
+                               :template ("* %{todo-state} %^{Description} %? %^g"
+                                          ":PROPERTIES:"
+                                          ":created: %U"
+                                          ":END:"))
+                              ("Action now!" :keys "a" :todo-state "NEXT"
+                               :headline "Actions"
+                               :template ("* %{todo-state}  %^{Description} %? %^g"
+                                          ":PROPERTIES:"
+                                          ":created: %U"
+                                          ":effort: %^{Effort}"
+                                          ":END:"))
+                              ("New web content now!" :keys "w" :todo-state "READING"
+                               :headline "Web Content"
+                               :clock-keep nil
+                               :immediate-finish nil
+                               :template ("* BACKLOG %^{Title} ([[%^{Link}][^]])%?"
+                                          ":PROPERTIES:"
+                                          ":added: %U"
+                                          ":list-group: Web - %^{Video/Article/Wiki?}"
+                                          ":published-on: %^{Published on}u"
+                                          ":publisher: %^{Publisher}"
+                                          ":END:")
+                               )))
+                  ("Record" :keys "r"
+                   :file (lambda () (concat yza/action-files "data.org"))
+                   :type table-line
+                   :template ("| NEXT %^{Description} |")
+                   :children (("daily hours" :keys "z"
+                               :headline "Ideas")
+                              ("sleep" :keys "z"
+                               :headline "Ideas")
+                              ("nihon!" :keys "n")))
+                  ("Add to list" :keys "l"
+                   :file (lambda () (concat yza/action-files "list.org"))
+                   :template ("* BACKLOG %^{Title} %? %^g"
+                              ":PROPERTIES:"
+                              ":added: %U"
+                              ":list-group: %^{Movie/Series/Book/Article?}"
+                              ":published-on: %^{Published on}u"
+                              "%{add-prop}"
+                              ":gist: %^{Gist}"
+                              ":END:"
+                              )
+                   :children (("book" :keys "b"
+                               :add-prop ":author: %^{Author}"
+                               :headline "Books")
+                              ("shows" :keys "s"
+                               :add-prop ":director: %^{Director}"
+                               :headline "Shows")
+                              ("web" :keys "w"
+                               :headline "Web Content"
+                               :template ("* BACKLOG %^{Title} ([[%^{Link}][^]])%? %^g"
+                                          ":PROPERTIES:"
+                                          ":added: %U"
+                                          ":list-group: Web - %^{Video/Article/Wiki?}"
+                                          ":published-on: %^{Published on}u"
+                                          ":publisher: %^{Publisher}"
+                                          ":END:"))
+                              ("search" :keys "s"
+                               :headline "Web Content"
+                               :template ("* BACKLOG %^{Title}%? %^g"
+                                          ":PROPERTIES:"
+                                          ":added: %U"
+                                          ":END:"))
+                              ))
+                  ("Scratch!" :keys "s"
+                   :kill-buffer t
+                   :type entry
+                   :children (("current file" :keys "b"
+                               :prepend t
+                               :headline "^refile"
+                               :hook (lambda () (call-interactively 'delete-other-windows))
+                               :file buffer-name)
+                              ("refile to projects" :keys "p"
+                               :headline "Refile"
+                               ;; YZA TODO
+                               :file "~/Dropbox/org/projects/refile.org"
+                               :refile-targets (( yza/get-project-files :maxlevel . 2)))
+                              ;; ("refile to new file (focus)" :keys "n"
+                              ;;  :file "~/Dropbox/org/projects/refile.org"
+                              ;;  :hook (lambda () (call-interactively 'delete-other-windows))
+                              ;;  :before-finalize (lambda () (call-interactively 'zin/org-refile-new-select)))
+                              ))
+                  ("Journal" :keys "j"
+                   :unnarrowed t
+                   :type plain
+                   :children (("Interstitial Daily Journal" :keys "j"
+                               :function (lambda() (org-journal-find-location))
+                               :strfmt (lambda() (format-time-string org-journal-time-format))
+                               :template "** %{strfmt} %^{Title}\n%?")
+                              ("Special: Dump journal" :keys "x"
+                               :file (lambda () (concat yza/special-journal-files "clarity.org"))
+                               :datetree t)
+                              ("Special: Process overwhelming past events" :keys "p"
+                               :file (lambda () (concat yza/special-journal-files "shame.org"))
+                               :datetree t
+                               :template "- What happened objectively?\n%?\n- What did I make it mean?\n\n- How would I comfort a friend I love if this happened to them?\n\n- How is this the best thing that has ever happened to me?")
+                              ("Special: Gratitude journal" :keys "h"
+                               :file (lambda () (concat yza/special-journal-files "gratitude.org"))
+                               :template "1. What excited me?\n%?\n2. What drained me of energy\n\n3. What did I learned?\n\n4. What are the 10 things I'm grateful for?\n\n5. How did I pushed the needle forward?"
+                               :datetree t)
+                              ("Special: Process overwhelming future events!" :keys "f"
+                               :file (lambda () (concat yza/special-journal-files "anxiety.org"))
+                               :datetree t
+                               :template "- %^{Fear}\n  - Fixes:\n    + %?\n  - Outcome that I would bet on:\n    + ")
+                              ("Special: Major Decision" :keys "d"
+                               :file (lambda () (concat yza/special-journal-files "decide.org"))
+                               :datetree t
+                               :template "1. Situation/Context\n%?\n2. The problem statement\n\n3. The variables that govern the situation include\n\n4. The complications/complexities as I see them\n\n5. Alternatives that were seriously considered and not chosen were\n\n6. The range of outcomes\n\n7. What is the opportunity cost (by doing this what am I not doing)\n\n8. What I expect to happen and the actual probabilities are?\n\n9. [LATER] What happened and what I learned?")
+                              ("Dreams!" :keys "z"
+                               :file (lambda () (concat yza/special-journal-files "dream.org"))
+                               :datetree t)
+                              )
+                   )))
+          )
     )
 #+END_SRC
 
@@ -2093,8 +2123,8 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
 #+begin_src emacs-lisp 
   (use-package org-ql)
   (use-package helm-org-ql
-  :quelpa (helm-org-ql :fetcher github :repo "alphapapa/org-ql"
-                       :files ("helm-org-ql.el")))
+    :quelpa (helm-org-ql :fetcher github :repo "alphapapa/org-ql"
+                         :files ("helm-org-ql.el")))
 #+end_src
 
 *** TODO addons from org-contrib
