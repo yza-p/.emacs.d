@@ -1799,16 +1799,20 @@ function came from here
                         (org-agenda-entry-types '(:scheduled :timestamp :sexp))
                         (org-super-agenda-groups
                          '((:discard (:log t))
-                           (:discard (:tag "longrun"))
-                           (:discard (:todo "HABT"))
                            (:name "Nice!"
                                   :todo "STICKY"
                                   :todo "DONE"
                                   :todo "CNCL")
+                           (:name "Longruns"
+                                  :and (:tag "longrun" :scheduled today))
+                           (:name "Habits today"
+                                  :and (:todo "HABT" :priority "C"))
+                           (:discard (:tag "longrun"))
+                           (:discard (:todo "HABT"))
                            (:name "Today"
                                   :tag "chill"
+                                  :and (:scheduled today :not(:todo "HABT"))
                                   :time-grid t
-                                  :scheduled today
                                   :deadline today)
                            (:name "Past"
                                   :scheduled past)
@@ -1828,8 +1832,8 @@ function came from here
                            (:discard (:anything t))
                            ))
                         ))
-            (org-ql-block '(and (not (clocked :on 0)) (tags "longrun") (ts-active :to 0))
-                          ((org-ql-block-header "Longruns!")))
+            ;; (org-ql-block '(and (not (clocked :on 0)) (tags "longrun") (ts-active :to 0))
+            ;;               ((org-ql-block-header "Longruns!")))
             (agenda "" ((org-agenda-overriding-header "Repeating Tasks")
                         (org-agenda-span 'day)
                         (org-super-agenda-groups
