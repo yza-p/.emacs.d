@@ -745,30 +745,6 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
   (bind-key "H-," #'switch-to-scratch-buffer)
 #+END_SRC
 
-*** Window configurations (defuns)
-#+BEGIN_SRC emacs-lisp
-  (defun yza/default-window-setup ()
-    "Called by emacs-startup-hook to set up my initial window configuration."
-    (ian/split-and-follow-vertically)
-    (org-agenda nil "0"))
-
-  (defun yza/default-fast-window-setup ()
-    "Called by emacs-startup-hook to set up my initial window configuration."
-    (split-window-below)
-    (split-window-right))
-
-  (defun yza/switch-to-agenda () ;; call org agenda only if there's no existing shit, use switch-buffer if so
-    (interactive)
-    "Called by emacs-startup-hook to set up my initial window configuration."
-    (switch-to-buffer "*Org Agenda*")
-    ;; (org-agenda nil "0")
-    )
-
-  (add-hook 'after-init-hook #'yza/default-window-setup)
-  ;; (global-set-key (kbd "H-1") #'yza/default-window-setup)
-  (global-set-key (kbd "H-0") #'yza/switch-to-agenda)
-#+END_SRC
-
 *** Put the cursor on the middle always
 got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.html][blog]]
 
@@ -780,6 +756,22 @@ got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.
 #+END_SRC
  
 ** modifying variables / keybinds
+*** Custom directory variables
+#+BEGIN_SRC emacs-lisp
+  (defvar yza/action-files "~/Dropbox/org/life/actions/")
+  (defvar yza/review-files "~/Dropbox/org/life/reviews/")
+  (defvar yza/journal-files "~/Dropbox/org/life/journal/")
+  (defvar yza/special-journal-files "~/Dropbox/org/life/journal/0special/")
+
+  (defvar yza/meta-files "~/Dropbox/org/meta/")
+  (defvar yza/slipbox-files "~/Dropbox/org/notes/slipbox/")
+  (defvar yza/notes "~/Dropbox/org/notes/piles/")
+  (defvar yza/project-files "~/Dropbox/org/notes/projects/")
+  ;; (defvar yza/dashboard-files "~/Dropbox/org/life/dashboards/")
+
+  (defvar yza/school-notes "~/Dropbox/org/notes/projects/school/")
+#+END_SRC
+
 *** Binding return to include indent
 [[http://www.emacslife.com/read-lisp-tweak-emacs/beginner-3-make-things-more-convenient.html][newbie res here]]
 #+BEGIN_SRC emacs-lisp
@@ -1307,22 +1299,22 @@ for flipping the usual action-item movement of M-x; allowing to first select the
 **** COMMENT Embark as helm
 Ported from [[https://karthinks.com/software/fifteen-ways-to-use-embark/][karthinks]]
 #+BEGIN_SRC emacs-lisp
-(defun with-minibuffer-keymap (keymap)
-  (lambda (fn &rest args)
-    (minibuffer-with-setup-hook
-        (lambda ()
-          (use-local-map
-           (make-composed-keymap keymap (current-local-map))))
-      (apply fn args))))
+  (defun with-minibuffer-keymap (keymap)
+    (lambda (fn &rest args)
+      (minibuffer-with-setup-hook
+          (lambda ()
+            (use-local-map
+             (make-composed-keymap keymap (current-local-map))))
+        (apply fn args))))
 
-(defvar embark-completing-read-prompter-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "<tab>") 'abort-recursive-edit)
-    map))
+  (defvar embark-completing-read-prompter-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "<tab>") 'abort-recursive-edit)
+      map))
 
-(advice-add 'embark-completing-read-prompter :around
-            (with-minibuffer-keymap embark-completing-read-prompter-map))
-(define-key vertico-map (kbd "<tab>") 'embark-act-with-completing-read)
+  (advice-add 'embark-completing-read-prompter :around
+              (with-minibuffer-keymap embark-completing-read-prompter-map))
+  (define-key vertico-map (kbd "<tab>") 'embark-act-with-completing-read)
 
   (defun embark-act-with-completing-read (&optional arg)
     (interactive "P")
@@ -1481,7 +1473,7 @@ using consult for directory completion everywhere!
   (use-package yankpad
     :defer 10
     :init
-    (setq yankpad-file "~/Dropbox/org/meta/yankpad.org")
+    (setq yankpad-file (concat yza/meta-files "yankpad.org"))
     :config
     (bind-key "<H-backspace>" 'yankpad-expand))
 #+END_SRC
@@ -1498,19 +1490,6 @@ using consult for directory completion everywhere!
 *** TODO Emmet mode for fast HTML/CSS
 * Org-related tweaks
 ** Org functions
-*** Custom directory variables
-#+BEGIN_SRC emacs-lisp
-  (defvar yza/action-files "~/Dropbox/org/life/actions/")
-  (defvar yza/review-files "~/Dropbox/org/life/reviews/")
-  (defvar yza/journal-files "~/Dropbox/org/life/journal/")
-  (defvar yza/special-journal-files "~/Dropbox/org/life/journal/0special/")
-  (defvar yza/slipbox-files "~/Dropbox/org/notes/0.slipbox/")
-  (defvar yza/dashboard-files "~/Dropbox/org/life/dashboards/")
-
-  (defvar yza/school-files "~/Dropbox/org/projects/future.school/")
-  (defvar yza/project-files "~/Dropbox/org/projects/")
-#+END_SRC
-
 *** Function: org clock table for tag-grouping
 from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2ee][githubgist]]
 #+BEGIN_SRC emacs-lisp
@@ -1669,7 +1648,7 @@ from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2e
   (define-key org-mode-map (kbd "M-s-l") 'xah-reformat-to-sentence-lines)
 #+end_src
  
-*** Custom functions
+*** Custom functions (consult)
 #+BEGIN_SRC emacs-lisp
   (defun yza/consult-org-headings-agenda ()
     (interactive)
@@ -1719,7 +1698,7 @@ function came from here
 #+end_src
 
 ** Standard procedures
-*** COMMENT Custom  global bindings
+*** COMMENT Custom global bindings
 #+BEGIN_SRC emacs-lisp
   (global-set-key (kbd "H-p")  (lambda () (interactive)
                                  (cd "~/Dropbox/org/projects/")
@@ -1823,6 +1802,7 @@ function came from here
                            (:discard (:tag "longrun"))
                            (:discard (:todo "HABT"))
                            (:name "Nice!"
+                                  :todo "STICKY"
                                   :todo "DONE"
                                   :todo "CNCL")
                            (:name "Today"
@@ -1848,6 +1828,8 @@ function came from here
                            (:discard (:anything t))
                            ))
                         ))
+            (org-ql-block '(and (not (clocked :on 0)) (tags "longrun") (ts-active :to 0))
+                          ((org-ql-block-header "Longruns!")))
             (agenda "" ((org-agenda-overriding-header "Repeating Tasks")
                         (org-agenda-span 'day)
                         (org-super-agenda-groups
@@ -1860,9 +1842,6 @@ function came from here
                            ;; (:discard (:anything t))
                            ))
                         ))
-            (org-ql-block '(and (not (clocked :on 0)) (tags "longrun") (ts-active :to 0))
-                          ((org-ql-block-header "Longruns!")))
-
             (agenda "" ((org-agenda-span 'day)
                         (org-agenda-skip-function
                          '(org-agenda-skip-entry-if 'regexp "\\* HABT"))
@@ -1900,7 +1879,8 @@ function came from here
                             ))
                          ))
             ))
-          ))
+          )
+        )
 
 #+END_SRC
   
@@ -2080,7 +2060,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                               ("refile to projects" :keys "p"
                                :headline "Refile"
                                ;; YZA TODO
-                               :file "~/Dropbox/org/projects/refile.org"
+                               :file "~/Dropbox/org/notes/refile.org"
                                :refile-targets (( yza/get-project-files :maxlevel . 2)))
                               ;; ("refile to new file (focus)" :keys "n"
                               ;;  :file "~/Dropbox/org/projects/refile.org"
@@ -2122,7 +2102,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
     )
 #+END_SRC
 
-** Org tiny plug-ins
+** Dependency extensions
 *** org-ql
 #+begin_src emacs-lisp 
   (use-package org-ql)
@@ -2131,6 +2111,13 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                          :files ("helm-org-ql.el")))
 #+end_src
 
+*** DOCT for more elegant org-capture templates
+#+BEGIN_SRC emacs-lisp
+  (use-package doct
+    :commands (doct))
+#+END_SRC
+ 
+** Other stuff
 *** TODO addons from org-contrib
 *** COMMENT unpackaged-extras
 #+BEGIN_SRC emacs-lisp
@@ -2191,12 +2178,6 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
 
 #+END_SRC
  
-*** DOCT for more elegant org-capture templates
-#+BEGIN_SRC emacs-lisp
-  (use-package doct
-    :commands (doct))
-#+END_SRC
-
 *** Org-fragtog and Org-reveal for revealing markups
 Org-fragtog for viewing raw latex and svg generation
 #+BEGIN_SRC emacs-lisp
@@ -2283,7 +2264,7 @@ Org-appear for general org markups
     :bind (("H-b b" . linkmarks-capture)
            ("H-b s" . linkmarks-select))
     :config
-    (setq linkmarks-file (concat yza/slipbox-files "bookmarks.org")))
+    (setq linkmarks-file (concat yza/meta-files "bookmarks.org")))
 #+end_src
 
 *** hammy
@@ -2314,6 +2295,7 @@ Org-appear for general org markups
           nil
         new-desc)))
 #+end_src
+ 
 *** COMMENT org-starter for easy organization of refile and agenda files
 #+BEGIN_SRC emacs-lisp
   (use-package org-starter
@@ -2354,23 +2336,32 @@ Org-appear for general org markups
                consult-notes-org-roam-find-node
                consult-notes-org-roam-find-node-relation)
     :config
-    (setq consult-notes-data-dirs '(("School Assignments" ?a "~/Dropbox/org/projects/school-agmnt/")
-                                    ("School Notes" ?s "~/Dropbox/org/projects/school/")
-                                    ("Project Dashboards" ?d "~/Dropbox/org/life/dashboards/")
-                                    ("Fics" ?f "~/Dropbox/org/projects/fics/")
+    (setq consult-notes-data-dirs '(("Piles" ?f "~/Dropbox/org/notes/piles/")
+                                    ("Project: School Notes" ?s "~/Dropbox/org/notes/projects/school/")
+                                    ;; ("Project Dashboards" ?d "~/Dropbox/org/life/dashboards/")
+                                    ("Project: Fics" ?f "~/Dropbox/org/notes/projects/fics/")
                                     )) 
     ;; Define sources 
     (setq consult-notes-sources '(consult-notes-data-dirs
                                   consult-notes--org-roam-nodes
-
                                   consult-notes--org-roam-refs
                                   ))
     (consult-notes-org-roam-mode)
     )
 
-
 #+end_src
  
+*** denote
+#+begin_src emacs-lisp
+  (use-package denote
+    :bind
+    (("H-[ [" . denote)
+     ("H-[ u" . denote-rename-file-using-front-matter)
+     ("H-[ r" . denote-rename-file))
+    :custom
+    (denote-directory yza/notes))
+#+end_src
+  
 ** Main extensions
 *** org-journal
 #+BEGIN_SRC emacs-lisp
@@ -2402,7 +2393,7 @@ Org-appear for general org markups
     (orb-roam-ref-format 'org-cite)
     )
 #+end_src
- 
+
 *** citar
 the defun came from this [[https://github.com/emacs-citar/citar/issues/431][github issue]]
 #+begin_src emacs-lisp
@@ -2474,6 +2465,9 @@ Most of this came from wonderful [[https://gist.github.com/jeremyf/b1fb8414624e6
     :custom
     (org-roam-directory (file-truename yza/slipbox-files))
     (org-roam-node-display-template "${hierarchy}:${title:*} ${tags:40}")
+    (org-roam-db-node-include-function
+          (lambda ()
+            (not (member "dontindex" (org-get-tags)))))
     )
 #+END_SRC
  
@@ -2671,3 +2665,28 @@ not working
 ;;")
   (add-hook 'after-init-hook (lambda() (yza/gen-scratch-info) (setq initial-scratch-message (concat yza/title "\n;; " yza/scratch-info "\n;;"))))
 #+end_src
+
+* Window configurations (defuns)
+#+BEGIN_SRC emacs-lisp
+  (defun yza/default-window-setup ()
+    "Called by emacs-startup-hook to set up my initial window configuration."
+    (ian/split-and-follow-vertically)
+    (org-agenda nil "0"))
+
+  (defun yza/default-fast-window-setup ()
+    "Called by emacs-startup-hook to set up my initial window configuration."
+    (split-window-below)
+    (split-window-right))
+
+  (defun yza/switch-to-agenda () ;; call org agenda only if there's no existing shit, use switch-buffer if so
+    (interactive)
+    "Called by emacs-startup-hook to set up my initial window configuration."
+    (switch-to-buffer "*Org Agenda*")
+    ;; (org-agenda nil "0")
+    )
+
+  (add-hook 'after-init-hook #'yza/default-window-setup)
+  ;; (global-set-key (kbd "H-1") #'yza/default-window-setup)
+  (global-set-key (kbd "H-0") #'yza/switch-to-agenda)
+#+END_SRC
+
