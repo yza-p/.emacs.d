@@ -763,11 +763,13 @@ got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.
   (defvar yza/journal-files "~/Dropbox/org/life/journal/")
   (defvar yza/special-journal-files "~/Dropbox/org/life/journal/0special/")
 
+  (defvar yza/action-archives "~/Dropbox/org/life/0archive/")
+  (defvar yza/allnotes-archive "~/Dropbox/org/notes/0archive/")
+
   (defvar yza/meta-files "~/Dropbox/org/meta/")
   (defvar yza/slipbox-files "~/Dropbox/org/notes/slipbox/")
-  (defvar yza/notes "~/Dropbox/org/notes/piles/")
+  (defvar yza/notepad-files "~/Dropbox/org/notes/piles/")
   (defvar yza/project-files "~/Dropbox/org/notes/projects/")
-  ;; (defvar yza/dashboard-files "~/Dropbox/org/life/dashboards/")
 
   (defvar yza/school-notes "~/Dropbox/org/notes/projects/school/")
 #+END_SRC
@@ -1654,30 +1656,44 @@ from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2e
     (interactive)
     (consult-org-heading t 'agenda))
 
-  (defun yza/rg-consult-slipbox ()
-    (interactive)
-    (consult-ripgrep yza/slipbox-files))
-  (defun yza/rg-consult-projects ()
-    (interactive)
-    (consult-ripgrep yza/project-files))
-  (defun yza/rg-consult-dashboards ()
-    (interactive)
-    (consult-ripgrep yza/dashboard-files))
   (defun yza/rg-current-dir ()
     (interactive)
     (consult-ripgrep default-directory))
 
+  (defun yza/rg-slipbox ()
+    (interactive)
+    (consult-ripgrep yza/slipbox-files))
+  (defun yza/rg-projects ()
+    (interactive)
+    (consult-ripgrep yza/project-files))
+
+  (defun yza/rg-journal ()
+    (interactive)
+    (consult-ripgrep yza/journal-files))
+
+  (defun yza/rg-archive-actions ()
+    (interactive)
+    (consult-ripgrep yza/action-archives))
+  (defun yza/rg-archive-notes ()
+    (interactive)
+    (consult-ripgrep yza/allnotes-archive))
+
   (global-set-key (kbd "H-.") 'yza/consult-org-headings-agenda)
   (global-set-key (kbd "H-s r") 'yza/rg-consult-slipbox)
   (global-set-key (kbd "H-s p") 'yza/rg-consult-projects)
-  (global-set-key (kbd "H-s d") 'yza/rg-consult-dashboards)
+  (global-set-key (kbd "H-s j") 'yza/rg-journal)
+  
   (global-set-key (kbd "H-s c") 'yza/rg-current-dir)
+
+  (global-set-key (kbd "H-s a a") 'yza/rg-archive-actions)
+  (global-set-key (kbd "H-s a n") 'yza/rg-archive-notes)
 
   (defun dfeich/helm-org-clock-in (marker)
     "Clock into the item at MARKER"
     (with-current-buffer (marker-buffer marker)
       (goto-char (marker-position marker))
       (org-clock-in)))
+
   (defun do-org-show-all-inline-images ()
     (interactive)
     (org-display-inline-images t))
@@ -1978,7 +1994,6 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                :headline "Multi-steps")))
                   ("Fast-clocking" :keys "c"
                    :clock-in t
-                   :immediate-finish t
                    :file (lambda () (concat yza/action-files "unlisted.org"))
                    :children (("Movie!" :keys "m"
                                :template ("* TODO %^{Name} %?"
@@ -2363,7 +2378,7 @@ Org-appear for general org markups
      ("H-[ u" . denote-rename-file-using-front-matter)
      ("H-[ r" . denote-rename-file))
     :custom
-    (denote-directory yza/notes))
+    (denote-directory yza/notepad-files))
 #+end_src
   
 ** Main extensions
