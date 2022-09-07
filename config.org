@@ -489,12 +489,12 @@ Provides us with hints on available keystroke combinations.
     (org-priority-default 71)
 
     (org-todo-keywords
-     '((sequence "TODO(t!)" "NEXT(n)" "WAIT(w)" "FRZE(f@/@)" "HABT(h)" "CMMT(m)" "|" "CNCL(c@)" "DONE(d!)")
+     '((sequence "TODO(t!)" "NEXT(n)" "WAIT(w)" "FRZE(f@/@)" "HABT(h!)" "CMMT(m!)" "GOAL(g!)" "|" "CNCL(c@)" "DONE(d)")
        (sequence "IDEA(1!)" "WORKING(2!)" "INCUBATE(3!)" "MATURE(4!)" "|" "REJECT(5@/@)")
-       (sequence "BACKLOG(b)" "ACTIVE(r!)" "PROCESS(p!)" "|" "CONSUMED(o@)" "DROPPED(g@/@)")))
+       (sequence "BACKLOG(b)" "ACTIVE(a!)" "PROCESS(p!)" "|" "CONSUMED(o@)" "DROPPED(r@/@)")))
 
     (org-todo-keyword-faces
-     (quote (("TODO" :foreground "OrangeRed" :weight bold)
+     (quote (("TODO" :foreground "OrangeRed" :weight bold )
              ("NEXT" :foreground "RoyalBlue1" :weight bold)
              ("WAIT" :foreground "yellow" :weight bold)
              ("DONE" :foreground "MediumSpringGreen" :weight bold)
@@ -512,13 +512,13 @@ Provides us with hints on available keystroke combinations.
              ("CONSUMED" :foreground "MediumSpringGreen" :weight bold :underline t)
              ("DROPPED" :foreground "LightSlateGrey" :weight bold :underline t)
 
-             ;;;; Special TODOs (can be used everywhere, especially FRZE)
+               ;;;; Special TODOs (can be used everywhere, especially FRZE)
              ("FRZE" :foreground "turquoise" :weight bold :box t)
              ("HABT" :foreground "khaki1" :weight bold :box t)
-             ;;;; For goals and its commitments
-             ("GOAL" :foreground "DeepPink" :weight bold :box t)
-             ("CMMT" :foreground "YellowGreen" :weight bold :box t)
-             ;;;; Complete states for GOAL/CMMT
+               ;;;; For goals and its commitments
+             ("GOAL" :foreground "VioletRed4" :weight bold :inherit fixed-pitch :inverse-video t)
+             ("CMMT" :foreground "YellowGreen" :weight bold :inherit fixed-pitch :inverse-video t)
+               ;;;; Complete states for GOAL/CMMT
              ("PASS" :foreground "MediumSpringGreen" :weight bold :box t)
              ("ABDN" :foreground "SaddleBrown" :weight bold :box t)
              )))
@@ -1951,7 +1951,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
     :config
     :custom
     (org-agenda-files (append (find-lisp-find-files yza/action-files "\.org$")
-                              ;; (find-lisp-find-files yza/dashboard-files "\.org$")
+                              ;; (find-lisp-find-files yza/progress-diary-files "\.org$")
                               ))
     (org-agenda-start-with-log-mode t)
     )
@@ -2412,8 +2412,6 @@ Org-appear for general org markups
     )
 
   (use-package consult-notes
-    :load-path "~/.emacs.d/external/consult-notes-main/"
-    :ensure nil
     :bind (("H-]" . consult-notes))
     :commands (consult-notes
                consult-notes-search-all
@@ -2479,7 +2477,7 @@ Org-appear for general org markups
 
 #+END_SRC
  
-*** org-roam-bibtex
+*** COMMENT org-roam-bibtex
 #+begin_src emacs-lisp
   (use-package org-roam-bibtex
     :custom
@@ -2495,7 +2493,6 @@ the defun came from this [[https://github.com/emacs-citar/citar/issues/431][gith
 #+begin_src emacs-lisp
   (use-package citar
     :no-require
-    :preface
     (defun my/citar-org-roam-note-format (citekey entry filepath)
       (let ((title (citar--format-entry-no-widths entry
                                                   "${author editor} :: ${title}")))
@@ -2523,26 +2520,39 @@ the defun came from this [[https://github.com/emacs-citar/citar/issues/431][gith
     (org-cite-activate-processor 'citar)
     (citar-at-point-function 'embark-act)
 
-    (citar-notes-paths '("~/Dropbox/org/notes/0.slipbox"))
+    ;; (citar-notes-paths yza/slipbox-files)
     (org-cite-global-bibliography '("~/Dropbox/org/meta/slipbox.bib"))
     (citar-bibliography org-cite-global-bibliography)
 
-    (citar-open-note-function 'my/citar-org-roam-note-format)
-    (citar-create-note-function 'my/citar-org-roam-note-format)
+    ;; (citar-open-note-function 'my/citar-org-roam-note-format)
+    ;; (citar-create-note-function 'my/citar-org-roam-note-format)
 
-
-    :bind (("C-c b" . org-cite-insert))
-    ;; :bind
-    ;; (:map org-mode-map :package org ("C-c b" . #'org-cite-insert))
+    :bind (("C-c b" . citar-insert-citation)
+           :map minibuffer-local-map
+           ("M-b" . citar-insert-preset))
     )
 #+end_src
-[cite:@haverbeke2019] 
+**** citar embark
+#+begin_src emacs-lisp
+  (use-package citar-embark
+    :after citar embark
+    :no-require
+    :config (citar-embark-mode))
+#+end_src
+**** citar roam
+#+begin_src emacs-lisp
+  (use-package citar-org-roam
+    :after citar org-roam
+    :no-require
+    :config (citar-org-roam-mode))
+#+end_src
+
 *** org-roam
 Most of this came from wonderful [[https://gist.github.com/jeremyf/b1fb8414624e639c9d3b9fec2f22564a][config]]
 #+BEGIN_SRC emacs-lisp
-  (use-package dendroam
-    :ensure nil
-    :load-path "~/.emacs.d/external/dendroam/")
+  ;; (use-package dendroam
+  ;;   :ensure nil
+  ;;   :load-path "~/.emacs.d/external/dendroam/")
 
   (use-package org-roam
     :hook ((org-roam-mode . olivetti-mode))
@@ -2560,7 +2570,8 @@ Most of this came from wonderful [[https://gist.github.com/jeremyf/b1fb8414624e6
 
     :custom
     (org-roam-directory (file-truename yza/slipbox-files))
-    (org-roam-node-display-template "${hierarchy}:${title:*} ${tags:40}")
+    ;; (org-roam-node-display-template "${hierarchy}:${title:*} ${tags:40}")
+    (org-roam-node-display-template "${title:*} ${tags:40}")
     (org-roam-db-node-include-function
           (lambda ()
             (not (member "dontindex" (org-get-tags)))))
