@@ -776,6 +776,7 @@ got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.
   (defvar yza/project-files "~/Dropbox/org/notes/projects/")
 
   (defvar yza/school-notes "~/Dropbox/org/notes/projects/school/")
+  (defvar yza/writeups "~/Dropbox/org/notes/writeups/")
 #+END_SRC
  
 *** Custom file variables
@@ -2418,14 +2419,14 @@ Org-appear for general org markups
                consult-notes-org-roam-find-node
                consult-notes-org-roam-find-node-relation)
     :config
-    (setq consult-notes-data-dirs '(("Piles" ?y "~/Dropbox/org/notes/piles/")
-                                    ("Project: School Notes" ?s "~/Dropbox/org/notes/projects/school/")
-                                    ("Task Reviews" ?a "~/Dropbox/org/life/0archive/")
-                                    ("Project Diaries" ?p "~/Dropbox/org/life/progdiary/")
-                                    ("Project: Fics" ?f "~/Dropbox/org/notes/projects/fics/")
-                                    ("Project: Crazy Dog" ?c "~/Dropbox/org/notes/projects/story - CRZY/")
-                                    )) 
-    ;; Define sources 
+    (setq consult-notes-data-dirs `(("Piles" ?y ,(concat yza/notepad-files))
+                                    ("Task Reviews" ?a ,(concat yza/action-archives))
+                                    ("Project Diaries" ?p ,(concat yza/progress-diary-files))
+                                    ("Project: School Notes" ?s ,(concat yza/school-notes))
+                                    ("Project: Fics" ?f ,(concat yza/project-files "fics/"))
+                                    ("Write-ups" ?w ,(concat yza/writeups))
+                                    ))
+    ;; Define sources
     (setq consult-notes-sources '(consult-notes-data-dirs
                                   consult-notes--org-roam-nodes
                                   consult-notes--org-roam-refs
