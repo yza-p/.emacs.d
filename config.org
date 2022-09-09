@@ -908,57 +908,7 @@ most of this came from the official docs (all except org-roam)
   (use-package pretty-hydra)
 #+END_SRC
 
-**** oft-used keys with no modifiers
-#+BEGIN_SRC emacs-lisp
-    (defun x-hydra-pre ()
-      (insert "x")
-      (let ((timer (timer-create)))
-        (timer-set-time timer (timer-relative-time (current-time) 0.5))
-        (timer-set-function timer 'hydra-keyboard-quit)
-        (timer-activate timer)))
-
-    (defhydra x-hydra (:body-pre x-hydra-pre
-                                 :color blue
-                                 :hint nil)
-      ("f" (progn (zap-to-char -1 ?x) (ido-find-file)))
-      ("g" (progn (zap-to-char -1 ?x) (minibuffer-keyboard-quit)))
-      ("b" (progn (zap-to-char -1 ?x) (consult-buffer))))
-
-    (global-set-key "x" #'x-hydra/body)
-#+END_SRC
-**** outline minor mode
-#+BEGIN_SRC emacs-lisp
-  (pretty-hydra-define phydra-outline
-    (:color pink :quit-key "SPC" :title "Outline")
-    ("Hide..."
-     (("q" hide-sublevels "sublevels")
-      ("t" hide-body "body")
-      ("o" hide-other "other")
-      ("c" hide-entry "entry")
-      ("l" hide-leaves "leaves")
-      ("d" hide-subtree "subtree")
-      )
-     "Show..."
-     (("a" show-all "all")
-      ("e" show-entry "entry")
-      ("i" show-children "children")
-      ("k" show-branches "branches")
-      ("s" show-subtree "subtree")
-      )
-     "Move..."
-     (("u" outline-up-heading "up")
-      ("j" outline-next-visible-heading "next visible")
-      ("k" outline-previous-visible-heading "prev visible")
-      ("l" outline-forward-same-level "forward same level")
-      ("h" outline-backward-same-level "backward same level")
-      )
-     )
-    )
-
-  (global-set-key (kbd "s-z") 'phydra-outline/body)
-#+END_SRC
-
-**** window movement
+**** COMMENT default - window movement
 #+BEGIN_SRC emacs-lisp
    (defhydra hydra-window ()
      "
@@ -1024,7 +974,73 @@ most of this came from the official docs (all except org-roam)
   (global-set-key (kbd "s-q") 'hydra-window/body)
 #+END_SRC
 
-**** ediff
+**** oft-used keys with no modifiers
+#+BEGIN_SRC emacs-lisp
+  (defun x-hydra-pre ()
+    (insert "x")
+    (let ((timer (timer-create)))
+      (timer-set-time timer (timer-relative-time (current-time) 0.5))
+      (timer-set-function timer 'hydra-keyboard-quit)
+      (timer-activate timer)))
+
+  (defhydra x-hydra (:body-pre x-hydra-pre
+                               :color blue
+                               :hint nil)
+    ("f" (progn (zap-to-char -1 ?x) (ido-find-file)))
+    ("g" (progn (zap-to-char -1 ?x) (minibuffer-keyboard-quit)))
+    ("b" (progn (zap-to-char -1 ?x) (consult-buffer)))
+    ("s" (progn (zap-to-char -1 ?x) (consult-line))))
+
+  (global-set-key "x" #'x-hydra/body)
+#+END_SRC
+ 
+**** zooming
+[[https://ericjmritz.wordpress.com/2015/10/14/some-personal-hydras-for-gnu-emacs/][source]]
+#+BEGIN_SRC emacs-lisp
+  (pretty-hydra-define phydra-zoom
+    (:color pink :quit-key "SPC")
+    ("Zoom"
+     (("=" text-scale-increase "in")
+      ("-" text-scale-decrease "out")
+      ("0" (text-scale-adjust 0) "reset")
+      )))
+
+  (global-set-key (kbd "s-z") 'phydra-zoom/body)
+#+END_SRC
+ 
+**** TODO outline minor mode
+#+BEGIN_SRC emacs-lisp
+  (pretty-hydra-define phydra-outline
+    (:color pink :quit-key "SPC" :title "Outline")
+    ("Hide..."
+     (("q" hide-sublevels "sublevels")
+      ("t" hide-body "body")
+      ("o" hide-other "other")
+      ("c" hide-entry "entry")
+      ("l" hide-leaves "leaves")
+      ("d" hide-subtree "subtree")
+      )
+     "Show..."
+     (("a" show-all "all")
+      ("e" show-entry "entry")
+      ("i" show-children "children")
+      ("k" show-branches "branches")
+      ("s" show-subtree "subtree")
+      )
+     "Move..."
+     (("u" outline-up-heading "up")
+      ("j" outline-next-visible-heading "next visible")
+      ("k" outline-previous-visible-heading "prev visible")
+      ("l" outline-forward-same-level "forward same level")
+      ("h" outline-backward-same-level "backward same level")
+      )
+     )
+    )
+
+  (global-set-key (kbd "s-z") 'phydra-outline/body)
+#+END_SRC
+
+**** TODO default - ediff
 #+BEGIN_SRC emacs-lisp
 (defhydra hydra-ediff (:color blue :hint nil)
   "
@@ -1046,7 +1062,7 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
   (global-set-key (kbd "s-e") 'hydra-ediff/body)
 #+END_SRC
 
-**** page navigation
+**** TODO page navigation
 #+BEGIN_SRC emacs-lisp
 (defhydra hydra-page (ctl-x-map "" :pre (widen))
   "page"
@@ -1055,7 +1071,7 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
   ("n" narrow-to-page "narrow" :bind nil :exit t))
 #+END_SRC
 
-**** code folding
+**** TODO code folding
 #+BEGIN_SRC emacs-lisp
   (defhydra hydra-hs (:idle 1.0)
      "
@@ -1081,20 +1097,51 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
   (global-set-key (kbd "s-w") 'hydra-hs/body)
 #+END_SRC
 
-**** zooming
-[[https://ericjmritz.wordpress.com/2015/10/14/some-personal-hydras-for-gnu-emacs/][source]]
-#+BEGIN_SRC emacs-lisp
-  (pretty-hydra-define phydra-zoom
-    (:color pink :quit-key "SPC")
-    ("Zoom"
-     (("=" text-scale-increase "in")
-      ("-" text-scale-decrease "out")
-      ("0" (text-scale-adjust 0) "reset")
-      )))
+**** yza - window movement
+#+begin_src emacs-lisp
+  (pretty-hydra-define phydra-window
+    (:color pink :quit-key "SPC" :title "Buffer Config")
+    ("Navigate Buffers"
+     (("h" windmove-left)
+      ("j" windmove-down)
+      ("k" windmove-up)
+      ("l" windmove-right))
 
-  (global-set-key (kbd "s-=") 'phydra-zoom/body)
+     "Add/Delete Window"
+     (("2" split-window-below)
+      ("3" split-window-right)
+      ("4" ian/split-and-follow-vertically)
+      ("5" ian/split-and-follow-horizontally)
+      ("0" delete-window)
+      ("-" delete-other-windows))
+  
+     "Resize Window"
+     (("<backspace>" balance-windows)
+      ("=" maximize-window)
+      ("-" minimize-window))
+
+     "Buffer Move"
+     (("M-<up>" buf-move-up)
+      ("M-<down>" buf-move-down)
+      ("M-<left>" buf-move-left)
+      ("M-<right>" buf-move-right))
+
+     "Buffer History"
+     (("<right>" previous-buffer)
+      ("<left>" next-buffer))
+
+     "Move Splitter Line"
+     (("s-<up>" hydra-move-splitter-up) 
+      ("s-<down>" hydra-move-splitter-down)
+      ("s-<left>" hydra-move-splitter-left)
+      ("s-<right>" hydra-move-splitter-right))
+     )
+    )
+
+  (global-set-key (kbd "s-w") 'phydra-window/body)
 #+END_SRC
- 
+#+end_src
+**** TODO yza - editing sentences and such
 *** Avy
 #+begin_src emacs-lisp 
   (use-package avy
@@ -1150,8 +1197,9 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
 
 *** Buffer move
 #+BEGIN_SRC emacs-lisp
-(use-package buffer-move
-  :load-path "~/.emacs.d/external/buffer-move-master")
+  (use-package buffer-move
+    :load-path "~/.emacs.d/external/buffer-move-master"
+    )
 #+END_SRC
 
 *** Mode line
@@ -1715,8 +1763,8 @@ from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2e
     (consult-ripgrep yza/allnotes-archive))
 
   (global-set-key (kbd "H-.") 'yza/consult-org-headings-agenda)
-  (global-set-key (kbd "H-s r") 'yza/rg-consult-slipbox)
-  (global-set-key (kbd "H-s p") 'yza/rg-consult-projects)
+  (global-set-key (kbd "H-s r") 'yza/rg-slipbox)
+  (global-set-key (kbd "H-s p") 'yza/rg-projects)
   (global-set-key (kbd "H-s j") 'yza/rg-journal)
 
   (global-set-key (kbd "H-s c") 'yza/rg-current-dir)
@@ -1750,6 +1798,13 @@ function came from here
                   (buffer-list))))
 #+end_src
 
+*** org-babel
+#+begin_src emacs-lisp
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((emacs-lisp . nil)
+     (js . t)))
+#+end_src
 ** Standard procedures
 *** COMMENT Custom global bindings
 #+BEGIN_SRC emacs-lisp
@@ -2121,13 +2176,17 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                :headline "^refile"
                                :hook (lambda () (call-interactively 'delete-other-windows))
                                :file buffer-name)
-                              ("refile to projects" :keys "p"
+                              ("refile to notes' refiler" :keys "p"
                                :headline "Refile"
-                               ;; YZA TODO
                                :file "~/Dropbox/org/notes/refile.org"
                                :refile-targets (( yza/get-project-files :maxlevel . 2)))
+                              ("refile to notes' refiler (focused)" :keys "f"
+                               :headline "Refile"
+                               :file "~/Dropbox/org/notes/refile.org"
+                               :hook (lambda () (call-interactively 'delete-other-windows))
+                               :refile-targets (( yza/get-project-files :maxlevel . 2)))
                               ;; ("refile to new file (focus)" :keys "n"
-                              ;;  :file "~/Dropbox/org/projects/refile.org"
+                              ;;  :file denote-last-path
                               ;;  :hook (lambda () (call-interactively 'delete-other-windows))
                               ;;  :before-finalize (lambda () (call-interactively 'zin/org-refile-new-select)))
                               ))
@@ -2797,4 +2856,6 @@ not working
   ;; (global-set-key (kbd "H-1") #'yza/default-window-setup)
   (global-set-key (kbd "H-0") #'yza/switch-to-agenda)
 #+END_SRC
+
+
 
