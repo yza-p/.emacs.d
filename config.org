@@ -758,6 +758,11 @@ got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.
         scroll-margin 99999)
 #+END_SRC
  
+*** global relative line numbers
+#+begin_src emacs-lisp
+  (global-display-line-numbers-mode t)
+  (setq display-line-numbers 'relative)
+#+end_src
 ** modifying variables / keybinds
 *** Custom directory variables
 #+BEGIN_SRC emacs-lisp
