@@ -760,9 +760,10 @@ got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.
  
 *** global relative line numbers
 #+begin_src emacs-lisp
+  (setq display-line-numbers-type 'relative)
   (global-display-line-numbers-mode t)
-  (setq display-line-numbers 'relative)
 #+end_src
+ 
 ** modifying variables / keybinds
 *** Custom directory variables
 #+BEGIN_SRC emacs-lisp
@@ -813,6 +814,11 @@ got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.
 #+BEGIN_SRC emacs-lisp
   (save-place-mode 1)
 #+END_SRC
+
+*** Safe local variables
+#+begin_src emacs-lisp
+  (put 'denote-directory 'safe-local-variable #'stringp)
+#+end_src
 
 * Yza Config - Third-party
 ** Daemon Server
@@ -1150,7 +1156,7 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
 *** Avy
 #+begin_src emacs-lisp 
   (use-package avy
-    :bind (("C->" . avy-goto-char-timer))
+    :bind (("H-'" . avy-goto-char-timer))
     :config
     (defun avy-action-teleport-whole-line (pt)
       (avy-action-kill-whole-line pt)
@@ -1194,6 +1200,7 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
     (emms-mode-line 1)
     )
 #+end_src
+ 
 ** Small plug-ins
 *** Hammerspoon
 #+BEGIN_SRC emacs-lisp
@@ -1807,7 +1814,7 @@ function came from here
 #+begin_src emacs-lisp
   (org-babel-do-load-languages
    'org-babel-load-languages
-   '((emacs-lisp . nil)
+   '((emacs-lisp . t)
      (js . t)))
 #+end_src
 ** Standard procedures
@@ -1919,7 +1926,7 @@ function came from here
                            (:name "Longruns"
                                   :and (:tag "longrun" :scheduled today))
                            (:name "Habits today"
-                                  :and (:todo "HABT" :priority "C"))
+                                  :and (:todo "HABT" :priority> "G"))
                            (:discard (:tag "longrun"))
                            (:discard (:todo "HABT"))
                            (:name "Today"
@@ -2204,25 +2211,35 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                :template "** %{strfmt} %^{Title}\n%?")
                               ("Special: Dump journal" :keys "x"
                                :file (lambda () (concat yza/special-journal-files "clarity.org"))
+                               :tree-type week
                                :datetree t)
                               ("Special: Process overwhelming past events" :keys "p"
                                :file (lambda () (concat yza/special-journal-files "shame.org"))
                                :datetree t
+                               :tree-type week
                                :template "- What happened objectively?\n%?\n- What did I make it mean?\n\n- How would I comfort a friend I love if this happened to them?\n\n- How is this the best thing that has ever happened to me?")
                               ("Special: Gratitude journal" :keys "h"
                                :file (lambda () (concat yza/special-journal-files "gratitude.org"))
-                               :template "1. What excited me?\n%?\n2. What drained me of energy\n\n3. What did I learned?\n\n4. What are the 10 things I'm grateful for?\n\n5. How did I pushed the needle forward?"
+                               :template ("%^{rate}p\n1. Why is the day good/bad?%?"
+                                          "\n2. What excited me (positive)?"
+                                          "\n3. What drained me of energy (negative)?"
+                                          "\n4. What are the 10 things I'm grateful for?"
+                                          "\n5. How did I pushed the needle forward?")
+                               :tree-type week
                                :datetree t)
                               ("Special: Process overwhelming future events!" :keys "f"
                                :file (lambda () (concat yza/special-journal-files "anxiety.org"))
                                :datetree t
+                               :tree-type week
                                :template "- %^{Fear}\n  - Fixes:\n    + %?\n  - Outcome that I would bet on:\n    + ")
                               ("Special: Major Decision" :keys "d"
                                :file (lambda () (concat yza/special-journal-files "decide.org"))
+                               :tree-type week
                                :datetree t
                                :template "1. Situation/Context\n%?\n2. The problem statement\n\n3. The variables that govern the situation include\n\n4. The complications/complexities as I see them\n\n5. Alternatives that were seriously considered and not chosen were\n\n6. The range of outcomes\n\n7. What is the opportunity cost (by doing this what am I not doing)\n\n8. What I expect to happen and the actual probabilities are?\n\n9. [LATER] What happened and what I learned?")
                               ("Dreams!" :keys "z"
                                :file (lambda () (concat yza/special-journal-files "dream.org"))
+                               :tree-type week
                                :datetree t)
                               )
                    )))
@@ -2485,6 +2502,7 @@ Org-appear for general org markups
     :config
     (setq consult-notes-data-dirs `(("Piles" ?y ,(concat yza/notepad-files))
                                     ("Task Reviews" ?a ,(concat yza/action-archives))
+                                    ("Special Journals" ?j ,(concat yza/special-journal-files))
                                     ("Project Diaries" ?p ,(concat yza/progress-diary-files))
                                     ("Project: School Notes" ?s ,(concat yza/school-notes))
                                     ("Project: Fics" ?f ,(concat yza/project-files "fics/"))
@@ -2668,14 +2686,15 @@ combining doct to org-roam came from this [[https://github.com/progfolio/doct/is
 
   (setq org-roam-capture-templates
         (doct-org-roam
-         '(("default (jump after finish)" :keys "n"
+         '(("default (clean other windows, jump after finish)" :keys "n"
             :template "%?"
             :type plain
             :unnarrowed t
             :file "${slug}.org"
+            :before-finalize (lambda () (call-interactively 'denote-rename-file))
             :jump-to-captured t
             :hook (lambda () (call-interactively 'delete-other-windows))
-            :head ("#+title: ${hierarchy-title}"
+            :head (
                    ""
                    ""))
            ("default (quick jot)" :keys "f"
