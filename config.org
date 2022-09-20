@@ -449,7 +449,9 @@ Provides us with hints on available keystroke combinations.
 #+BEGIN_SRC emacs-lisp
   (use-package exec-path-from-shell
     :config (when (memq window-system '(mac ns x))
-              (exec-path-from-shell-initialize)))
+              (exec-path-from-shell-initialize)
+              (setq exec-path-from-shell-arguments nil)))
+
 #+END_SRC
 
 * Yza Config - Built-in
@@ -1201,6 +1203,29 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
     )
 #+end_src
  
+*** Latex-related
+#+begin_src emacs-lisp
+  (with-eval-after-load 'ox-latex
+    (add-to-list 'org-latex-classes
+                 '("sch-assign" "\\documentclass{fphw}"
+                   ("\\section{%s}" . "\\section*{%s}")
+                   ("\\subsection{%s}" . "\\subsection*{%s}")
+                   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                   ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                   ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+    (add-to-list 'org-latex-classes
+                 '("tufte-handout" "\\documentclass{tufte-handout}"
+                   ("\\section{%s}" . "\\section*{%s}")
+                   ("\\subsection{%s}" . "\\subsection*{%s}")
+                   ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                   ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+    (add-to-list 'org-latex-classes
+                 '("tufte-book" "\\documentclass{tufte-book}"
+                   ("\\section{%s}" . "\\section*{%s}")
+                   ("\\subsection{%s}" . "\\subsection*{%s}")
+                   ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                   ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
+#+end_src
 ** Small plug-ins
 *** Hammerspoon
 #+BEGIN_SRC emacs-lisp
@@ -1259,6 +1284,7 @@ for minimalist modeline
   (use-package expand-region
     :bind ("s-=" . er/expand-region))
 #+end_src
+ 
 ** Completion stack
 *** Vertico
 The main interface for completion. Comparing both selectrum and this, I decided to go with this because it is more lightweight
