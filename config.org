@@ -457,13 +457,22 @@ Provides us with hints on available keystroke combinations.
 * Yza Config - Built-in
 ** use-package / requires declarations
 *** org-mode
+:PROPERTIES:
+:ID:       20220920T223607.756827
+:END:
+:RELATED:
+[2022-09-20 Tue 22:36] -> [[id:20220920T223607.808228][Org ID, Org Attach & Better Folder Names · The Art of Not Asking Why]]
+:END:
 #+BEGIN_SRC emacs-lisp
   (use-package org
     :pin gnu
     :hook ((org-mode . visual-line-mode)
            (org-mode . org-indent-mode))
+    :config
+    (define-key org-mode-map (kbd "C-c C-l") nil)
     :bind (("H-/" . org-todo)
            ("C-c l" . org-store-link)
+           ("C-c C-l" . ar/org-insert-link-dwim)
            ("H-l o" . org-id-get-create)  
            ("H-l l" . org-id-store-link)
            ("H-l p" . org-insert-last-stored-link)
@@ -473,6 +482,10 @@ Provides us with hints on available keystroke combinations.
            ("<H-left>" . org-clock-in)
            ("<H-right>" . org-clock-out))
     :custom
+    (org-id-method 'ts)
+    (org-attach-id-to-path-function-list
+     '(org-attach-id-ts-folder-format
+       org-attach-id-uuid-folder-format))
     (org-log-done 'time)
     (org-id-extra-files (append (find-lisp-find-files yza/action-archives "\.org$") (find-lisp-find-files yza/meta-files "\.org$")))
     ;; (org-id-extra-files (append (find-lisp-find-files yza/action-archives "\.org_archive$")))
@@ -1843,14 +1856,42 @@ function came from here
    '((emacs-lisp . t)
      (js . t)))
 #+end_src
+ 
+*** DWIM org insert link
+:PROPERTIES:
+:ID:       2FD950D1-E037-4DE3-BB78-C7465CA7EF0B
+:END:
+:RELATED:
+[2022-09-20 Tue 22:32] -> [[id:37D20759-9C82-4995-84BA-8A69AB2E220E][Emacs DWIM: do what ✨I✨ mean]]
+:END:
+#+begin_src emacs-lisp
+(defun ar/org-insert-link-dwim ()
+  "Like `org-insert-link' but with personal dwim preferences."
+  (interactive)
+  (let* ((point-in-link (org-in-regexp org-link-any-re 1))
+         (clipboard-url (when (string-match-p "^http" (current-kill 0))
+                          (current-kill 0)))
+         (region-content (when (region-active-p)
+                           (buffer-substring-no-properties (region-beginning)
+                                                           (region-end)))))
+    (cond ((and region-content clipboard-url (not point-in-link))
+           (delete-region (region-beginning) (region-end))
+           (insert (org-make-link-string clipboard-url region-content)))
+          ((and clipboard-url (not point-in-link))
+           (insert (org-make-link-string
+                    clipboard-url
+                    (read-string "title: "
+                                 (with-current-buffer (url-retrieve-synchronously clipboard-url)
+                                   (dom-text (car
+                                              (dom-by-tag (libxml-parse-html-region
+                                                           (point-min)
+                                                           (point-max))
+                                                          'title))))))))
+          (t
+           (call-interactively 'org-insert-link)))))
+#+end_src
+ 
 ** Standard procedures
-*** COMMENT Custom global bindings
-#+BEGIN_SRC emacs-lisp
-  (global-set-key (kbd "H-p")  (lambda () (interactive)
-                                 (cd "~/Dropbox/org/projects/")
-                                 (call-interactively 'find-file)))
-#+END_SRC
-
 *** Org-agenda custom views
 #+BEGIN_SRC emacs-lisp
   (use-package org-super-agenda
