@@ -2280,6 +2280,16 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                :file (lambda () (concat yza/special-journal-files "clarity.org"))
                                :tree-type week
                                :datetree t)
+                              ("Special: Disappointments" :keys "0"
+                               :file (lambda () (concat yza/special-journal-files "notableprogs.org"))
+                               :headline "Disappointments"
+                               :template "** %^{What happened: }\n%u"
+                               )
+                              ("Special: Accomplishments" :keys "1"
+                               :file (lambda () (concat yza/special-journal-files "notableprogs.org"))
+                               :headline "Accomplishments"
+                               :template "** %^{What happened: }\n%u"
+                               )
                               ("Special: Process overwhelming past events" :keys "p"
                                :file (lambda () (concat yza/special-journal-files "shame.org"))
                                :datetree t
