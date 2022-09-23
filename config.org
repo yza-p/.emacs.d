@@ -1690,6 +1690,24 @@ from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2e
   (define-key org-mode-map (kbd "H-|") 'zin/org-refile-new-noselect)
 #+END_SRC
  
+*** Copy link at point
+#+begin_src emacs-lisp
+  (defun yza/org-extract-link (&optional arg)
+    "Extract URL from org-mode link and add it to kill ring."
+    (interactive "P")
+    (let* ((link (org-element-lineage (org-element-context) '(link) t))
+           (type (org-element-property :type link))
+           (url (org-element-property :path link))
+           (url (concat type ":" url)))
+      (cond
+       (current-prefix-arg
+        (kill-new url))
+       (t
+        (simpleclip-set-contents url)))
+      (message (concat "Copied URL: " url))))
+
+  (define-key org-mode-map (kbd "C-c c") 'yza/org-extract-link)
+#+end_src
 *** COMMENT capturing org-agenda
 #+begin_src emacs-lisp
   (defun save-screenshot-svg ()
