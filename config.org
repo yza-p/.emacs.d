@@ -464,86 +464,86 @@ Provides us with hints on available keystroke combinations.
 [2022-09-20 Tue 22:36] -> [[id:20220920T223607.808228][Org ID, Org Attach & Better Folder Names · The Art of Not Asking Why]]
 :END:
 #+BEGIN_SRC emacs-lisp
-  (use-package org
-    :pin gnu
-    :hook ((org-mode . visual-line-mode)
-           (org-mode . org-indent-mode))
-    :config
-    (define-key org-mode-map (kbd "C-c C-l") nil)
-    :bind (("H-/" . org-todo)
-           ("C-c l" . org-store-link)
-           ("C-c C-l" . ar/org-insert-link-dwim)
-           ("H-l o" . org-id-get-create)  
-           ("H-l l" . org-id-store-link)
-           ("H-l p" . org-insert-last-stored-link)
-           ("C-c 1" . org-time-stamp-inactive)
-           ("H-i" . do-org-show-all-inline-images)
-           ("C-c o" . org-edit-src-code)
-           ("<H-left>" . org-clock-in)
-           ("<H-right>" . org-clock-out))
-    :custom
-    (org-id-method 'ts)
-    (org-attach-id-to-path-function-list
-     '(org-attach-id-ts-folder-format
-       org-attach-id-uuid-folder-format))
-    (org-log-done 'time)
-    (org-id-extra-files (append (find-lisp-find-files yza/action-archives "\.org$") (find-lisp-find-files yza/meta-files "\.org$")))
-    ;; (org-id-extra-files (append (find-lisp-find-files yza/action-archives "\.org_archive$")))
-    (org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
-    (org-extend-today-until 5)
-    (org-log-into-drawer t)
-    (org-latex-create-formula-image-program 'dvisvgm)
-    (org-ellipsis " ▾")
-    (org-directory "~/Dropbox/org")
-    (org-use-sub-superscripts '{})
-    (org-return-follows-link t)
-    (org-log-reschedule 'note)
-    (org-use-fast-todo-selection t)
-    (org-hide-emphasis-markers t)
-    (org-toggle-pretty-entities t)
-    (org-priority-default 71)
+    (use-package org
+      :pin gnu
+      :hook ((org-mode . visual-line-mode)
+             (org-mode . org-indent-mode))
+      :config
+      (define-key org-mode-map (kbd "C-c C-l") nil)
+      :bind (("H-/" . org-todo)
+             ("C-c l" . org-store-link)
+             ("C-c C-l" . ar/org-insert-link-dwim)
+             ("H-l o" . org-id-get-create)  
+             ("H-l l" . org-id-store-link)
+             ("H-l p" . org-insert-last-stored-link)
+             ("C-c 1" . org-time-stamp-inactive)
+             ("H-i" . do-org-show-all-inline-images)
+             ("C-c o" . org-edit-src-code)
+             ("<H-left>" . org-clock-in)
+             ("<H-right>" . org-clock-out))
+      :custom
+      (org-id-method 'ts)
+      (org-attach-id-to-path-function-list
+       '(org-attach-id-ts-folder-format
+         org-attach-id-uuid-folder-format))
+      (org-log-done 'time)
+      (org-id-extra-files (append (find-lisp-find-files yza/action-archives "\.org$") (find-lisp-find-files yza/meta-files "\.org$")))
+      ;; (org-id-extra-files (append (find-lisp-find-files yza/action-archives "\.org_archive$")))
+      (org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
+      (org-extend-today-until 5)
+      (org-log-into-drawer t)
+      (org-latex-create-formula-image-program 'dvisvgm)
+      (org-ellipsis " ▾")
+      (org-directory "~/Dropbox/org")
+      (org-use-sub-superscripts '{})
+      (org-return-follows-link t)
+      (org-log-reschedule 'note)
+      (org-use-fast-todo-selection t)
+      (org-hide-emphasis-markers t)
+      (org-toggle-pretty-entities t)
+      (org-priority-default 71)
 
-    (org-todo-keywords
-     '((sequence "TODO(t!)" "NEXT(n)" "WAIT(w)" "FRZE(f@/@)" "HABT(h!)" "CMMT(m!)" "GOAL(g!)" "|" "CNCL(c@)" "DONE(d)")
-       (sequence "IDEA(1!)" "WORKING(2!)" "INCUBATE(3!)" "MATURE(4!)" "|" "REJECT(5@/@)")
-       (sequence "BACKLOG(b)" "ACTIVE(a!)" "PROCESS(p!)" "|" "CONSUMED(o@)" "DROPPED(r@/@)")))
+      (org-todo-keywords
+       '((sequence "TODO(t!)" "NEXT(n)" "WAIT(w)" "FRZE(f@/@)" "HABT(h!)" "CMMT(m!)" "GOAL(g!)" "|" "CNCL(c@)" "DONE(d)")
+         (sequence "IDEA(1!)" "WORKING(2!)" "INCUBATE(3!)" "MATURE(4!)" "|" "REJECT(5@/@)")
+         (sequence "BACKLOG(b)" "ACTIVE(a!)" "PROCESS(p!)" "|" "CONSUMED(o@)" "DROPPED(r@/@)")))
 
-    (org-todo-keyword-faces
-     (quote (("TODO" :foreground "OrangeRed" :weight bold )
-             ("NEXT" :foreground "RoyalBlue1" :weight bold)
-             ("WAIT" :foreground "yellow" :weight bold)
-             ("DONE" :foreground "MediumSpringGreen" :weight bold)
-             ("CNCL" :foreground "SaddleBrown" :weight bold)
+      (org-todo-keyword-faces
+       (quote (("TODO" :foreground "OrangeRed" :weight bold )
+               ("NEXT" :foreground "RoyalBlue1" :weight bold)
+               ("WAIT" :foreground "yellow" :weight bold)
+               ("DONE" :foreground "MediumSpringGreen" :weight bold)
+               ("CNCL" :foreground "SaddleBrown" :weight bold)
 
-             ("IDEA" :foreground "White" :background "OrangeRed1" :weight bold)
-             ("WORKING" :foreground "White" :background "OrangeRed4" :weight bold)
-             ("INCUBATE" :foreground "White" :background "DodgerBlue4" :weight bold)
-             ("MATURE" :foreground "White" :background "blue3" :weight bold)
-             ("REJECT" :foreground "White" :background "DarkRed" :weight bold)
+               ("IDEA" :foreground "White" :background "OrangeRed1" :weight bold)
+               ("WORKING" :foreground "White" :background "OrangeRed4" :weight bold)
+               ("INCUBATE" :foreground "White" :background "DodgerBlue4" :weight bold)
+               ("MATURE" :foreground "White" :background "blue3" :weight bold)
+               ("REJECT" :foreground "White" :background "DarkRed" :weight bold)
 
-             ("BACKLOG" :foreground "PaleVioletRed" :weight bold :underline t)
-             ("ACTIVE" :foreground "LightPink" :weight bold :underline t)
-             ("PROCESS" :foreground "gold" :weight bold :underline t)
-             ("CONSUMED" :foreground "MediumSpringGreen" :weight bold :underline t)
-             ("DROPPED" :foreground "LightSlateGrey" :weight bold :underline t)
+               ("BACKLOG" :foreground "PaleVioletRed" :weight bold :underline t)
+               ("ACTIVE" :foreground "LightPink" :weight bold :underline t)
+               ("PROCESS" :foreground "gold" :weight bold :underline t)
+               ("CONSUMED" :foreground "MediumSpringGreen" :weight bold :underline t)
+               ("DROPPED" :foreground "LightSlateGrey" :weight bold :underline t)
 
-               ;;;; Special TODOs (can be used everywhere, especially FRZE)
-             ("FRZE" :foreground "turquoise" :weight bold :box t)
-             ("HABT" :foreground "khaki1" :weight bold :box t)
-               ;;;; For goals and its commitments
-             ("GOAL" :foreground "VioletRed4" :weight bold :inherit fixed-pitch :inverse-video t)
-             ("CMMT" :foreground "YellowGreen" :weight bold :inherit fixed-pitch :inverse-video t)
-               ;;;; Complete states for GOAL/CMMT
-             ("PASS" :foreground "MediumSpringGreen" :weight bold :box t)
-             ("ABDN" :foreground "SaddleBrown" :weight bold :box t)
-             )))
-    :custom-face
-    (org-link ((t (:inherit link :family "Roboto Mono"))))
-    (org-document-title ((t (:weight bold :height 1.5))))
-    (org-headline-done ((t (:strike-through t))))
-    (org-headline-done ((t (:strike-through t))))
-    (org-drawer ((t (:inherit (shadow fixed-pitch) :background "gray11"))))
-    (org-image-actual-width '(600)))
+                 ;;;; Special TODOs (can be used everywhere, especially FRZE)
+               ("FRZE" :foreground "turquoise" :weight bold :box t)
+               ("HABT" :foreground "khaki1" :weight bold :box t)
+                 ;;;; For goals and its commitments
+               ("GOAL" :foreground "VioletRed4" :weight bold :inherit fixed-pitch :inverse-video t)
+               ("CMMT" :foreground "YellowGreen" :weight bold :inherit fixed-pitch :inverse-video t)
+                 ;;;; Complete states for GOAL/CMMT
+               ("PASS" :foreground "MediumSpringGreen" :weight bold :box t)
+               ("ABDN" :foreground "SaddleBrown" :weight bold :box t)
+               )))
+      :custom-face
+      (org-link ((t (:inherit link :family "Roboto Mono"))))
+      (org-document-title ((t (:weight bold :height 1.5))))
+      (org-headline-done ((t (:strike-through t))))
+      (org-headline-done ((t (:strike-through t))))
+      (org-drawer ((t (:inherit (shadow fixed-pitch) :background "gray11"))))
+      (org-image-actual-width '(600)))
 #+END_SRC
 
 *** Alerts
@@ -915,7 +915,6 @@ got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.
 #+BEGIN_SRC emacs-lisp
 (use-package poet-theme :ensure :defer)
 (use-package poet-dark :ensure :defer)
-
 (use-package circadian
   :ensure t
   :config
@@ -1031,7 +1030,7 @@ most of this came from the official docs (all except org-roam)
       ("0" (text-scale-adjust 0) "reset")
       )))
 
-  (global-set-key (kbd "s-z") 'phydra-zoom/body)
+  (global-set-key (kbd "s-=") 'phydra-zoom/body)
 #+END_SRC
  
 **** TODO outline minor mode
@@ -1295,7 +1294,7 @@ for minimalist modeline
 *** expand-region
 #+begin_src emacs-lisp
   (use-package expand-region
-    :bind ("s-=" . er/expand-region))
+    :bind ("s-z" . er/expand-region))
 #+end_src
  
 ** Completion stack
@@ -1691,6 +1690,10 @@ from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2e
 #+END_SRC
  
 *** Copy link at point
+:PROPERTIES:
+:ID:       20220923T224009.672196
+:END:
+Got most of it from [[id:20220923T224009.783715][here]]
 #+begin_src emacs-lisp
   (defun yza/org-extract-link (&optional arg)
     "Extract URL from org-mode link and add it to kill ring."
@@ -1708,6 +1711,7 @@ from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2e
 
   (define-key org-mode-map (kbd "C-c c") 'yza/org-extract-link)
 #+end_src
+ 
 *** COMMENT capturing org-agenda
 #+begin_src emacs-lisp
   (defun save-screenshot-svg ()
@@ -2009,10 +2013,11 @@ function came from here
                                   :todo "DONE"
                                   :todo "CNCL")
                            (:name "Longruns"
-                                  :and (:tag "longrun" :scheduled today))
+                                  :and (:category "longrun" :scheduled today)
+                                  :and (:tag "_longrun" :scheduled today))
                            (:name "Habits today"
                                   :and (:todo "HABT" :priority> "G"))
-                           (:discard (:tag "longrun"))
+                           (:discard (:category "longrun"))
                            (:discard (:todo "HABT"))
                            (:name "Today"
                                   :tag "chill"
@@ -2104,7 +2109,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
     :config
     :custom
     (org-agenda-files (append (find-lisp-find-files yza/action-files "\.org$")
-                              ;; (find-lisp-find-files yza/progress-diary-files "\.org$")
+                              (find-lisp-find-files yza/progress-diary-files "\.org$")
                               ))
     (org-agenda-start-with-log-mode t)
     )
@@ -2143,10 +2148,9 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                    :headline "^Unsorted"
                    :refile-targets (( yza/web-bookmark-file :maxlevel . 5))
                    :unnarrowed t
+                   :before-finalize (lambda () (org-set-property "added" (format-time-string "[%F]")))
                    :template ("* %(simpleclip-get-contents)"
-                              ":PROPERTIES:"
-                              ":added: %U"
-                              ":END:"))
+                              ))
                   ("Ideas" :keys "i"
                    :file (lambda () (concat yza/action-files "actionable.org"))
                    :template ("* IDEA %^{Description} %? %^g"
@@ -2976,5 +2980,7 @@ not working
   (global-set-key (kbd "H-0") #'yza/switch-to-agenda)
 #+END_SRC
 
-
-
+* TODO Tests
+#+begin_src emacs-lisp
+  (setq org-catch-invisible-edits 'error)
+#+end_src
