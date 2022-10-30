@@ -832,7 +832,11 @@ got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.
 
 *** Safe local variables
 #+begin_src emacs-lisp
-  (put 'denote-directory 'safe-local-variable #'stringp)
+  (setq safe-local-variable-values '((denote-directory . "~/Dropbox/org/notes/slipbox/")
+                                     (denote-directory . "~/Dropbox/org/notes/writeups/")
+                                     (denote-directory . "~/Dropbox/org/notes/projects/school/")
+                                     ))
+
 #+end_src
 
 * Yza Config - Third-party
@@ -909,8 +913,21 @@ got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.
    'default-frame-alist'(ns-appearance . light))
   (set-face-attribute 'default nil :family "Roboto Mono" :height 150)
   (set-face-attribute 'fixed-pitch nil :family "Roboto Mono")
-  (set-face-attribute 'variable-pitch nil :family "IBM Plex Serif")
+  (set-face-attribute 'variable-pitch nil :family "IBM Plex Serif" :height 175)
 #+END_SRC
+
+#+begin_src emacs-lisp
+    (setq poet-theme-variable-headers nil)
+    (custom-theme-set-faces 'user
+                            `(org-level-1 ((t (:foreground "#ffd2d2" :height 200))))
+                            `(org-level-2 ((t (:foreground "#cbe2ff" :height 200))))
+                            `(org-level-3 ((t (:foreground "#fffec8" :height 200))))
+                            `(org-level-4 ((t (:foreground "#f7d4ff" :height 200))))
+                            `(org-level-5 ((t (:foreground "#d9d9d9" :height 200))))
+                            `(org-level-6 ((t (:foreground "#D2FFD2" :height 200))))
+                            `(org-level-7 ((t (:foreground "#d2d2ff" :height 200))))
+                            `(org-level-8 ((t (:foreground "#f9f0ff" :height 200)))))
+#+end_src
 *** COMMENT Circadian for changing themes
 #+BEGIN_SRC emacs-lisp
 (use-package poet-theme :ensure :defer)
@@ -1570,6 +1587,7 @@ using consult for directory completion everywhere!
            ("C-h k" . helpful-key)
            ("C-c C-d" . helpful-at-point))
 #+END_SRC
+ 
 ** TODO termkeys
 [[https://github.com/CyberShadow/term-keys]]
 * Yza Config - Programming
@@ -2039,6 +2057,7 @@ function came from here
                         (org-super-agenda-groups
                          '((:name "" :deadline today)
                            (:name "" :deadline future)
+                           (:name "" :deadline past)
                            (:discard (:anything t))
                            ))
                         ))
