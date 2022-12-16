@@ -2054,7 +2054,7 @@ function came from here
                          ))
             ))
           ("0" "Focus"
-           ((agenda "" ((org-agenda-span 'day)
+           ((agenda "" ((org-agenda-span 'day) 
                         (org-agenda-entry-types '(:scheduled :timestamp :sexp))
                         (org-super-agenda-groups
                          '((:discard (:log t))
@@ -2062,11 +2062,11 @@ function came from here
                                   :todo "STICKY"
                                   :todo "DONE"
                                   :todo "CNCL")
-                           (:name "Longruns"
-                                  :and (:category "longrun" :scheduled today)
-                                  :and (:tag "_longrun" :scheduled today))
-                           (:name "Habits today"
-                                  :and (:todo "HABT" :priority> "G"))
+                           ;; (:name "Longruns"
+                           ;;        :and (:category "longrun" :scheduled today)
+                           ;;        :and (:tag "_longrun" :scheduled today))
+                           ;; (:name "Habits today"
+                           ;;        :and (:todo "HABT" :scheduled today))
                            (:discard (:category "longrun"))
                            (:discard (:todo "HABT"))
                            (:name "Today"
@@ -2088,8 +2088,18 @@ function came from here
                         (org-agenda-entry-types '(:deadline))
                         (org-super-agenda-groups
                          '((:name "" :deadline today)
-                           (:name "" :deadline future)
-                           (:name "" :deadline past)
+                          (:name "" :deadline future)
+                          (:name "" :deadline past)
+                          (:discard (:anything t))
+                          ))
+                        ))
+            (agenda "" ((org-agenda-span 'day)
+                        (org-agenda-overriding-header "Habits!")
+                        (org-agenda-entry-types '(:scheduled))
+                        (org-super-agenda-groups
+                         '(
+                           (:name "Habits" :todo "HABT")
+                           (:name "Longruns" :tag "_longrun" :category "longrun")
                            (:discard (:anything t))
                            ))
                         ))
@@ -2099,7 +2109,6 @@ function came from here
                         (org-agenda-span 'day)
                         (org-super-agenda-groups
                          '((:discard (:not (:todo "HABT")))
-                           (:discard (:log t))
                            (:name "Daily" :and(:tag "_daily"))
                            (:name "Weekly" :and(:tag "_weekly"))
                            (:name "Monthly" :and(:tag "_monthly"))
