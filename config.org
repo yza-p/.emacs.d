@@ -1217,7 +1217,7 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
     )
 #+end_src
  
-*** EMMS for music
+*** COMMENT EMMS for music
 #+begin_src emacs-lisp
   (require 'emms-mode-line)
   (require 'emms-mode-line-icon)
@@ -1618,6 +1618,7 @@ using consult for directory completion everywhere!
  
 ** TODO termkeys
 [[https://github.com/CyberShadow/term-keys]]
+*** TODO [#C] org-noter-pdftools
 * Yza Config - Programming
 ** Showing diffs (git)
 *** Diff-hl
@@ -1639,11 +1640,14 @@ using consult for directory completion everywhere!
     (bind-key "<H-backspace>" 'yankpad-expand))
 #+END_SRC
 
+
+** TODO Paredit
+** TODO Htmlize
 ** TODO [#G] EAF for browser?
 ** TODO [#D] git gutter
 ** TODO [#D] Projectile
 ** TODO Parrot?
-** TODO Outshine to navigate code like org-mode?
+** TODO [#C] Outshine to navigate code like org-mode?
 ** TODO [#G] Tree sitter for better parsing of lang?
 
 ** Language Specific
@@ -2675,14 +2679,20 @@ Org-appear for general org markups
     (denote-directory yza/notepad-files))
 #+end_src
   
-*** INCUBATE org-now
+*** INCUBATE COMMENT org-now
 #+begin_src emacs-lisp
   (use-package org-now
     :quelpa (org-now :fetcher github :repo "alphapapa/org-now")
-    :bind (("H-n l" . 'org-now-link)
-           ("H-n n" . 'org-now)
-           ("H-n r" . 'org-now-refile-to-now)
-           ("H-n b" . 'org-now-refile-to-previous-location)))
+    :bind (("s-n l" . 'org-now-link)
+           ("s-n n" . 'org-now)
+           ("s-n r" . 'org-now-refile-to-now)
+           ("s-n b" . 'org-now-refile-to-previous-location))
+    :config (setq org-now-location '("~/Dropbox/org/life/actions/unlisted.org" "NOW")))
+#+end_src
+ 
+*** org-pdftools
+#+begin_src emacs-lisp
+
 #+end_src
 ** Main extensions
 *** NEXT org-web-tools
@@ -2980,6 +2990,7 @@ not working
 [[https://emacstil.com/til/2022/03/05/setting-up-vale-prose-linter-on-emacs/][short tut]]
 
 *** TODO reveal-js
+*** TODO org-macros
 * Scratch displaying useful info
 #+begin_src emacs-lisp
   (defun yza/gen-scratch-info ()
