@@ -803,6 +803,7 @@ got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.
 *** Custom file variables
 #+begin_src emacs-lisp
   (defvar yza/web-bookmark-file "~/Dropbox/org/notes/bookmarks.org")
+  (defvar yza/web-history-file "~/Dropbox/org/life/journal/webhistory.org")
 #+end_src
  
 *** Binding return to include indent
@@ -2093,11 +2094,11 @@ function came from here
                           (:discard (:anything t))
                           ))
                         ))
-            (agenda "" ((org-agenda-span 'day)
-                        (org-agenda-overriding-header "Habits!")
+            (alltodo "" ((org-agenda-span 'day)
                         (org-agenda-entry-types '(:scheduled))
+                        (org-agenda-overriding-header "Routines")
                         (org-super-agenda-groups
-                         '(
+                         '((:discard (:not (:scheduled today)))
                            (:name "Habits" :todo "HABT")
                            (:name "Longruns" :tag "_longrun" :category "longrun")
                            (:discard (:anything t))
@@ -2203,27 +2204,27 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                      :file (lambda () (concat yza/action-files "tracker.org"))
                      :template ("* STICKY %^{Reminder} %?\nSCHEDULED: %^{Display at}t")
                      )
-                    ("Bookmark" :keys "b"
-                     :file yza/web-bookmark-file
-                     :headline "^Unsorted"
-                     :refile-targets (( yza/web-bookmark-file :maxlevel . 5))
+                    ("Link" :keys "b"
                      :unnarrowed t
-                     :before-finalize (lambda () (org-set-property "added" (format-time-string "[%F]")))
-                     :template ("* %(simpleclip-get-contents)"
+                     :template ("* %(simpleclip-get-contents)")
+                     :file yza/web-history-file
+                     :children (("Bookmark" :keys "b"
+                                 :file yza/web-bookmark-file
+                                 :refile-targets (( yza/web-bookmark-file :maxlevel . 5))
+                                 :before-finalize (lambda () (org-set-property "added" (format-time-string "[%F]")))
+                                 :headline "^Unsorted")
+                                ("History" :keys "f"
+                                 :datetree t)
+                                ("Add to Queue" :keys "q"
+                                 :headline "Queue")
                                 ))
                     ("Ideas" :keys "i"
                      :file (lambda () (concat yza/action-files "actionable.org"))
                      :template ("* IDEA %^{Description} %? %^g"
+                                "SCHEDULED: %t"
                                 ":PROPERTIES:"
                                 ":created: %U"
-                                "%{add-prop}"
-                                ":END:")
-                     :children (("Explore!" :keys "z"
-                                 :headline "Ideas"
-                                 :add-prop ":ref: %^{Reference}")
-                                ("Maybe todos?" :keys "t"
-                                 :headline "Ideas"
-                                 :add-prop ":context: %^{Where will you do this?}")))
+                                ":END:"))
                     ("Actions" :keys "a"
                      :file (lambda () (concat yza/action-files "actionable.org"))
                      :children (("Single Actions" :keys "a" :todo-state "NEXT"
@@ -2302,16 +2303,15 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                 ":PROPERTIES:"
                                 ":added: %U"
                                 ":list-group: %^{Movie/Series/Book/Article?}"
-                                ":published-on: %^{Published on}u"
                                 "%{add-prop}"
                                 ":gist: %^{Gist}"
                                 ":END:"
                                 )
                      :children (("book" :keys "b"
-                                 :add-prop ":author: %^{Author}"
+                                 :add-prop ":author: %^{Author}\n:gr: %^{Goodreads}"
                                  :headline "Books")
                                 ("shows" :keys "s"
-                                 :add-prop ":director: %^{Director}"
+                                 :add-prop ":director: %^{Director}\n:imdb: %^{IMDB}"
                                  :headline "Shows")
                                 ("web" :keys "w"
                                  :headline "Web Content"
