@@ -9,7 +9,7 @@
   (require 'quelpa-use-package)
   (quelpa-use-package-activate-advice)
 #+end_src
- 
+
 * scratch fortunes
 #+begin_src emacs-lisp
   (setq fortune-file "/usr/local/Cellar/fortune/9708/share/games/fortunes/yza")
@@ -19,7 +19,7 @@
     (add-hook 'after-init-hook 'scratch-message-mode)
     (setq scratch-message-function #'scratch-message-fortune))
 #+end_src
- 
+
 * Settings without corresponding packages
 Clean up the UI and enhance some basic defaults defined in "C Source Code". The variable ~ian/indent-width~ controls the default indentation across various programming modes. The default is 4, you can change this variable to 2 or any other indentation width you prefer, and the change will be made across all programming language modes including C, C++, Java, Python etc. (Exception: JavaScript defaults to 2-space indent, you can still set it to any other indentation width you prefer in the ~web-mode~ section.)
 #+BEGIN_SRC emacs-lisp
@@ -332,8 +332,6 @@ subsequently killing Emacs.
       (define-key evil-insert-state-map (kbd "C-p") nil))
     (evil-ex-define-cmd "q" #'kill-this-buffer)
     (evil-ex-define-cmd "wq" #'ian/save-and-kill-this-buffer)
-
-    (add-hook 'evil-insert-state-exit-hook 'save-buffer)
     )
 #+END_SRC
 Evil-collection covers more parts of Emacs that the original Evil
@@ -464,86 +462,87 @@ Provides us with hints on available keystroke combinations.
 [2022-09-20 Tue 22:36] -> [[id:20220920T223607.808228][Org ID, Org Attach & Better Folder Names · The Art of Not Asking Why]]
 :END:
 #+BEGIN_SRC emacs-lisp
-    (use-package org
-      :pin gnu
-      :hook ((org-mode . visual-line-mode)
-             (org-mode . org-indent-mode))
-      :config
-      (define-key org-mode-map (kbd "C-c C-l") nil)
-      :bind (("H-/" . org-todo)
-             ("C-c l" . org-store-link)
-             ("C-c C-l" . ar/org-insert-link-dwim)
-             ("H-l o" . org-id-get-create)  
-             ("H-l l" . org-id-store-link)
-             ("H-l p" . org-insert-last-stored-link)
-             ("C-c 1" . org-time-stamp-inactive)
-             ("H-i" . do-org-show-all-inline-images)
-             ("C-c o" . org-edit-src-code)
-             ("<H-left>" . org-clock-in)
-             ("<H-right>" . org-clock-out))
-      :custom
-      (org-id-method 'ts)
-      (org-attach-id-to-path-function-list
-       '(org-attach-id-ts-folder-format
-         org-attach-id-uuid-folder-format))
-      (org-log-done 'time)
-      (org-id-extra-files (append (find-lisp-find-files yza/action-archives "\.org$") (find-lisp-find-files yza/meta-files "\.org$")))
-      ;; (org-id-extra-files (append (find-lisp-find-files yza/action-archives "\.org_archive$")))
-      (org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
-      (org-extend-today-until 5)
-      (org-log-into-drawer t)
-      (org-latex-create-formula-image-program 'dvisvgm)
-      (org-ellipsis " ▾")
-      (org-directory "~/Dropbox/org")
-      (org-use-sub-superscripts '{})
-      (org-return-follows-link t)
-      (org-log-reschedule 'note)
-      (org-use-fast-todo-selection t)
-      (org-hide-emphasis-markers t)
-      (org-toggle-pretty-entities t)
-      (org-priority-default 71)
+  (use-package org
+    :pin gnu
+    :hook ((org-mode . visual-line-mode)
+           (org-mode . org-indent-mode))
+    :config
+    (define-key org-mode-map (kbd "C-c C-l") nil)
+    :bind (("H-/" . org-todo)
+           ("C-c l" . org-store-link)
+           ("C-c C-l" . ar/org-insert-link-dwim)
+           ("H-l o" . org-id-get-create)
+           ("H-l l" . org-id-store-link)
+           ("H-l p" . org-insert-last-stored-link)
+           ("C-c 1" . org-time-stamp-inactive)
+           ("H-i" . do-org-show-all-inline-images)
+           ("C-c o" . org-edit-src-code)
+           ("<H-left>" . org-clock-in)
+           ("<H-right>" . org-clock-out))
+    :custom
+    (org-id-method 'ts)
+    (org-attach-id-to-path-function-list
+     '(org-attach-id-ts-folder-format
+       org-attach-id-uuid-folder-format))
+    (org-log-done 'time)
+    (org-id-extra-files (append (find-lisp-find-files yza/action-archives "\.org$") (find-lisp-find-files yza/meta-files "\.org$")))
+    ;; (org-id-extra-files (append (find-lisp-find-files yza/action-archives "\.org_archive$")))
+    (org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
+    (org-extend-today-until 5)
+    (org-log-into-drawer t)
+    (org-latex-create-formula-image-program 'dvisvgm)
+    (org-ellipsis " ▾")
+    (org-directory "~/Dropbox/org")
+    (org-use-sub-superscripts '{})
+    (org-return-follows-link t)
+    (org-log-reschedule 'note)
+    (org-use-fast-todo-selection t)
+    (org-hide-emphasis-markers t)
+    (org-toggle-pretty-entities t)
+    (org-priority-default 71)
+    (org-columns-default-format "%ITEM(Task) %TODO %Effort(Estimated){:} %3PRIORITY %TAGS")
 
-      (org-todo-keywords
-       '((sequence "TODO(t!)" "NEXT(n)" "WAIT(w)" "FRZE(f@/@)" "HABT(h!)" "CMMT(m!)" "GOAL(g!)" "|" "CNCL(c@)" "DONE(d)")
-         (sequence "IDEA(1!)" "WORKING(2!)" "INCUBATE(3!)" "MATURE(4!)" "|" "REJECT(5@/@)")
-         (sequence "BACKLOG(b)" "ACTIVE(a!)" "PROCESS(p!)" "|" "CONSUMED(o@)" "DROPPED(r@/@)")))
+    (org-todo-keywords
+     '((sequence "TODO(t!)" "NEXT(n)" "WAIT(w)" "FRZE(f@/@)" "HABT(h!)" "CMMT(m!)" "GOAL(g!)" "|" "CNCL(c@)" "DONE(d)")
+       (sequence "IDEA(1!)" "WORKING(2!)" "INCUBATE(3!)" "MATURE(4!)" "|" "REJECT(5@/@)")
+       (sequence "BACKLOG(b)" "ACTIVE(a!)" "PROCESS(p!)" "|" "CONSUMED(o@)" "DROPPED(r@/@)")))
 
-      (org-todo-keyword-faces
-       (quote (("TODO" :foreground "OrangeRed" :weight bold )
-               ("NEXT" :foreground "RoyalBlue1" :weight bold)
-               ("WAIT" :foreground "yellow" :weight bold)
-               ("DONE" :foreground "MediumSpringGreen" :weight bold)
-               ("CNCL" :foreground "SaddleBrown" :weight bold)
+    (org-todo-keyword-faces
+     (quote (("TODO" :foreground "OrangeRed" :weight bold )
+             ("NEXT" :foreground "RoyalBlue1" :weight bold)
+             ("WAIT" :foreground "yellow" :weight bold)
+             ("DONE" :foreground "MediumSpringGreen" :weight bold)
+             ("CNCL" :foreground "SaddleBrown" :weight bold)
 
-               ("IDEA" :foreground "White" :background "OrangeRed1" :weight bold)
-               ("WORKING" :foreground "White" :background "OrangeRed4" :weight bold)
-               ("INCUBATE" :foreground "White" :background "DodgerBlue4" :weight bold)
-               ("MATURE" :foreground "White" :background "blue3" :weight bold)
-               ("REJECT" :foreground "White" :background "DarkRed" :weight bold)
+             ("IDEA" :foreground "White" :background "OrangeRed1" :weight bold)
+             ("WORKING" :foreground "White" :background "OrangeRed4" :weight bold)
+             ("INCUBATE" :foreground "White" :background "DodgerBlue4" :weight bold)
+             ("MATURE" :foreground "White" :background "blue3" :weight bold)
+             ("REJECT" :foreground "White" :background "DarkRed" :weight bold)
 
-               ("BACKLOG" :foreground "PaleVioletRed" :weight bold :underline t)
-               ("ACTIVE" :foreground "LightPink" :weight bold :underline t)
-               ("PROCESS" :foreground "gold" :weight bold :underline t)
-               ("CONSUMED" :foreground "MediumSpringGreen" :weight bold :underline t)
-               ("DROPPED" :foreground "LightSlateGrey" :weight bold :underline t)
+             ("BACKLOG" :foreground "PaleVioletRed" :weight bold :underline t)
+             ("ACTIVE" :foreground "LightPink" :weight bold :underline t)
+             ("PROCESS" :foreground "gold" :weight bold :underline t)
+             ("CONSUMED" :foreground "MediumSpringGreen" :weight bold :underline t)
+             ("DROPPED" :foreground "LightSlateGrey" :weight bold :underline t)
 
-                 ;;;; Special TODOs (can be used everywhere, especially FRZE)
-               ("FRZE" :foreground "turquoise" :weight bold :box t)
-               ("HABT" :foreground "khaki1" :weight bold :box t)
-                 ;;;; For goals and its commitments
-               ("GOAL" :foreground "VioletRed4" :weight bold :inherit fixed-pitch :inverse-video t)
-               ("CMMT" :foreground "YellowGreen" :weight bold :inherit fixed-pitch :inverse-video t)
-                 ;;;; Complete states for GOAL/CMMT
-               ("PASS" :foreground "MediumSpringGreen" :weight bold :box t)
-               ("ABDN" :foreground "SaddleBrown" :weight bold :box t)
-               )))
-      :custom-face
-      (org-link ((t (:inherit link :family "Roboto Mono"))))
-      (org-document-title ((t (:weight bold :height 1.5))))
-      (org-headline-done ((t (:strike-through t))))
-      (org-headline-done ((t (:strike-through t))))
-      (org-drawer ((t (:inherit (shadow fixed-pitch) :background "gray11"))))
-      (org-image-actual-width '(600)))
+               ;;;; Special TODOs (can be used everywhere, especially FRZE)
+             ("FRZE" :foreground "turquoise" :weight bold :box t)
+             ("HABT" :foreground "khaki1" :weight bold :box t)
+               ;;;; For goals and its commitments
+             ("GOAL" :foreground "VioletRed4" :weight bold :inherit fixed-pitch :inverse-video t)
+             ("CMMT" :foreground "YellowGreen" :weight bold :inherit fixed-pitch :inverse-video t)
+               ;;;; Complete states for GOAL/CMMT
+             ("PASS" :foreground "MediumSpringGreen" :weight bold :box t)
+             ("ABDN" :foreground "SaddleBrown" :weight bold :box t)
+             )))
+    :custom-face
+    (org-link ((t (:inherit link :family "Roboto Mono"))))
+    (org-document-title ((t (:weight bold :height 1.5))))
+    (org-headline-done ((t (:strike-through t))))
+    (org-headline-done ((t (:strike-through t))))
+    (org-drawer ((t (:inherit (shadow fixed-pitch) :background "gray11"))))
+    (org-image-actual-width '(600)))
 #+END_SRC
 
 *** Alerts
@@ -591,7 +590,7 @@ Provides us with hints on available keystroke combinations.
     "Advise org-refile to close the frame"
     (delete-frame))
 #+END_SRC
- 
+
 *** Buffer travel using windmove
 #+BEGIN_SRC emacs-lisp
   (windmove-default-keybindings 'super)
@@ -772,13 +771,13 @@ got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.
         maximum-scroll-margin 0.5
         scroll-margin 99999)
 #+END_SRC
- 
+
 *** global relative line numbers
 #+begin_src emacs-lisp
   (setq display-line-numbers-type 'relative)
   (global-display-line-numbers-mode t)
 #+end_src
- 
+
 ** modifying variables / keybinds
 *** Custom directory variables
 #+BEGIN_SRC emacs-lisp
@@ -799,19 +798,19 @@ got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.
   (defvar yza/school-notes "~/Dropbox/org/notes/projects/school/")
   (defvar yza/writeups "~/Dropbox/org/notes/projects/writeups/")
 #+END_SRC
- 
+
 *** Custom file variables
 #+begin_src emacs-lisp
   (defvar yza/web-bookmark-file "~/Dropbox/org/notes/bookmarks.org")
   (defvar yza/web-history-file "~/Dropbox/org/life/journal/webhistory.org")
 #+end_src
- 
+
 *** Binding return to include indent
 [[http://www.emacslife.com/read-lisp-tweak-emacs/beginner-3-make-things-more-convenient.html][newbie res here]]
 #+BEGIN_SRC emacs-lisp
   (global-set-key (kbd "RET") 'newline-and-indent)
 #+END_SRC
- 
+
 *** Modifiers for mac
 #+BEGIN_SRC emacs-lisp
   (when (memq window-system '(mac ns x))
@@ -882,12 +881,12 @@ got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.
     (global-evil-leader-mode)
     )
 #+END_SRC
- 
+
 *** change key to normal state
 #+BEGIN_SRC emacs-lisp
     (global-set-key (kbd "s-j") 'evil-force-normal-state)
 #+END_SRC
- 
+
 *** TODO evil-org
 #+BEGIN_SRC emacs-lisp
   (use-package evil-org
@@ -897,7 +896,7 @@ got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.
   (require 'evil-org-agenda)
   (evil-org-agenda-set-keys))
 #+END_SRC
- 
+
 *** SOMEDAY Alternative modal editing: meow
 
 ** Themes
@@ -1036,7 +1035,7 @@ most of this came from the official docs (all except org-roam)
 
   (global-set-key "x" #'x-hydra/body)
 #+END_SRC
- 
+
 **** zooming
 [[https://ericjmritz.wordpress.com/2015/10/14/some-personal-hydras-for-gnu-emacs/][source]]
 #+BEGIN_SRC emacs-lisp
@@ -1050,7 +1049,7 @@ most of this came from the official docs (all except org-roam)
 
   (global-set-key (kbd "s-=") 'phydra-zoom/body)
 #+END_SRC
- 
+
 **** TODO outline minor mode
 #+BEGIN_SRC emacs-lisp
   (pretty-hydra-define phydra-outline
@@ -1157,7 +1156,7 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
       ("5" ian/split-and-follow-horizontally)
       ("0" delete-window)
       ("-" delete-other-windows))
-  
+
      "Resize Window"
      (("<backspace>" balance-windows)
       ("=" maximize-window)
@@ -1174,7 +1173,7 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
       ("<left>" next-buffer))
 
      "Move Splitter Line"
-     (("s-<up>" hydra-move-splitter-up) 
+     (("s-<up>" hydra-move-splitter-up)
       ("s-<down>" hydra-move-splitter-down)
       ("s-<left>" hydra-move-splitter-left)
       ("s-<right>" hydra-move-splitter-right))
@@ -1186,7 +1185,7 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
 #+end_src
 **** TODO yza - editing sentences and such
 *** Avy
-#+begin_src emacs-lisp 
+#+begin_src emacs-lisp
   (use-package avy
     :bind (("H-'" . avy-goto-char-timer))
     :config
@@ -1217,7 +1216,7 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
     (setf (alist-get ?. avy-dispatch-alist) 'avy-action-embark)
     )
 #+end_src
- 
+
 *** COMMENT EMMS for music
 #+begin_src emacs-lisp
   (require 'emms-mode-line)
@@ -1232,7 +1231,7 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
     (emms-mode-line 1)
     )
 #+end_src
- 
+
 *** Latex-related
 #+begin_src emacs-lisp
   (with-eval-after-load 'ox-latex
@@ -1256,6 +1255,7 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
                    ("\\paragraph{%s}" . "\\paragraph*{%s}")
                    ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
 #+end_src
+
 ** Small plug-ins
 *** Hammerspoon
 #+BEGIN_SRC emacs-lisp
@@ -1314,7 +1314,7 @@ for minimalist modeline
   (use-package expand-region
     :bind ("s-z" . er/expand-region))
 #+end_src
- 
+
 *** nov.el
 #+begin_src emacs-lisp
   (defun my-nov-font-setup ()
@@ -1326,7 +1326,7 @@ for minimalist modeline
     (add-hook 'nov-mode-hook 'my-nov-font-setup)
     (add-hook 'nov-mode-hook 'olivetti-mode))
 #+end_src
- 
+
 *** org-noter
 #+begin_src emacs-lisp
   (use-package org-noter
@@ -1337,12 +1337,28 @@ for minimalist modeline
      org-noter-hide-other nil ;; I want to see the whole file
      ))
 #+end_src
- 
+
 *** pdf-tools
 #+begin_src emacs-lisp
   (add-hook 'doc-view-mode-hook 'pdf-tools-install)
 #+end_src
 
+*** autosave
+#+begin_src emacs-lisp
+  (use-package auto-save
+    :quelpa (auto-save :fetcher github :repo "manateelazycat/auto-save"
+                       :files ("auto-save.el"))
+    :config
+    (setq auto-save-delete-trailing-whitespace t)
+    (setq auto-save-silent t)
+    (setq auto-save-disable-predicates
+          '((lambda ()
+              (string-suffix-p
+               "gpg"
+               (file-name-extension (buffer-name)) t))))
+    (auto-save-enable)
+    )
+#+end_src
 ** Completion stack
 *** Vertico
 The main interface for completion. Comparing both selectrum and this, I decided to go with this because it is more lightweight
@@ -1360,7 +1376,7 @@ The main interface for completion. Comparing both selectrum and this, I decided 
     :init
     (vertico-mode))
 #+END_SRC
- 
+
 **** Savehist (Built-in)
 In-built package that remembers the commands and such picked in the mini-buffer and places it on the top.
 #+BEGIN_SRC emacs-lisp
@@ -1368,7 +1384,7 @@ In-built package that remembers the commands and such picked in the mini-buffer 
     :init
     (savehist-mode))
 #+END_SRC
- 
+
 **** Orderless (Third-party)
 Completion style that allows spaces to be included in the narrowing. Can also match candidates regardless of order the user typed
 #+BEGIN_SRC emacs-lisp
@@ -1378,7 +1394,7 @@ Completion style that allows spaces to be included in the narrowing. Can also ma
     (completion-styles '(substring orderless basic))
     (completion-category-overrides '((file (styles basic partial-completion)))))
 #+END_SRC
- 
+
 *** Marginalia
 For hints in the completion (eg. commands bindings/meanings)
 #+BEGIN_SRC emacs-lisp
@@ -1427,7 +1443,7 @@ For hints in the completion (eg. commands bindings/meanings)
     (tab-always-indent 'complete)
     (completion-cycle-threshold nil)
     )
-   
+
   (defun corfu-enable-in-minibuffer ()
     "Enable Corfu in the minibuffer if `completion-at-point' is bound."
     (when (where-is-internal #'completion-at-point (list (current-local-map)))
@@ -1435,7 +1451,7 @@ For hints in the completion (eg. commands bindings/meanings)
       (corfu-mode 1)))
   (add-hook 'minibuffer-setup-hook #'corfu-enable-in-minibuffer)
 #+end_src
- 
+
 *** Cape
 ** Completion: Expansion packs
 *** Embark
@@ -1498,7 +1514,7 @@ Ported from [[https://karthinks.com/software/fifteen-ways-to-use-embark/][karthi
            (embark-indicator (lambda (_keymap targets) nil)))
       (embark-act arg)))
 #+END_SRC
- 
+
 *** Consult
 for other useful functions
 #+BEGIN_SRC emacs-lisp
@@ -1616,7 +1632,7 @@ using consult for directory completion everywhere!
            ("C-h k" . helpful-key)
            ("C-c C-d" . helpful-at-point))
 #+END_SRC
- 
+
 ** TODO termkeys
 [[https://github.com/CyberShadow/term-keys]]
 *** TODO [#C] org-noter-pdftools
@@ -1701,7 +1717,7 @@ from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2e
                 (clocktable-by-tag/insert-tag (plist-put (plist-put params :match tag) :tags tag)))
               tags)))
 #+END_SRC
- 
+
 *** Refile item to a new file
 [[https://superuser.com/questions/567916/org-mode-command-to-create-new-file-from-subtree/568300#568300][got from stackoverflo w]]
 - switched the command that C-u triggers (this saves the refile in the  current dir, without asking the filename--that means the default is now asking a directory)
@@ -1739,7 +1755,7 @@ from  this [[https://gist.github.com/ironchicken/6b5424bc2024b3d0a58a8a130f73c2e
   (define-key org-mode-map (kbd "H-\\") 'zin/org-refile-new-select)
   (define-key org-mode-map (kbd "H-|") 'zin/org-refile-new-noselect)
 #+END_SRC
- 
+
 *** Copy link at point
 :PROPERTIES:
 :ID:       20220923T224009.672196
@@ -1762,7 +1778,7 @@ Got most of it from [[id:20220923T224009.783715][here]]
 
   (define-key org-mode-map (kbd "C-c c") 'yza/org-extract-link)
 #+end_src
- 
+
 *** COMMENT capturing org-agenda
 #+begin_src emacs-lisp
   (defun save-screenshot-svg ()
@@ -1802,7 +1818,7 @@ Got most of it from [[id:20220923T224009.783715][here]]
       (save-screenshot-svg)
       (setq cursor-type 'box)))
 #+end_src
- 
+
 *** Editting and joining lines like a god!
 #+begin_src emacs-lisp
   (defun xah-reformat-to-sentence-lines ()
@@ -1836,7 +1852,7 @@ Got most of it from [[id:20220923T224009.783715][here]]
   (global-set-key (kbd "M-s-j") 'org-drag-line-forward)
   (define-key org-mode-map (kbd "M-s-l") 'xah-reformat-to-sentence-lines)
 #+end_src
- 
+
 *** Custom functions (consult-ripgrep)
 #+BEGIN_SRC emacs-lisp
   (defun yza/consult-org-headings-agenda ()
@@ -1907,7 +1923,7 @@ Got most of it from [[id:20220923T224009.783715][here]]
     (interactive)
     (org-display-inline-images t))
 #+END_SRC
- 
+
 *** List all org buffer files
 function came from here
 #+begin_src emacs-lisp
@@ -1929,7 +1945,7 @@ function came from here
    '((emacs-lisp . t)
      (js . t)))
 #+end_src
- 
+
 *** DWIM org insert link
 :PROPERTIES:
 :ID:       2FD950D1-E037-4DE3-BB78-C7465CA7EF0B
@@ -1963,7 +1979,7 @@ function came from here
           (t
            (call-interactively 'org-insert-link)))))
 #+end_src
- 
+
 ** Standard procedures
 *** Org-agenda custom views
 #+BEGIN_SRC emacs-lisp
@@ -2055,7 +2071,7 @@ function came from here
                          ))
             ))
           ("0" "Focus"
-           ((agenda "" ((org-agenda-span 'day) 
+           ((agenda "" ((org-agenda-span 'day)
                         (org-agenda-entry-types '(:scheduled :timestamp :sexp))
                         (org-super-agenda-groups
                          '((:discard (:log t))
@@ -2158,7 +2174,7 @@ function came from here
         )
 
 #+END_SRC
-  
+
 *** Org-agenda use-package declaration
 the tip for finding org files recursively using find-lisp is from [[https://stackoverflow.com/a/41969460][stackoverflow]]
 #+BEGIN_SRC emacs-lisp
@@ -2408,7 +2424,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
 
 ** Dependency extensions
 *** org-ql
-#+begin_src emacs-lisp 
+#+begin_src emacs-lisp
   (use-package org-ql)
   (use-package helm-org-ql
     :quelpa (helm-org-ql :fetcher github :repo "alphapapa/org-ql"
@@ -2420,7 +2436,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
   (use-package doct
     :commands (doct))
 #+END_SRC
- 
+
 ** Small Extensions
 *** TODO addons from org-contrib
 *** COMMENT unpackaged-extras
@@ -2481,7 +2497,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
   (add-hook 'org-mode-hook 'unpackaged/org-table-face-mode)
 
 #+END_SRC
- 
+
 *** simpleclip
 :PROPERTIES:
 :ID:       DB71FABC-337A-494B-8053-24FA2E1FADD2
@@ -2494,7 +2510,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
   :config
   (simpleclip-mode 1))
 #+end_src
- 
+
 *** Org-fragtog and Org-reveal for revealing markups
 Org-fragtog for viewing raw latex and svg generation
 #+BEGIN_SRC emacs-lisp
@@ -2507,14 +2523,14 @@ Org-appear for general org markups
   (use-package org-appear
     :hook ((org-mode . org-appear-mode)))
 #+END_SRC
- 
+
 *** Flyspell-correct for spelling
 #+BEGIN_SRC emacs-lisp
   (use-package flyspell-correct
     :after flyspell
     :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
 #+END_SRC
- 
+
 *** Olivetti for formatting
 #+BEGIN_SRC emacs-lisp
   (use-package olivetti
@@ -2522,7 +2538,7 @@ Org-appear for general org markups
     :custom
     (olivetti-body-width 175))
 #+END_SRC
- 
+
 *** Org-download
 #+BEGIN_SRC emacs-lisp
   (use-package org-download
@@ -2535,7 +2551,7 @@ Org-appear for general org markups
     (add-hook 'dired-mode-hook 'org-download-enable)
     (setq-default org-download-image-dir "~/Dropbox/org_back"))
 #+END_SRC
- 
+
 *** Org-clock-convenience
 #+BEGIN_SRC emacs-lisp
   (use-package org-clock-convenience
@@ -2545,7 +2561,7 @@ Org-appear for general org markups
                 ("<H-left>" . org-clock-convenience-fill-gap)
                 ("<H-right>" . org-clock-convenience-fill-gap-both)))
 #+END_SRC
- 
+
 *** org-fancy-priorities
 #+BEGIN_SRC emacs-lisp
   (use-package org-fancy-priorities
@@ -2563,7 +2579,7 @@ Org-appear for general org markups
   (use-package mw-thesaurus
     :bind (:map org-mode-map ("H-z" . mw-thesaurus-lookup-dwim)))
 #+end_src
- 
+
 *** org-edna
 #+begin_src emacs-lisp
   (use-package org-edna
@@ -2573,14 +2589,14 @@ Org-appear for general org markups
     (org-edna-mode)
     )
 #+end_src
- 
+
 *** hammy
 #+begin_src emacs-lisp
   (use-package hammy)
 #+end_src
 
 *** org-super-links
-#+begin_src emacs-lisp 
+#+begin_src emacs-lisp
   (use-package org-super-links
     ;; :quelpa (org-super-links :repo "toshism/org-super-links" :fetcher github :commit "0.4")
     :load-path "~/.emacs.d/external/org-super-links/"
@@ -2602,7 +2618,7 @@ Org-appear for general org markups
           nil
         new-desc)))
 #+end_src
- 
+
 *** org-transclusion
 #+begin_src emacs-lisp
   (use-package org-transclusion
@@ -2676,7 +2692,7 @@ Org-appear for general org markups
     )
 
 #+end_src
- 
+
 *** denote
 #+begin_src emacs-lisp
   (use-package denote
@@ -2687,7 +2703,7 @@ Org-appear for general org markups
     :custom
     (denote-directory yza/notepad-files))
 #+end_src
-  
+
 *** INCUBATE COMMENT org-now
 #+begin_src emacs-lisp
   (use-package org-now
@@ -2698,7 +2714,7 @@ Org-appear for general org markups
            ("s-n b" . 'org-now-refile-to-previous-location))
     :config (setq org-now-location '("~/Dropbox/org/life/actions/unlisted.org" "NOW")))
 #+end_src
- 
+
 *** org-pdftools
 #+begin_src emacs-lisp
 
@@ -2724,7 +2740,7 @@ Org-appear for general org markups
     )
 
 #+END_SRC
- 
+
 *** COMMENT org-roam-bibtex
 #+begin_src emacs-lisp
   (use-package org-roam-bibtex
@@ -2825,7 +2841,7 @@ Most of this came from wonderful [[https://gist.github.com/jeremyf/b1fb8414624e6
             (not (member "dontindex" (org-get-tags)))))
     )
 #+END_SRC
- 
+
 **** mini: org-buffer on the side
 from the [[https://www.orgroam.com/manual.html#Configuring-the-Org_002droam-buffer-display][official docs]]
 #+begin_src emacs-lisp
@@ -2842,7 +2858,7 @@ from the [[https://www.orgroam.com/manual.html#Configuring-the-Org_002droam-buff
               ;; #'org-roam-unlinked-references-section -- slow so do this in own discretion
               ))
 #+end_src
- 
+
 **** org-roam capture templates
 combining doct to org-roam came from this [[https://github.com/progfolio/doct/issues/16][issue]] and this [[https://gist.github.com/vherrmann/f9b21eeea7d7c9123dc400a30599d50d#file-doct-org-roam-el=][gist provided the doct-org-roam.el]]
 #+BEGIN_SRC emacs-lisp
@@ -2910,7 +2926,7 @@ combining doct to org-roam came from this [[https://github.com/progfolio/doct/is
   ;;          :immediate-finish t
   ;;          :unnarrowed t)))
 #+END_SRC
- 
+
 *** deft
 found a nice short config here in [[https://www.reddit.com/r/emacs/comments/h0h4ix/how_to_configure_multile_directories_with_deft/][this reddit thread]]
 #+BEGIN_SRC emacs-lisp
@@ -3012,13 +3028,13 @@ not working
       )
     )
   (setq yza/title ";;
-;; :::   ::: :::::::::     :::     ::::    ::::      :::      ::::::::   ::::::::          :::   
-;; :+:   :+:      :+:    :+: :+:   +:+:+: :+:+:+   :+: :+:   :+:    :+: :+:    :+:     :+:  :+:  
-;;  +:+ +:+      +:+    +:+   +:+  +:+ +:+:+ +:+  +:+   +:+  +:+        +:+                  +:+ 
-;;   +#++:      +#+    +#++:++#++: +#+  +:+  +#+ +#++:++#++: +#+        +#++:++#++           +#+ 
-;;    +#+      +#+     +#+     +#+ +#+       +#+ +#+     +#+ +#+               +#+           +#+ 
-;;    #+#     #+#      #+#     #+# #+#       #+# #+#     #+# #+#    #+# #+#    #+#     #+#  #+#  
-;;    ###    ######### ###     ### ###       ### ###     ###  ########   ########          ###   
+;; :::   ::: :::::::::     :::     ::::    ::::      :::      ::::::::   ::::::::          :::
+;; :+:   :+:      :+:    :+: :+:   +:+:+: :+:+:+   :+: :+:   :+:    :+: :+:    :+:     :+:  :+:
+;;  +:+ +:+      +:+    +:+   +:+  +:+ +:+:+ +:+  +:+   +:+  +:+        +:+                  +:+
+;;   +#++:      +#+    +#++:++#++: +#+  +:+  +#+ +#++:++#++: +#+        +#++:++#++           +#+
+;;    +#+      +#+     +#+     +#+ +#+       +#+ +#+     +#+ +#+               +#+           +#+
+;;    #+#     #+#      #+#     #+# #+#       #+# #+#     #+# #+#    #+# #+#    #+#     #+#  #+#
+;;    ###    ######### ###     ### ###       ### ###     ###  ########   ########          ###
 ;;")
   (add-hook 'after-init-hook (lambda() (yza/gen-scratch-info) (setq initial-scratch-message (concat yza/title "\n;; " yza/scratch-info "\n;;"))))
 #+end_src
