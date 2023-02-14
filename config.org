@@ -468,6 +468,13 @@ Provides us with hints on available keystroke combinations.
            (org-mode . org-indent-mode))
     :config
     (define-key org-mode-map (kbd "C-c C-l") nil)
+    (setq org-image-actual-width '(600))
+    (custom-set-faces
+     ;; custom-set-faces was added by Custom.
+     ;; If you edit it by hand, you could mess it up, so be careful.
+     ;; Your init file should contain only one such instance.
+     ;; If there is more than one, they won't work right.
+     '(org-drawer ((t (:inherit (shadow fixed-pitch) :background "gray11")))))
     :bind (("H-/" . org-todo)
            ("C-c l" . org-store-link)
            ("C-c C-l" . ar/org-insert-link-dwim)
@@ -540,9 +547,8 @@ Provides us with hints on available keystroke combinations.
     (org-link ((t (:inherit link :family "Roboto Mono"))))
     (org-document-title ((t (:weight bold :height 1.5))))
     (org-headline-done ((t (:strike-through t))))
-    (org-headline-done ((t (:strike-through t))))
     (org-drawer ((t (:inherit (shadow fixed-pitch) :background "gray11"))))
-    (org-image-actual-width '(600)))
+    )
 #+END_SRC
 
 *** Alerts
@@ -1537,7 +1543,7 @@ for other useful functions
            ("C-M-#" . consult-register)
            ;; Other custom bindings
            ("M-y" . consult-yank-pop)                ;; orig. yank-pop
-           ("<help> a" . consult-apropos)            ;; orig. apropos-command
+           ;; ("<help> a" . consult-apropos)            ;; orig. apropos-command
            ;; M-g bindings (goto-map)
            ("M-g e" . consult-compile-error)
            ("M-g f" . consult-flycheck)               ;; Alternative: consult-flycheck
@@ -2134,8 +2140,8 @@ function came from here
                            ))
                         ))
             (agenda "" ((org-agenda-span 'day)
-                        (org-agenda-skip-function
-                         '(org-agenda-skip-entry-if 'regexp "\\* HABT"))
+                        ;; (org-agenda-skip-function
+                        ;;  '(org-agenda-skip-entry-if 'regexp "\\* HABT"))
                         (org-agenda-sorting-strategy '(time-up todo-state-up priority-down))))
             ))
           ("w" "Weekly Review"
@@ -2625,7 +2631,13 @@ Org-appear for general org markups
     :bind (("H-t a" . 'org-transclusion-add)
            ("H-t t" . 'org-transclusion-mode)
            ("H-t d" . 'org-transclusion-remove))
-    :after org)
+    :after org
+    :config
+    (setq org-transclusion-extensions'(org-transclusion-src-lines
+                                       org-transclusion-font-lock
+                                       org-transclusion-indent-mode
+                                       ))
+    )
 #+end_src
 *** COMMENT linkmarks for bookmarks
 #+begin_src emacs-lisp
