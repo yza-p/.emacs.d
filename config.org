@@ -1390,6 +1390,18 @@ for minimalist modeline
     (auto-save-enable)
     )
 #+end_src
+
+*** mingus - music!
+#+begin_src emacs-lisp
+  (use-package mingus
+    :bind (("H-m m" . mingus)
+           ("H-m b" . mingus-browse)
+           ("H-m ." . mingus-toggle))
+    :config
+    (evil-set-initial-state 'mingus-browser-mode 'emacs)
+    (evil-set-initial-state 'mingus-playlist-mode 'emacs)
+    )
+#+end_src
 ** Completion stack
 *** Vertico
 The main interface for completion. Comparing both selectrum and this, I decided to go with this because it is more lightweight
@@ -2745,9 +2757,9 @@ Org-appear for general org markups
 #+begin_src emacs-lisp
   (use-package org-now
     :quelpa (org-now :fetcher github :repo "alphapapa/org-now")
-    :bind (("s-n l" . 'org-now-link)
-           ("s-n n" . 'org-now)
-           ("s-n r" . 'org-now-refile-to-now)
+    :bind (("s-n l" . 'org-now-link) ;; put in sticky but node stays in place
+           ("s-n t" . 'org-now)
+           ("s-n n" . 'org-now-refile-to-now)  ;; node get transported
            ("s-n b" . 'org-now-refile-to-previous-location))
     :config (setq org-now-location '("~/Dropbox/org/meta/sticky.org")))
 #+end_src
