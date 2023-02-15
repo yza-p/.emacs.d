@@ -2716,7 +2716,7 @@ Org-appear for general org markups
     (denote-directory yza/notepad-files))
 #+end_src
 
-*** INCUBATE COMMENT org-now
+*** INCUBATE org-now
 #+begin_src emacs-lisp
   (use-package org-now
     :quelpa (org-now :fetcher github :repo "alphapapa/org-now")
@@ -2724,7 +2724,7 @@ Org-appear for general org markups
            ("s-n n" . 'org-now)
            ("s-n r" . 'org-now-refile-to-now)
            ("s-n b" . 'org-now-refile-to-previous-location))
-    :config (setq org-now-location '("~/Dropbox/org/life/actions/unlisted.org" "NOW")))
+    :config (setq org-now-location '("~/Dropbox/org/meta/sticky.org")))
 #+end_src
 
 *** org-pdftools
@@ -3050,11 +3050,11 @@ not working
 ;;")
   (add-hook 'after-init-hook (lambda() (yza/gen-scratch-info) (setq initial-scratch-message (concat yza/title "\n;; " yza/scratch-info "\n;;"))))
 #+end_src
-
 * Window configurations (defuns)
 #+BEGIN_SRC emacs-lisp
   (defun yza/default-window-setup ()
     "Called by emacs-startup-hook to set up my initial window configuration."
+    (find-file "~/Dropbox/org/meta/sticky.org")
     (ian/split-and-follow-vertically)
     (org-agenda nil "0"))
 
