@@ -765,7 +765,7 @@ Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[li
     "Switch to the current session's scratch buffer."
     (interactive)
     (switch-to-buffer "*scratch*"))
-  (bind-key "H-," #'switch-to-scratch-buffer)
+  (bind-key "<f8>" #'switch-to-scratch-buffer)
 #+END_SRC
 
 *** Put the cursor on the middle always
@@ -783,6 +783,31 @@ got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.
   (setq display-line-numbers-type 'relative)
   (global-display-line-numbers-mode t)
 #+end_src
+
+*** Generate orgmode buffer quickly
+Emacs: New Empty Buffer 🚀
+http://xahlee.info/emacs/emacs/emacs_new_empty_buffer.html
+#+begin_src emacs-lisp
+  (defun xah-new-empty-buffer ()
+    "Open a new empty buffer."
+    (interactive)
+    (let (($buf (generate-new-buffer "noname")))
+      (switch-to-buffer $buf)
+      (funcall (org-mode))
+      (setq buffer-offer-save t)
+      $buf
+      ))
+  (global-set-key (kbd "H-,") 'xah-new-empty-buffer)
+#+end_src
+
+*** Switch to sticky.org
+#+BEGIN_SRC emacs-lisp
+  (defun switch-to-sticky ()
+    "Switch to my sticky.org"
+    (interactive)
+    (find-file "~/Dropbox/org/meta/sticky.org"))
+  (bind-key "H-9" #'switch-to-sticky)
+#+END_SRC
 
 ** modifying variables / keybinds
 *** Custom directory variables
@@ -3050,6 +3075,7 @@ not working
 ;;")
   (add-hook 'after-init-hook (lambda() (yza/gen-scratch-info) (setq initial-scratch-message (concat yza/title "\n;; " yza/scratch-info "\n;;"))))
 #+end_src
+
 * Window configurations (defuns)
 #+BEGIN_SRC emacs-lisp
   (defun yza/default-window-setup ()
