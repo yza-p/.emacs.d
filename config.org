@@ -389,7 +389,9 @@ Use ~C-n~ and ~C-p~ to navigate the tooltip.
 *** Flycheck
 A modern on-the-fly syntax checking extension -- absolute essential
 #+BEGIN_SRC emacs-lisp
-  (use-package flycheck :config (global-flycheck-mode +1))
+  (use-package flycheck
+    :config (global-flycheck-mode +1)
+    (setq flycheck-global-modes '(not org-mode)))
 #+END_SRC
 
 *** COMMENT Org Mode
