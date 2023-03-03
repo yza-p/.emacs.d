@@ -789,17 +789,46 @@ got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.
 *** Generate orgmode buffer quickly
 Emacs: New Empty Buffer 🚀
 http://xahlee.info/emacs/emacs/emacs_new_empty_buffer.html
-#+begin_src emacs-lisp
-  (defun xah-new-empty-buffer ()
+
+#+begin_src emacs-lisp :exports none
+  (defun xah-new-empty-buffer ()          ;
     "Open a new empty buffer."
     (interactive)
     (let (($buf (generate-new-buffer "noname")))
       (switch-to-buffer $buf)
       (funcall (org-mode))
+      (put 'buffer-offer-save 'permanent-local t)
       (setq buffer-offer-save t)
       $buf
       ))
-  (global-set-key (kbd "<f8>") 'xah-new-empty-buffer)
+#+end_src
+
+How to create a new, unnamed file in emacs? - Stack Overflow
+https://stackoverflow.com/questions/26979052/how-to-create-a-new-unnamed-file-in-emacs/26988416#26988416
+
+#+begin_src emacs-lisp
+  (defun new-empty-buffer ()
+  "Opens a new empty buffer."
+  (interactive)
+  (switch-to-buffer (generate-new-buffer "untitled"))
+  (funcall initial-major-mode)
+  (put 'buffer-offer-save 'permanent-local t)
+  (setq buffer-offer-save t))
+
+  (global-set-key (kbd "<f8>") 'new-empty-buffer)
+#+end_src
+
+*** Ask to save if buffer is unlinked to file and modified
+elisp - Emacs - Can't get buffer-offer-save working - Stack Overflow
+https://stackoverflow.com/questions/2357881/emacs-cant-get-buffer-offer-save-working
+#+begin_src elisp
+  (defadvice kill-buffer (around kill-buffer-ask activate)
+    "If `buffer-offer-save' is non-nil and a buffer is modified,
+  prompt before closing."
+    (if (and buffer-offer-save (buffer-modified-p))
+        (when (yes-or-no-p "The document isn't saved. Quit? ")
+          ad-do-it)
+      ad-do-it))
 #+end_src
 
 *** Switch to sticky.org
