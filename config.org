@@ -790,7 +790,7 @@ got it from this [[https://two-wrongs.com/centered-cursor-mode-in-vanilla-emacs.
 Emacs: New Empty Buffer 🚀
 http://xahlee.info/emacs/emacs/emacs_new_empty_buffer.html
 
-#+begin_src emacs-lisp :exports none
+#+begin_src
   (defun xah-new-empty-buffer ()          ;
     "Open a new empty buffer."
     (interactive)
@@ -808,12 +808,12 @@ https://stackoverflow.com/questions/26979052/how-to-create-a-new-unnamed-file-in
 
 #+begin_src emacs-lisp
   (defun new-empty-buffer ()
-  "Opens a new empty buffer."
-  (interactive)
-  (switch-to-buffer (generate-new-buffer "untitled"))
-  (funcall initial-major-mode)
-  (put 'buffer-offer-save 'permanent-local t)
-  (setq buffer-offer-save t))
+    "Opens a new empty buffer."
+    (interactive)
+    (switch-to-buffer (generate-new-buffer "untitled"))
+    (funcall (org-mode))
+    (put 'buffer-offer-save 'permanent-local t)
+    (setq buffer-offer-save t))
 
   (global-set-key (kbd "<f8>") 'new-empty-buffer)
 #+end_src
@@ -2158,7 +2158,7 @@ function came from here
                            ;;        :and (:tag "_longrun" :scheduled today))
                            ;; (:name "Habits today"
                            ;;        :and (:todo "HABT" :scheduled today))
-                           (:discard (:category "longrun"))
+                           (:discard (:tag "_longrun"))
                            (:discard (:todo "HABT"))
                            (:name "Today"
                                   :tag "chill"
@@ -2185,18 +2185,8 @@ function came from here
                            (:discard (:anything t))
                            ))
                         ))
-            (alltodo "" ((org-agenda-span 'day)
-                         (org-agenda-entry-types '(:scheduled))
-                         (org-agenda-overriding-header "Repeating Tasks / Longruns")
-                         (org-super-agenda-groups
-                          '((:discard (:not (:scheduled today)))
-                            (:name "Habits" :todo "HABT")
-                            (:name "Longruns" :tag "_longrun" :category "longrun")
-                            (:discard (:anything t))
-                            ))
-                         ))
-            ;; (org-ql-block '(and (not (clocked :on 0)) (tags "longrun") (ts-active :to 0))
-            ;;               ((org-ql-block-header "Longruns!")))
+            (org-ql-block '(and (not (clocked :on 0)) (tags "_longrun") (ts-active :to 0))
+                          ((org-ql-block-header "Longruns!")))
             (agenda "" ((org-agenda-overriding-header "Life Routines")
                         (org-agenda-span 'day)
                         (org-super-agenda-groups
