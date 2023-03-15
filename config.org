@@ -841,31 +841,34 @@ https://stackoverflow.com/questions/2357881/emacs-cant-get-buffer-offer-save-wor
 #+END_SRC
 
 ** modifying variables / keybinds
+*** Custom file variables
+#+begin_src emacs-lisp
+  (defvar yza/web-bookmark-file "~/Dropbox/org/notes/bookmarks.org")
+  (defvar yza/web-history-file "~/Dropbox/org/life/journal/webhistory.org")
+#+end_src
+
 *** Custom directory variables
 #+BEGIN_SRC emacs-lisp
   (defvar yza/action-files "~/Dropbox/org/life/actions/")
   (defvar yza/review-files "~/Dropbox/org/life/reviews/")
   (defvar yza/journal-files "~/Dropbox/org/life/journal/")
   (defvar yza/progress-diary-files "~/Dropbox/org/life/progdiary/")
-  (defvar yza/special-journal-files "~/Dropbox/org/life/journal/0special/")
+  ;; (defvar yza/special-journal-files "~/Dropbox/org/life/journal/0special/")
 
-  (defvar yza/action-archives "~/Dropbox/org/life/0archive/")
-  (defvar yza/allnotes-archive "~/Dropbox/org/notes/0archive/")
+  (defvar yza/action-archives "~/Dropbox/org/life/__archive/")
+  (defvar yza/allnotes-archive "~/Dropbox/org/notes/__archive/")
 
   (defvar yza/meta-files "~/Dropbox/org/meta/")
-  (defvar yza/slipbox-files "~/Dropbox/org/notes/slipbox/")
-  (defvar yza/notepad-files "~/Dropbox/org/notes/piles/")
-  (defvar yza/project-files "~/Dropbox/org/notes/projects/")
+  (defvar yza/active-notes "~/Dropbox/org/notes/denote/")
+  (defvar yza/slipbox-files "~/Dropbox/org/notes/denote/_slipbox/")
+  (defvar yza/notepad-files "~/Dropbox/org/notes/denote/_piles/")
 
-  (defvar yza/school-notes "~/Dropbox/org/notes/projects/school/")
-  (defvar yza/writeups "~/Dropbox/org/notes/projects/writeups/")
+  ;; Active Directories
+  (defvar yza/school-notes "~/Dropbox/org/notes/denote/school/")
+  (defvar yza/writeups "~/Dropbox/org/notes/denote/writeups/")
+  (defvar yza/fics "~/Dropbox/org/notes/denote/fics/")
+
 #+END_SRC
-
-*** Custom file variables
-#+begin_src emacs-lisp
-  (defvar yza/web-bookmark-file "~/Dropbox/org/notes/bookmarks.org")
-  (defvar yza/web-history-file "~/Dropbox/org/life/journal/webhistory.org")
-#+end_src
 
 *** Binding return to include indent
 [[http://www.emacslife.com/read-lisp-tweak-emacs/beginner-3-make-things-more-convenient.html][newbie res here]]
@@ -1936,6 +1939,7 @@ Got most of it from [[id:20220923T224009.783715][here]]
   (defun yza/rg-current-dir ()
     (interactive)
     (consult-ripgrep default-directory))
+
   (defun yza/rg-bookmarks ()
     (interactive)
     (consult-ripgrep yza/meta-files))
@@ -1961,9 +1965,10 @@ Got most of it from [[id:20220923T224009.783715][here]]
   (defun yza/rg-slipbox ()
     (interactive)
     (consult-ripgrep yza/slipbox-files))
+
   (defun yza/rg-projects ()
     (interactive)
-    (consult-ripgrep yza/project-files))
+    (consult-ripgrep yza/active-notes))
 
   (defun yza/rg-journal ()
     (interactive)
@@ -2272,16 +2277,9 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
 #+BEGIN_SRC emacs-lisp
   (use-package org-capture
     :preface
-    (defun org-journal-find-location ()
-      ;; Open today's journal, but specify a non-nil prefix argument in order to
-      ;; inhibit inserting the heading; org-capture will insert the heading.
-      (org-journal-new-entry t)
-      (unless (eq org-journal-file-type 'daily)
-        (org-narrow-to-subtree))
-      (goto-char (point-max)))
-    (defun yza/get-project-files ()
-      (find-lisp-find-files yza/project-files "\.org$")
-      )
+    (defun yza/get-active-notes ()
+      (find-lisp-find-files yza/active-notes "\.org$"))
+
     :ensure nil
     :bind (("<f12>" . org-capture))
     :custom
@@ -2433,12 +2431,12 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                               ("refile to notes' refiler" :keys "p"
                                :headline "Refile"
                                :file "~/Dropbox/org/notes/refile.org"
-                               :refile-targets (( yza/get-project-files :maxlevel . 2)))
+                               :refile-targets (( yza/get-active-notes :maxlevel . 2)))
                               ("refile to notes' refiler (focused)" :keys "f"
                                :headline "Refile"
                                :file "~/Dropbox/org/notes/refile.org"
                                :hook (lambda () (call-interactively 'delete-other-windows))
-                               :refile-targets (( yza/get-project-files :maxlevel . 2)))
+                               :refile-targets (( yza/get-active-notes :maxlevel . 2)))
                               ;; ("refile to new file (focus)" :keys "n"
                               ;;  :file denote-last-path
                               ;;  :hook (lambda () (call-interactively 'delete-other-windows))
@@ -2448,7 +2446,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                    :unnarrowed t
                    :type plain
                    :children (("Gratitude journal" :keys "h"
-                               :file (lambda () (concat yza/special-journal-files "gratitude.org"))
+                               :file (lambda () (concat yza/journal-files "gratitude.org"))
                                :template ("%^{rate}p\n1. Why is the day good/bad?%?"
                                           "\n2. What excited me (positive)?"
                                           "\n3. What drained me of energy (negative)?"
@@ -2456,10 +2454,10 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                                           "\n5. How did I pushed the needle forward?")
                                :tree-type week
                                :datetree t)
-                              ("Dreams!" :keys "z"
-                               :file (lambda () (concat yza/special-journal-files "dream.org"))
-                               :tree-type week
-                               :datetree t)
+                              ;; ("Dreams!" :keys "z"
+                              ;;  :file (lambda () (concat yza/special-journal-files "dream.org"))
+                              ;;  :tree-type week
+                              ;;  :datetree t)
                               )
                    )))
           )
@@ -2711,8 +2709,6 @@ Org-appear for general org markups
 *** TODO Org-projectile
 *** consult-notes for viewing notes
 #+begin_src emacs-lisp
-  ;; (load "~/.emacs.d/external/consult-notes-main/consult-notes-org-roam.el")
-
   (use-package consult-notes-org-roam
     :load-path "~/.emacs.d/external/consult-notes-main/"
     :ensure nil
@@ -2727,11 +2723,11 @@ Org-appear for general org markups
     :config
     (setq consult-notes-data-dirs `(("Piles" ?y ,(concat yza/notepad-files))
                                     ("Task Reviews" ?a ,(concat yza/action-archives))
-                                    ("Special Journals" ?j ,(concat yza/special-journal-files))
                                     ("Project Diaries" ?p ,(concat yza/progress-diary-files))
                                     ("Project: School Notes" ?s ,(concat yza/school-notes))
-                                    ("Project: Fics" ?f ,(concat yza/project-files "fics/"))
+                                    ("Project: Fics" ?f ,(concat yza/fics))
                                     ("Write-ups" ?w ,(concat yza/writeups))
+                                    ("Other notes" ?o "~/Dropbox/org/notes/")
                                     ))
     ;; Define sources
     (setq consult-notes-sources '(consult-notes-data-dirs
@@ -2751,7 +2747,9 @@ Org-appear for general org markups
      ("H-[ u" . denote-rename-file-using-front-matter)
      ("H-[ r" . denote-rename-file))
     :custom
-    (denote-directory yza/notepad-files))
+    (denote-directory "~/Dropbox/org/notes/denote/")
+    (denote-prompts '(subdirectory title keywords))
+    (denote-excluded-directories-regexp ".+ltximg"))
 #+end_src
 
 *** INCUBATE org-now
@@ -2977,7 +2975,7 @@ combining doct to org-roam came from this [[https://github.com/progfolio/doct/is
   ;;          :unnarrowed t)))
 #+END_SRC
 
-*** deft
+*** COMMENT deft
 found a nice short config here in [[https://www.reddit.com/r/emacs/comments/h0h4ix/how_to_configure_multile_directories_with_deft/][this reddit thread]]
 #+BEGIN_SRC emacs-lisp
   (use-package deft
@@ -2992,8 +2990,8 @@ found a nice short config here in [[https://www.reddit.com/r/emacs/comments/h0h4
                              "~/Dropbox/org/life/dashboards/"
                              ;; "~/Dropbox/org/notes/1.piles"
                              ))
-    ;; (setq my/deft-dir-list '((lambda () (concat yza/project-files "fics/"))
-    ;;                          (lambda () (concat yza/project-files "school/"))
+    ;; (setq my/deft-dir-list '((lambda () (concat yza/active-notes "fics/"))
+    ;;                          (lambda () (concat yza/active-notes "school/"))
     ;;                          ))
 
     (defun my/pick-deft-dir ()
@@ -3049,7 +3047,7 @@ not working
     :config
     (org-multi-wiki-global-mode 1)
     :custom
-    ;; (org-multi-wiki-namespace-list '((personal (concat yza/project-files "yza/"))))
+    ;; (org-multi-wiki-namespace-list '((personal (concat yza/active-notes "yza/"))))
     ;; (org-multi-wiki-namespace-list '((huh "~/Dropbox/org/projects/yza/")
     ;; (schnotes "~/Dropbox/org/projects/future.school/")
     ;; (schprojs "~/Dropbox/org/projects/future.school/projects/")
