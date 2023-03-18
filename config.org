@@ -1206,46 +1206,78 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
 
 **** yza - window movement
 #+begin_src emacs-lisp
-  (pretty-hydra-define phydra-window
-    (:color pink :quit-key "SPC" :title "Buffer Config")
-    ("Navigate Buffers"
-     (("h" windmove-left)
-      ("j" windmove-down)
-      ("k" windmove-up)
-      ("l" windmove-right))
+    (defun hydra-move-splitter-left (arg)
+    "Move window splitter left."
+    (interactive "p")
+    (if (let ((windmove-wrap-around))
+          (windmove-find-other-window 'right))
+        (shrink-window-horizontally arg)
+      (enlarge-window-horizontally arg)))
 
-     "Add/Delete Window"
-     (("2" split-window-below)
-      ("3" split-window-right)
-      ("4" ian/split-and-follow-vertically)
-      ("5" ian/split-and-follow-horizontally)
-      ("0" delete-window)
-      ("-" delete-other-windows))
+  (defun hydra-move-splitter-right (arg)
+    "Move window splitter right."
+    (interactive "p")
+    (if (let ((windmove-wrap-around))
+          (windmove-find-other-window 'right))
+        (enlarge-window-horizontally arg)
+      (shrink-window-horizontally arg)))
 
-     "Resize Window"
-     (("<backspace>" balance-windows)
-      ("=" maximize-window)
-      ("-" minimize-window))
+  (defun hydra-move-splitter-up (arg)
+    "Move window splitter up."
+    (interactive "p")
+    (if (let ((windmove-wrap-around))
+          (windmove-find-other-window 'up))
+        (enlarge-window arg)
+      (shrink-window arg)))
 
-     "Buffer Move"
-     (("M-<up>" buf-move-up)
-      ("M-<down>" buf-move-down)
-      ("M-<left>" buf-move-left)
-      ("M-<right>" buf-move-right))
+  (defun hydra-move-splitter-down (arg)
+    "Move window splitter down."
+    (interactive "p")
+    (if (let ((windmove-wrap-around))
+          (windmove-find-other-window 'up))
+        (shrink-window arg)
+      (enlarge-window arg)))
 
-     "Buffer History"
-     (("<right>" previous-buffer)
-      ("<left>" next-buffer))
+    (pretty-hydra-define phydra-window
+      (:color pink :quit-key "SPC" :title "Buffer Config")
+      ("Navigate Buffers"
+       (("h" windmove-left)
+        ("j" windmove-down)
+        ("k" windmove-up)
+        ("l" windmove-right))
 
-     "Move Splitter Line"
-     (("s-<up>" hydra-move-splitter-up)
-      ("s-<down>" hydra-move-splitter-down)
-      ("s-<left>" hydra-move-splitter-left)
-      ("s-<right>" hydra-move-splitter-right))
-     )
-    )
+       "Add/Delete Window"
+       (("2" split-window-below)
+        ("3" split-window-right)
+        ("4" ian/split-and-follow-vertically)
+        ("5" ian/split-and-follow-horizontally)
+        ("0" delete-window)
+        ("-" delete-other-windows))
 
-  (global-set-key (kbd "s-w") 'phydra-window/body)
+       "Resize Window"
+       (("<backspace>" balance-windows)
+        ("=" maximize-window)
+        ("-" minimize-window))
+
+       "Buffer Move"
+       (("M-<up>" buf-move-up)
+        ("M-<down>" buf-move-down)
+        ("M-<left>" buf-move-left)
+        ("M-<right>" buf-move-right))
+
+       "Buffer History"
+       (("<right>" previous-buffer)
+        ("<left>" next-buffer))
+
+       "Move Splitter Line"
+       (("s-<up>" hydra-move-splitter-up)
+        ("s-<down>" hydra-move-splitter-down)
+        ("s-<left>" hydra-move-splitter-left)
+        ("s-<right>" hydra-move-splitter-right))
+       )
+      )
+
+    (global-set-key (kbd "s-w") 'phydra-window/body)
 #+END_SRC
 #+end_src
 **** TODO yza - editing sentences and such
