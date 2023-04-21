@@ -2479,12 +2479,12 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                    :type plain
                    :children (("Gratitude journal" :keys "h"
                                :file (lambda () (concat yza/journal-files "gratitude.org"))
-                               :template ("%^{rate}p\n1. Why is the day good/bad?%?"
-                                          "\n2. What excited me (positive)?"
-                                          "\n3. What drained me of energy (negative)?"
-                                          "\n4. What are the 10 things I'm grateful for?"
-                                          "\n5. How did I pushed the needle forward?")
+                               :template ("%^{rate}p\n1. What really happened?\n%?"
+                                          "\n2. Why it happened?"
+                                          "\n3. What are the 10 things I'm grateful for?"
+                                          "\n4. How would I push the needle forward today?")
                                :tree-type week
+                               :time-prompt t
                                :datetree t)
                               ;; ("Dreams!" :keys "z"
                               ;;  :file (lambda () (concat yza/special-journal-files "dream.org"))
