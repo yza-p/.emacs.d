@@ -978,20 +978,32 @@ https://stackoverflow.com/questions/2357881/emacs-cant-get-buffer-offer-save-wor
    'default-frame-alist'(ns-appearance . light))
   (set-face-attribute 'default nil :family "Roboto Mono" :height 150)
   (set-face-attribute 'fixed-pitch nil :family "Roboto Mono")
-  (set-face-attribute 'variable-pitch nil :family "IBM Plex Serif" :height 175)
+  (set-face-attribute 'variable-pitch nil :family "IBM Plex Serif" :height 1.2)
 #+END_SRC
 
 #+begin_src emacs-lisp
-    (setq poet-theme-variable-headers nil)
-    (custom-theme-set-faces 'user
-                            `(org-level-1 ((t (:foreground "#ffd2d2" :height 200))))
-                            `(org-level-2 ((t (:foreground "#cbe2ff" :height 200))))
-                            `(org-level-3 ((t (:foreground "#fffec8" :height 200))))
-                            `(org-level-4 ((t (:foreground "#f7d4ff" :height 200))))
-                            `(org-level-5 ((t (:foreground "#d9d9d9" :height 200))))
-                            `(org-level-6 ((t (:foreground "#D2FFD2" :height 200))))
-                            `(org-level-7 ((t (:foreground "#d2d2ff" :height 200))))
-                            `(org-level-8 ((t (:foreground "#f9f0ff" :height 200)))))
+  ;; (custom-theme-set-faces 'user
+  ;;                         `(org-level-1 ((t (:foreground "#ffd2d2"))))
+  ;;                         `(org-level-2 ((t (:foreground "#cbe2ff"))))
+  ;;                         `(org-level-3 ((t (:foreground "#fffec8"))))
+  ;;                         `(org-level-4 ((t (:foreground "#f7d4ff"))))
+  ;;                         `(org-level-5 ((t (:foreground "#d9d9d9"))))
+  ;;                         `(org-level-6 ((t (:foreground "#D2FFD2"))))
+  ;;                         `(org-level-7 ((t (:foreground "#d2d2ff"))))
+  ;;                         `(org-level-8 ((t (:foreground "#f9f0ff")))))
+  (custom-set-faces
+   `(org-level-1 ((t (:foreground "#ffd2d2" :height 1.4))))
+   `(org-level-2 ((t (:foreground "#cbe2ff" :height 1.3))))
+   `(org-level-3 ((t (:foreground "#fffec8" :height 1.3))))
+   `(org-level-4 ((t (:foreground "#f7d4ff" :height 1.3))))
+   `(org-level-5 ((t (:foreground "#d9d9d9" :height 1.3))))
+   `(org-level-6 ((t (:foreground "#D2FFD2" :height 1.3))))
+   `(org-level-7 ((t (:foreground "#d2d2ff" :height 1.3))))
+   `(org-level-8 ((t (:foreground "#f9f0ff" :height 1.3)))))
+
+  ;; (advice-add 'poet-theme--height :around (lambda (orig-fun multiplier)
+  ;;                                           (face-attribute 'default :height 1.7)))
+  ;; (org-document-title ((t (:weight bold :height 1.5))))
 #+end_src
 *** COMMENT Circadian for changing themes
 #+BEGIN_SRC emacs-lisp
@@ -1468,6 +1480,12 @@ for minimalist modeline
     (evil-set-initial-state 'mingus-playlist-mode 'emacs)
     )
 #+end_src
+
+*** darkroom
+#+begin_src
+(bind-key "s-f" 'darkroom-mode)
+#+end_src
+
 ** Completion stack
 *** Vertico
 The main interface for completion. Comparing both selectrum and this, I decided to go with this because it is more lightweight
