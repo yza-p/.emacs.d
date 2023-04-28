@@ -2406,17 +2406,13 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
                               ("Event now!" :keys "e" :todo-state "TODO"
                                :file (lambda () (concat yza/action-files "actionable.org"))
                                :headline "Appointments"
-                               :template ("* %{todo-state} %^{Description} %? %^g"
-                                          ":PROPERTIES:"
-                                          ":created: %U"
-                                          ":END:"))
-                              ("Action now!" :keys "a" :todo-state "NEXT"
+                               :template ("* %{todo-state} %^{Description} %? %^g"))
+                              ("Action now (non-unique)!" :keys "n" :todo-state "NEXT"
                                :headline "Actions"
-                               :template ("* %{todo-state}  %^{Description} %? %^g"
-                                          ":PROPERTIES:"
-                                          ":created: %U"
-                                          ":effort: %^{Effort}"
-                                          ":END:"))
+                               :template (lambda () (format-time-string "* %{todo-state} [%Y/%m/%d] %^{Description} %?")))
+                              ("Action now (unplanned, unique)!" :keys "a" :todo-state "NEXT"
+                               :headline "Actions"
+                               :template ("* %{todo-state} %^{Description} %?"))
                               ("New web content now!" :keys "w" :todo-state "READING"
                                :headline "Web Content"
                                :clock-keep nil
