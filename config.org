@@ -470,13 +470,8 @@ Provides us with hints on available keystroke combinations.
            (org-mode . org-indent-mode))
     :config
     (define-key org-mode-map (kbd "C-c C-l") nil)
+    (setq org-catch-invisible-edits 'error)
     (setq org-image-actual-width '(600))
-    (custom-set-faces
-     ;; custom-set-faces was added by Custom.
-     ;; If you edit it by hand, you could mess it up, so be careful.
-     ;; Your init file should contain only one such instance.
-     ;; If there is more than one, they won't work right.
-     '(org-drawer ((t (:inherit (shadow fixed-pitch) :background "gray11")))))
     :bind (("H-/" . org-todo)
            ("C-c l" . org-store-link)
            ("C-c C-l" . ar/org-insert-link-dwim)
@@ -549,7 +544,8 @@ Provides us with hints on available keystroke combinations.
     (org-link ((t (:inherit link :family "Roboto Mono"))))
     (org-document-title ((t (:weight bold :height 1.5))))
     (org-headline-done ((t (:strike-through t))))
-    (org-drawer ((t (:inherit (shadow fixed-pitch) :background "gray11"))))
+    (org-drawer ((t (:inherit link :family "Roboto Mono"))))
+    (org-drawer ((t (:inherit (shadow fixed-pitch) :foreground "DimGray"))))
     )
 #+END_SRC
 
@@ -820,6 +816,31 @@ https://stackoverflow.com/questions/2357881/emacs-cant-get-buffer-offer-save-wor
   (bind-key "H-," #'switch-to-sticky)
 #+END_SRC
 
+*** Window configurations
+#+BEGIN_SRC emacs-lisp
+  (defun yza/default-window-setup ()
+    "Called by emacs-startup-hook to set up my initial window configuration."
+    ;; (find-file "~/Dropbox/org/meta/sticky.org")
+    (ian/split-and-follow-vertically)
+    (org-agenda nil "0"))
+
+  (defun yza/default-fast-window-setup ()
+    "Called by emacs-startup-hook to set up my initial window configuration."
+    (split-window-below)
+    (split-window-right))
+
+  (defun yza/switch-to-agenda () ;; call org agenda only if there's no existing shit, use switch-buffer if so
+    (interactive)
+    "Called by emacs-startup-hook to set up my initial window configuration."
+    (switch-to-buffer "*Org Agenda*")
+    ;; (org-agenda nil "0")
+    )
+
+  (add-hook 'after-init-hook #'yza/default-window-setup)
+  ;; (global-set-key (kbd "H-1") #'yza/default-window-setup)
+  (global-set-key (kbd "H-0") #'yza/switch-to-agenda)
+#+END_SRC
+
 ** modifying variables / keybinds
 *** Custom file variables
 #+begin_src emacs-lisp
@@ -839,14 +860,14 @@ https://stackoverflow.com/questions/2357881/emacs-cant-get-buffer-offer-save-wor
   (defvar yza/allnotes-archive "~/Dropbox/org/notes/__archive/")
 
   (defvar yza/meta-files "~/Dropbox/org/meta/")
-  (defvar yza/active-notes "~/Dropbox/org/notes/denote/")
-  (defvar yza/slipbox-files "~/Dropbox/org/notes/denote/_slipbox/")
-  (defvar yza/notepad-files "~/Dropbox/org/notes/denote/_piles/")
+  (defvar yza/active-notes "~/Dropbox/org/notes/")
+  (defvar yza/slipbox-files "~/Dropbox/org/notes/_slipbox/")
+  (defvar yza/notepad-files "~/Dropbox/org/notes/_piles/")
 
   ;; Active Directories
-  (defvar yza/school-notes "~/Dropbox/org/notes/denote/school/")
-  (defvar yza/writeups "~/Dropbox/org/notes/denote/writeups/")
-  (defvar yza/fics "~/Dropbox/org/notes/denote/fics/")
+  (defvar yza/school-notes "~/Dropbox/org/notes/school/")
+  (defvar yza/writeups "~/Dropbox/org/notes/writeups/")
+  (defvar yza/fics "~/Dropbox/org/notes/fics/")
 
 #+END_SRC
 
@@ -874,15 +895,6 @@ https://stackoverflow.com/questions/2357881/emacs-cant-get-buffer-offer-save-wor
 #+BEGIN_SRC emacs-lisp
   (save-place-mode 1)
 #+END_SRC
-
-*** Safe local variables
-#+begin_src emacs-lisp
-  (setq safe-local-variable-values '((denote-directory . "~/Dropbox/org/notes/slipbox/")
-                                     (denote-directory . "~/Dropbox/org/notes/projects/writeups/")
-                                     (denote-directory . "~/Dropbox/org/notes/projects/school/")
-                                     ))
-
-#+end_src
 
 * Yza Config - Third-party
 ** Daemon Server
@@ -1303,21 +1315,6 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
       t)
 
     (setf (alist-get ?. avy-dispatch-alist) 'avy-action-embark)
-    )
-#+end_src
-
-*** COMMENT EMMS for music
-#+begin_src emacs-lisp
-  (require 'emms-mode-line)
-  (require 'emms-mode-line-icon)
-  (use-package emms
-    :custom
-    (emms-source-file-default-directory "~/Music/self indexed/")
-    (emms-mode-line-icon-enabled-p t)
-    :config
-    (emms-all)
-    (emms-default-players)
-    (emms-mode-line 1)
     )
 #+end_src
 
@@ -2582,9 +2579,9 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
 
 *** Org-fragtog and Org-reveal for revealing markups
 Org-fragtog for viewing raw latex and svg generation
-#+BEGIN_SRC emacs-lisp
-  (use-package org-fragtog
-    :hook ((org-mode . org-fragtog-mode)))
+#+BEGIN_SRC emacs-lisp :export nil
+  ;; (use-package org-fragtog
+  ;;   :hook ((org-mode . org-fragtog-mode)))
 #+END_SRC
 
 Org-appear for general org markups
@@ -2762,7 +2759,6 @@ Org-appear for general org markups
     (consult-notes-org-roam-mode)
     (consult-notes-denote-mode)
     )
-
 #+end_src
 
 **** denote
@@ -2949,8 +2945,7 @@ combining doct to org-roam came from this [[https://github.com/progfolio/doct/is
             :before-finalize (lambda () (call-interactively 'denote-rename-file))
             :jump-to-captured t
             :hook (lambda () (call-interactively 'delete-other-windows))
-            :head (
-                   ""
+            :head (""
                    ""))
            ("default (quick jot)" :keys "f"
             :template "%?"
@@ -2958,18 +2953,8 @@ combining doct to org-roam came from this [[https://github.com/progfolio/doct/is
             :unnarrowed t
             :file "${slug}.org"
             :hook (lambda () (call-interactively 'delete-other-windows))
-            :head ("#+title: ${hierarchy-title}"
-                   ""
+            :head (""
                    ""))
-           ("orphan" :keys "o"
-            :template "* ${title}%?"
-            :headline "No Category"
-            :type entry
-            :hook (lambda () (call-interactively 'delete-other-windows))
-            :prepare-finalize (lambda () (call-interactively 'org-id-get-create))
-            :file "orphans.org"
-            :refile-targets (( "~/Dropbox/org/notes/0.slipbox/orphans.org" :maxlevel . 4)))
-
            ("ref" :keys "r"
             :template "%?"
             :type plain
@@ -3111,34 +3096,4 @@ not working
 ;;    ###    ######### ###     ### ###       ### ###     ###  ########   ########          ###
 ;;")
   (add-hook 'after-init-hook (lambda() (yza/gen-scratch-info) (setq initial-scratch-message (concat yza/title "\n;; " yza/scratch-info "\n;;"))))
-#+end_src
-
-* Window configurations (defuns)
-#+BEGIN_SRC emacs-lisp
-  (defun yza/default-window-setup ()
-    "Called by emacs-startup-hook to set up my initial window configuration."
-    ;; (find-file "~/Dropbox/org/meta/sticky.org")
-    (ian/split-and-follow-vertically)
-    (org-agenda nil "0"))
-
-  (defun yza/default-fast-window-setup ()
-    "Called by emacs-startup-hook to set up my initial window configuration."
-    (split-window-below)
-    (split-window-right))
-
-  (defun yza/switch-to-agenda () ;; call org agenda only if there's no existing shit, use switch-buffer if so
-    (interactive)
-    "Called by emacs-startup-hook to set up my initial window configuration."
-    (switch-to-buffer "*Org Agenda*")
-    ;; (org-agenda nil "0")
-    )
-
-  (add-hook 'after-init-hook #'yza/default-window-setup)
-  ;; (global-set-key (kbd "H-1") #'yza/default-window-setup)
-  (global-set-key (kbd "H-0") #'yza/switch-to-agenda)
-#+END_SRC
-
-* TODO Tests
-#+begin_src emacs-lisp
-  (setq org-catch-invisible-edits 'error)
 #+end_src
