@@ -571,34 +571,6 @@ Provides us with hints on available keystroke combinations.
   (add-to-list 'recentf-exclude "\\elpa")
 #+END_SRC
 
-*** COMMENT orgcapture everywhere
-[[https://www.reddit.com/r/orgmode/comments/uycc8m/spawn_a_new_frame_for_orgcapture/][reddit src]]
-#+BEGIN_SRC emacs-lisp
-  (defadvice org-switch-to-buffer-other-window
-      (after supress-window-splitting activate)
-    "Delete the extra window if we're in a capture frame"
-    (if (equal "capture" (frame-parameter nil 'name))
-        (delete-other-windows)))
-
-  (defun activate-capture-frame ()
-    "run org-capture in capture frame"
-    (select-frame-by-name "capture")
-    (switch-to-buffer (get-buffer-create "*scratch*"))
-    (org-capture))
-
-  (defadvice org-capture-finalize
-      (after delete-capture-frame activate)
-    "Advise capture-finalize to close the frame"
-    (when (and (equal "capture" (frame-parameter nil 'name))
-               (not (eq this-command 'org-capture-refile)))
-      (delete-frame)))
-
-  (defadvice org-capture-refile
-      (after delete-capture-frame activate)
-    "Advise org-refile to close the frame"
-    (delete-frame))
-#+END_SRC
-
 *** Buffer travel using windmove
 #+BEGIN_SRC emacs-lisp
   (windmove-default-keybindings 'super)
@@ -607,6 +579,14 @@ Provides us with hints on available keystroke combinations.
 
 *** TODO dynamic abbrevs / hippie expand
 [[https://www.emacswiki.org/emacs/DynamicAbbreviations][emacswiki]]
+
+*** zoning
+#+begin_src emacs-lisp
+  (setq zone-timer (run-with-idle-timer 120 t 'zone))
+  (global-set-key (kbd "C-c z a") 'zone-when-idle)
+  (global-set-key (kbd "C-c z x") 'zone-leave-me-alone)
+  (global-set-key (kbd "C-c z i") 'zone)
+#+end_src
 
 ** functions, main functionalities
 *** Replace default org-cycle to include properties too
@@ -1482,8 +1462,9 @@ for minimalist modeline
 #+end_src
 
 *** darkroom
-#+begin_src
-(bind-key "s-f" 'darkroom-mode)
+#+begin_src emacs-lisp
+  (bind-key "s-f" 'darkroom-mode)
+  (setq darkroom-text-scale-increase 0)
 #+end_src
 
 ** Completion stack
@@ -3136,7 +3117,7 @@ not working
 #+BEGIN_SRC emacs-lisp
   (defun yza/default-window-setup ()
     "Called by emacs-startup-hook to set up my initial window configuration."
-    (find-file "~/Dropbox/org/meta/sticky.org")
+    ;; (find-file "~/Dropbox/org/meta/sticky.org")
     (ian/split-and-follow-vertically)
     (org-agenda nil "0"))
 
