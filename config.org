@@ -472,6 +472,7 @@ Provides us with hints on available keystroke combinations.
     (define-key org-mode-map (kbd "C-c C-l") nil)
     (setq org-catch-invisible-edits 'error)
     (setq org-image-actual-width '(600))
+    (setq org-latex-listings t)
     :bind (("H-/" . org-todo)
            ("C-c l" . org-store-link)
            ("C-c C-l" . ar/org-insert-link-dwim)
@@ -2769,9 +2770,9 @@ Org-appear for general org markups
      ("H-[ u" . denote-rename-file-using-front-matter)
      ("H-[ r" . denote-rename-file))
     :custom
-    (denote-directory "~/Dropbox/org/notes/denote/")
+    (denote-directory "~/Dropbox/org/notes/")
     (denote-prompts '(subdirectory title keywords))
-    (denote-excluded-directories-regexp ".+ltximg"))
+    (denote-excluded-directories-regexp "ltximg\\|\+.+"))
 #+end_src
 
 **** INCUBATE org-now
@@ -2904,14 +2905,12 @@ Most of this came from wonderful [[https://gist.github.com/jeremyf/b1fb8414624e6
 
     :custom
     (org-roam-directory (file-truename yza/slipbox-files))
-    ;; (org-roam-node-display-template "${hierarchy}:${title:*} ${tags:40}")
-    (org-roam-node-display-template "${title:*} ${tags:40}")
+    (org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
     (org-roam-db-node-include-function
           (lambda ()
             (not (member "dontindex" (org-get-tags)))))
     )
 #+END_SRC
-
 ****** mini: org-buffer on the side
 from the [[https://www.orgroam.com/manual.html#Configuring-the-Org_002droam-buffer-display][official docs]]
 #+begin_src emacs-lisp
