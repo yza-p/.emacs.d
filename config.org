@@ -1465,6 +1465,12 @@ for minimalist modeline
   (setq darkroom-text-scale-increase 0)
 #+end_src
 
+*** thesaurus
+#+begin_src emacs-lisp
+(use-package powerthesaurus
+  :bind
+  (("H-w" . powerthesaurus-hydra/body)))
+#+end_src
 ** Completion stack
 *** Vertico
 The main interface for completion. Comparing both selectrum and this, I decided to go with this because it is more lightweight
@@ -2641,7 +2647,7 @@ Org-appear for general org markups
     )
 #+END_SRC
 
-*** Thesaurus/Dictionary combo using Merriam Webster
+*** COMMENT Thesaurus/Dctionary combo using Merriam Webster
 #+begin_src emacs-lisp
   (use-package mw-thesaurus
     :bind (:map org-mode-map ("H-z" . mw-thesaurus-lookup-dwim)))
