@@ -163,7 +163,11 @@ the value depending on the language as well.
   ;; Python (both v2 and v3)
   (use-package python
     :ensure nil
-    :config (setq python-indent-offset ian/indent-width))
+    :config
+    (setq python-indent-offset ian/indent-width)
+    (setq python-guess-indent nil)
+    )
+
 #+END_SRC
 
 ** Mouse wheel (track-pad) scroll speed
