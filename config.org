@@ -494,7 +494,7 @@ Provides us with hints on available keystroke combinations.
      '(org-attach-id-ts-folder-format
        org-attach-id-uuid-folder-format))
     (org-log-done 'time)
-    (org-id-extra-files (append (find-lisp-find-files yza/action-archives "\.org$") (find-lisp-find-files yza/meta-files "\.org$")))
+    ;; (org-id-extra-files (append (find-lisp-find-files yza/action-archives "\.org$") (find-lisp-find-files yza/meta-files "\.org$")))
     ;; (org-id-extra-files (append (find-lisp-find-files yza/action-archives "\.org_archive$")))
     (org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
     (org-extend-today-until 5)
@@ -1737,21 +1737,14 @@ for other useful functions
     ;; after lazily loading the package.
     :config
 
-    ;; Optionally configure preview. The default value
-    ;; is 'any, such that any key triggers the preview.
-    ;; (setq consult-preview-key 'any)
-    ;; (setq consult-preview-key (kbd "M-."))
-    ;; (setq consult-preview-key (list (kbd "<S-down>") (kbd "<S-up>")))
-    ;; For some commands and buffer sources it is useful to configure the
-    ;; :preview-key on a per-command basis using the `consult-customize' macro.
     (consult-customize
-     consult-theme
-     :preview-key '(:debounce 0.2 any)
      consult-ripgrep consult-git-grep consult-grep
      consult-bookmark consult-recent-file consult-xref
-     consult--source-bookmark consult--source-recent-file
-     consult--source-project-recent-file
-     :preview-key (kbd "M-."))
+     consult--source-bookmark consult--source-file-register
+     consult--source-recent-file consult--source-project-recent-file
+     ;; my/command-wrapping-consult    ;; disable auto previews inside my command
+     :preview-key '(:debounce 0.4 any)) ;; Option 1: Delay preview
+    ;; :preview-key "M-.")            ;; Option 2: Manual preview
 
     ;; Optionally configure the narrowing key.
     ;; Both < and C-+ work reasonably well.
@@ -2638,7 +2631,8 @@ Org-appear for general org markups
 *** Olivetti for formatting
 #+BEGIN_SRC emacs-lisp
   (use-package olivetti
-    :hook ((org-mode . olivetti-mode))
+    :hook ((org-mode . olivetti-mode)
+           (markdown-mode . olivetti-mode))
     :custom
     (olivetti-body-width 175))
 #+END_SRC
@@ -2812,7 +2806,7 @@ Org-appear for general org markups
     (denote-excluded-directories-regexp "ltximg\\|\+.+"))
 #+end_src
 
-**** INCUBATE org-now
+**** COMMENT org-now
 #+begin_src emacs-lisp
   (use-package org-now
     :quelpa (org-now :fetcher github :repo "alphapapa/org-now")
