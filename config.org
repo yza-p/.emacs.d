@@ -901,6 +901,11 @@ https://stackoverflow.com/questions/2357881/emacs-cant-get-buffer-offer-save-wor
   (save-place-mode 1)
 #+END_SRC
 
+*** GPG config
+#+begin_src emacs-lisp
+  (setq epg-gpg-home-directory "~/.gnupg")
+#+end_src
+
 * Yza Config - Third-party
 ** Daemon Server
 #+BEGIN_SRC emacs-lisp
