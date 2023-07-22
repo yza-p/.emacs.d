@@ -12,7 +12,8 @@
 
 * scratch fortunes
 #+begin_src emacs-lisp
-  (setq fortune-file "/usr/local/Cellar/fortune/9708/share/games/fortunes/yza")
+  (setq fortune-file "~/Dropbox/org/meta/yza")
+  (setq fortune-dir "~/Dropbox/org/meta/")
   (use-package scratch-message
     :quelpa (scratch-message :fetcher github :repo "thisirs/scratch-message")
     :config
