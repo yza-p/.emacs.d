@@ -870,9 +870,9 @@ https://stackoverflow.com/questions/2357881/emacs-cant-get-buffer-offer-save-wor
   (defvar yza/notepad-files "~/Dropbox/org/notes/_piles/")
 
   ;; Active Directories
-  (defvar yza/school-notes "~/Dropbox/org/notes/school/")
-  (defvar yza/writeups "~/Dropbox/org/notes/writeups/")
-  (defvar yza/fics "~/Dropbox/org/notes/fics/")
+  ;; (defvar yza/school-notes "~/Dropbox/org/notes/school/")
+  ;; (defvar yza/writeups "~/Dropbox/org/notes/writeups/")
+  ;; (defvar yza/fics "~/Dropbox/org/notes/fics/")
 
 #+END_SRC
 
@@ -2653,7 +2653,7 @@ Org-appear for general org markups
       (org-download-enable))
     :config
     (add-hook 'dired-mode-hook 'org-download-enable)
-    (setq-default org-download-image-dir "~/Dropbox/org_back"))
+    (setq-default org-download-image-dir "~/Dropbox/org/meta/attached"))
 #+END_SRC
 
 *** Org-clock-convenience
@@ -2791,8 +2791,8 @@ Org-appear for general org markups
     (setq consult-notes-file-dir-sources `(
                                     ("Task Reviews" ?a ,(concat yza/action-archives))
                                     ("Project Diaries" ?p ,(concat yza/progress-diary-files))
-                                    ("Project: Fics" ?f ,(concat yza/fics))
-                                    ("Other notes" ?o "~/Dropbox/org/notes/")
+                                    ;; ("Project: Fics" ?f ,(concat yza/fics))
+                                    ;; ("Other notes" ?o "~/Dropbox/org/notes/")
                                     ))
     (consult-notes-org-roam-mode)
     (consult-notes-denote-mode)
