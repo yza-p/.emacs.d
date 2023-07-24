@@ -856,6 +856,8 @@ https://stackoverflow.com/questions/2357881/emacs-cant-get-buffer-offer-save-wor
 
 *** Custom directory variables
 #+BEGIN_SRC emacs-lisp
+  (defvar yza/agenda-files "~/Dropbox/org/life/")
+
   (defvar yza/action-files "~/Dropbox/org/life/actions/")
   (defvar yza/review-files "~/Dropbox/org/life/reviews/")
   (defvar yza/journal-files "~/Dropbox/org/life/journal/")
@@ -2326,8 +2328,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
     :bind (("<f9>" . org-agenda))
     :config
     :custom
-    (org-agenda-files (append (find-lisp-find-files yza/action-files "\.org$")
-                              (find-lisp-find-files yza/progress-diary-files "\.org$")
+    (org-agenda-files (append (find-lisp-find-files yza/agenda-files "\.org$")
                               ))
     (org-agenda-start-with-log-mode t)
     )
