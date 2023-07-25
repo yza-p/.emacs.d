@@ -513,38 +513,26 @@ Provides us with hints on available keystroke combinations.
     (org-columns-default-format "%ITEM(Task) %TODO %Effort(Estimated){:} %3PRIORITY %TAGS")
 
     (org-todo-keywords
-     '((sequence "TODO(t!)" "NEXT(n)" "WAIT(w)" "FRZE(f@/@)" "HABT(h!)" "CMMT(m!)" "GOAL(g!)" "|" "CNCL(c@)" "DONE(d)")
-       (sequence "IDEA(1!)" "WORKING(2!)" "INCUBATE(3!)" "MATURE(4!)" "|" "REJECT(5@/@)")
-       (sequence "BACKLOG(b)" "ACTIVE(a!)" "PROCESS(p!)" "|" "CONSUMED(o@)" "DROPPED(r@/@)")))
+     '((sequence "TODO(t!)" "NEXT(n!)" "PROG(p!)" "FRZE(f@)" "|" "CNCL(c@)" "DONE(d!)")
+       (sequence "BACKLOG(1!)" "WIP(2!)" "INCUBATE(3!)" "MATURE(4!)" "|" "REJECT(5@/@)")
+       ))
 
     (org-todo-keyword-faces
      (quote (("TODO" :foreground "OrangeRed" :weight bold )
              ("NEXT" :foreground "RoyalBlue1" :weight bold)
-             ("WAIT" :foreground "yellow" :weight bold)
+             ("PROG" :foreground "yellow" :weight bold)
              ("DONE" :foreground "MediumSpringGreen" :weight bold)
              ("CNCL" :foreground "SaddleBrown" :weight bold)
 
-             ("IDEA" :foreground "White" :background "OrangeRed1" :weight bold)
-             ("WORKING" :foreground "White" :background "OrangeRed4" :weight bold)
+             ("BACKLOG" :foreground "White" :background "OrangeRed1" :weight bold)
+             ("WIP" :foreground "White" :background "OrangeRed4" :weight bold)
              ("INCUBATE" :foreground "White" :background "DodgerBlue4" :weight bold)
              ("MATURE" :foreground "White" :background "blue3" :weight bold)
              ("REJECT" :foreground "White" :background "DarkRed" :weight bold)
 
-             ("BACKLOG" :foreground "PaleVioletRed" :weight bold :underline t)
-             ("ACTIVE" :foreground "LightPink" :weight bold :underline t)
-             ("PROCESS" :foreground "gold" :weight bold :underline t)
-             ("CONSUMED" :foreground "MediumSpringGreen" :weight bold :underline t)
-             ("DROPPED" :foreground "LightSlateGrey" :weight bold :underline t)
-
                ;;;; Special TODOs (can be used everywhere, especially FRZE)
              ("FRZE" :foreground "turquoise" :weight bold :box t)
              ("HABT" :foreground "khaki1" :weight bold :box t)
-               ;;;; For goals and its commitments
-             ("GOAL" :foreground "VioletRed4" :weight bold :inherit fixed-pitch :inverse-video t)
-             ("CMMT" :foreground "YellowGreen" :weight bold :inherit fixed-pitch :inverse-video t)
-               ;;;; Complete states for GOAL/CMMT
-             ("PASS" :foreground "MediumSpringGreen" :weight bold :box t)
-             ("ABDN" :foreground "SaddleBrown" :weight bold :box t)
              )))
     :custom-face
     (org-link ((t (:inherit link :family "Roboto Mono"))))
