@@ -510,15 +510,21 @@ Provides us with hints on available keystroke combinations.
     (org-hide-emphasis-markers t)
     (org-toggle-pretty-entities t)
     (org-priority-default 71)
+    (org-priority-lowest 71)
+    (org-priority-faces (quote ((65 . "pink1") (66 . "SlateGray1") (67 . "OrangeRed") (68 . "DarkOrange1") (69 . "DarkTurquoise") (70 . "SkyBlue1") (71 . "khaki3"))))
     (org-columns-default-format "%ITEM(Task) %TODO %Effort(Estimated){:} %3PRIORITY %TAGS")
 
+    (org-modules '(org-habit))
+    (org-habit-graph-column 80)
+
     (org-todo-keywords
-     '((sequence "TODO(t!)" "NEXT(n!)" "PROG(p!)" "FRZE(f@)" "|" "CNCL(c@)" "DONE(d!)")
+     '((sequence "INTR(i)" "TODO(t)" "NEXT(n!)" "PROG(p!)" "FRZE(f@)" "|" "CNCL(c@)" "DONE(d!)")
        (sequence "BACKLOG(1!)" "WIP(2!)" "INCUBATE(3!)" "MATURE(4!)" "|" "REJECT(5@/@)")
        ))
 
     (org-todo-keyword-faces
      (quote (("TODO" :foreground "OrangeRed" :weight bold )
+             ("INTR" :foreground "DeepPink1" :weight bold)
              ("NEXT" :foreground "RoyalBlue1" :weight bold)
              ("PROG" :foreground "yellow" :weight bold)
              ("DONE" :foreground "MediumSpringGreen" :weight bold)
@@ -530,9 +536,8 @@ Provides us with hints on available keystroke combinations.
              ("MATURE" :foreground "White" :background "blue3" :weight bold)
              ("REJECT" :foreground "White" :background "DarkRed" :weight bold)
 
-               ;;;; Special TODOs (can be used everywhere, especially FRZE)
+                 ;;;; Special TODOs (can be used everywhere, especially FRZE)
              ("FRZE" :foreground "turquoise" :weight bold :box t)
-             ("HABT" :foreground "khaki1" :weight bold :box t)
              )))
     :custom-face
     (org-link ((t (:inherit link :family "Roboto Mono"))))
@@ -816,7 +821,7 @@ https://stackoverflow.com/questions/2357881/emacs-cant-get-buffer-offer-save-wor
     "Called by emacs-startup-hook to set up my initial window configuration."
     ;; (find-file "~/Dropbox/org/meta/sticky.org")
     (ian/split-and-follow-vertically)
-    (org-agenda nil "0"))
+    (org-agenda nil "n"))
 
   (defun yza/default-fast-window-setup ()
     "Called by emacs-startup-hook to set up my initial window configuration."
@@ -2165,90 +2170,7 @@ function came from here
     :hook ((org-agenda-mode . org-super-agenda-mode)))
 
   (setq org-agenda-custom-commands
-        '(("7" "Super-default"
-           ((agenda "" ((org-agenda-span 'day)
-                        (org-super-agenda-groups
-                         '((:log t)
-                           (:discard (:habit t))
-                           (:scheduled t)
-                           (:deadline t)
-                           (:discard (:anything t))
-                           ))
-                        ))
-            (alltodo "" ((org-agenda-overriding-header "Review Later Items")
-                         (org-super-agenda-groups
-                          '((:discard (:not (:todo ("NEXT"))))
-                            (:name "Must Today - clear this by schedding"
-                                   :and (:priority ("A") :not (:scheduled t))
-                                   :order 1)
-                            (:name "Must Later"
-                                   :and (:priority ("B") :not (:scheduled t))
-                                   :order 2)
-                            (:name "Should Today - clear this by schedding"
-                                   :and (:priority ("C") :not (:scheduled t))
-                                   :order 3)
-                            (:name "Should Later"
-                                   :and (:priority ("D") :not (:scheduled t))
-                                   :order 4)
-                            (:name "Coulds"
-                                   :and (:priority ("E") :not (:scheduled t))
-                                   :order 5)
-                            ))))
-            (alltodo "" ((org-agenda-overriding-header "Sort by Difficulty")
-                         (org-super-agenda-groups
-                          '((:discard (:not (:todo ("NEXT" "WAIT"))))
-                            (:name "Inbox!"
-                                   :and (:not (:tag("low" "mid" "high" "chill") :scheduled t :effort> "0"))
-                                   :order 1)
-                            (:name "Keep in mind!"
-                                   :deadline t
-                                   :order 2)
-                            (:name "Delegated, waiting"
-                                   :todo "WAIT"
-                                   :order 3)
-                            (:name "Light Tasks!"
-                                   :and (:tag ("low") :not (:scheduled t))
-                                   :order 31)
-                            (:name "Mid-tier!"
-                                   :and (:tag ("mid") :not (:scheduled t))
-                                   :order 32)
-                            (:name "Hard Tasks"
-                                   :and (:tag ("high") :not (:scheduled t))
-                                   :order 41)
-                            ))))
-            (alltodo "" ((org-agenda-span 'day)
-                         (org-agenda-overriding-header "Parallelism!")
-                         (org-super-agenda-groups
-                          '((:name "Today"
-                                   :and (:category "Action" :tag "chill" :scheduled today))
-                            (:name "Others"
-                                   :and (:category "Action" :tag "chill" :not (:scheduled t)))
-                            (:discard (:anything t))
-                            ))
-                         ))
-            (agenda "" ((org-agenda-span 'day)
-                        (org-agenda-overriding-header "Routines!")
-                        (org-super-agenda-groups
-                         '((:discard (:not (:habit t)))
-                           (:auto-parent t)
-                           ))
-                        ))
-            (alltodo "" ((org-agenda-overriding-header "Project Masterlists")
-
-                         (org-super-agenda-groups
-                          '((:discard (:category ("Scheduled" "Action" "Delegated")))
-                            (:auto-parent t)
-                            ))
-                         ))
-            (alltodo "" ((org-agenda-overriding-header "Active Books/Resources")
-                         (org-super-agenda-groups
-                          '((:discard (:not (:todo ("READING" "PROCESS"))))
-                            (:tag "_dpanal")
-                            (:auto-property "Genre")
-                            ))
-                         ))
-            ))
-          ("0" "Focus"
+        '(("0" "Focus"
            ((agenda "" ((org-agenda-span 'day)
                         (org-agenda-entry-types '(:scheduled :timestamp :sexp))
                         (org-super-agenda-groups
@@ -2330,26 +2252,21 @@ function came from here
                     )))
           ("9" "Schedule NEXT Tasks"
            ((agenda "" ((org-agenda-span 'day))) (todo "NEXT")))
-          ("1" "Backlogged Articles / Movies!"
-           ((alltodo "" ((org-agenda-overriding-header "Books") (org-agenda-files '("~/Dropbox/org/life/actions/list.org"))
-                         (org-super-agenda-groups
-                          '((:discard (:not (:and (:category "books" :todo "BACKLOG"))))
-                            (:auto-priority)
-                            ))
-                         ))
-            (alltodo "" ((org-agenda-overriding-header "Web Resources") (org-agenda-files '("~/Dropbox/org/life/actions/list.org"))
-                         (org-super-agenda-groups
-                          '((:discard (:not (:and (:category "webref" :todo "BACKLOG"))))
-                            (:auto-priority)
-                            ))
-                         ))
-            (alltodo "" ((org-agenda-overriding-header "Movies") (org-agenda-files '("~/Dropbox/org/life/actions/list.org"))
-                         (org-super-agenda-groups
-                          '((:discard (:not (:and (:category "movies" :todo "BACKLOG"))))
-                            (:auto-priority)
-                            ))
-                         ))
-            ))
+          ("n" "Agenda / INTR / PROG / NEXT"
+           ((agenda "" ((org-agenda-span 'day)
+                        (org-super-agenda-groups
+                         '((:discard (:habit t))
+                           ))))
+            (todo "INTR" nil)
+            (todo "PROG" nil)
+            (todo "NEXT" nil)
+            (agenda "" ((org-agenda-span 'day)
+                        (org-agenda-overriding-header "Habits")
+                        (org-super-agenda-groups
+                         '((:discard (:not (:habit t)))
+                           (:auto-tags t)
+                           )))))
+           nil)
           )
         )
 
@@ -2368,6 +2285,7 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
     (org-agenda-files (append (find-lisp-find-files yza/agenda-files "\.org$")
                               ))
     (org-agenda-start-with-log-mode t)
+    (org-agenda-skip-deadline-prewarning-if-scheduled t)
     )
 #+END_SRC
 
