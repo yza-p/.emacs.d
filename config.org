@@ -2672,7 +2672,8 @@ Org-appear for general org markups
 #+begin_src emacs-lisp
   (use-package org-transclusion
     :bind (("H-t a" . 'org-transclusion-add)
-           ("H-t t" . 'org-transclusion-mode)
+           ("H-t t" . 'org-transclusion-make-from-link)
+           ("H-t A" . 'org-transclusion-add-all)
            ("H-t d" . 'org-transclusion-remove))
     :after org
     :config
@@ -2680,8 +2681,11 @@ Org-appear for general org markups
                                        org-transclusion-font-lock
                                        org-transclusion-indent-mode
                                        ))
+    (require 'org-transclusion-indent-mode)
+    (setq org-transclusion-exclude-elements nil)
     )
 #+end_src
+
 *** COMMENT linkmarks for bookmarks
 #+begin_src emacs-lisp
   (use-package linkmarks
