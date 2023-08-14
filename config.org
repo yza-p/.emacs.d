@@ -853,7 +853,7 @@ https://stackoverflow.com/questions/2357881/emacs-cant-get-buffer-offer-save-wor
 
   (defvar yza/action-files "~/Dropbox/org/life/actions/")
   (defvar yza/review-files "~/Dropbox/org/life/reviews/")
-  (defvar yza/journal-files "~/Dropbox/org/life/journal/")
+  (defvar yza/journal-files "~/Dropbox/org/journal/")
   (defvar yza/progress-diary-files "~/Dropbox/org/life/progdiary/")
   ;; (defvar yza/special-journal-files "~/Dropbox/org/life/journal/0special/")
 
@@ -868,8 +868,7 @@ https://stackoverflow.com/questions/2357881/emacs-cant-get-buffer-offer-save-wor
   ;; Active Directories
   ;; (defvar yza/school-notes "~/Dropbox/org/notes/school/")
   ;; (defvar yza/writeups "~/Dropbox/org/notes/writeups/")
-  ;; (defvar yza/fics "~/Dropbox/org/notes/fics/")
-
+  (defvar yza/fics "~/Dropbox/org/imported/UL_fics")
 #+END_SRC
 
 *** Binding return to include indent
@@ -2735,9 +2734,9 @@ Org-appear for general org markups
                consult-notes-org-roam-find-node-relation)
     :config
     (setq consult-notes-file-dir-sources `(
-                                    ("Task Reviews" ?a ,(concat yza/action-archives))
-                                    ("Project Diaries" ?p ,(concat yza/progress-diary-files))
-                                    ;; ("Project: Fics" ?f ,(concat yza/fics))
+                                    ;; ("Task Reviews" ?a ,(concat yza/action-archives))
+                                    ;; ("Project Diaries" ?p ,(concat yza/progress-diary-files))
+                                    ("Project: Fics" ?f ,(concat yza/fics))
                                     ;; ("Other notes" ?o "~/Dropbox/org/notes/")
                                     ))
     (consult-notes-org-roam-mode)
