@@ -1497,6 +1497,12 @@ for minimalist modeline
     (add-hook 'dired-load-hook 'my-dired-init))
 #+end_src
 
+*** calibredb
+#+begin_src emacs-lisp
+  (setq sql-sqlite-program "/usr/bin/sqlite3")
+  (setq calibredb-root-dir (expand-file-name "~/Documents/_calibredb/YZA"))
+#+end_src
+
 ** Completion stack
 *** Vertico
 The main interface for completion. Comparing both selectrum and this, I decided to go with this because it is more lightweight
@@ -2162,6 +2168,23 @@ function came from here
   (evil-define-key 'normal org-mode-map (kbd "C-H-/") 'air-org-set-tags)
 #+end_src
 
+*** markdown to org
+#+begin_src elisp
+  (defun markdown-convert-buffer-to-org ()
+    "Convert the current buffer's content from markdown to orgmode format and save it with the current buffer's file name but with .org extension."
+    (interactive)
+    (shell-command-on-region (point-min) (point-max)
+                             (format "pandoc -f markdown -t org -o %s"
+                                     (concat (file-name-sans-extension (buffer-file-name)) ".org"))))
+#+end_src
+
+*** handling calibre links
+#+begin_src elisp
+  (defun my/calibre-follow (path)
+    (call-process "calibre" nil 0 nil (concat "calibre:" path)))
+
+  (org-link-set-parameters "calibre" :follow 'my/calibre-follow)
+#+end_src
 ** Standard procedures
 *** Org-agenda custom views
 #+BEGIN_SRC emacs-lisp
