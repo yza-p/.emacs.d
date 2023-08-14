@@ -2815,35 +2815,12 @@ Org-appear for general org markups
 the defun came from this [[https://github.com/emacs-citar/citar/issues/431][github issue]]
 #+begin_src emacs-lisp
   (use-package citar
-    :no-require
-    (defun my/citar-org-roam-note-format (citekey entry filepath)
-      (let ((title (citar--format-entry-no-widths entry
-                                                  "${author editor} :: ${title}")))
-        (org-roam-capture- :templates
-                           '(("r" "ref" plain "%?" :if-new
-                              (file+head "%^{slug}.${citekey}.org" ; FIX how do I use the filepath arg here?
-                                         ":PROPERTIES:"
-                                         ":ROAM_REFS: [cite:@${citekey}]"
-                                         ":END:"
-                                         "#+title: ${title}\n")
-                              ;; :immediate-finish t
-                              :unnarrowed t)
-                             ("2" "reference small" plain "* ${title} [cite:@${citekey}]\n%?" :if-new
-                              (file+head "short_refs.org")
-                              ;; :immediate-finish t
-                              :unnarrowed t))
-                           :info (list :citekey citekey)
-                           :node (org-roam-node-create :title title)
-                           ;; :props '(:finalize find-file)
-                           )))
-
     :custom
     (org-cite-insert-processor 'citar)
     (org-cite-follow-processor 'citar)
     (org-cite-activate-processor 'citar)
     (citar-at-point-function 'embark-act)
 
-    ;; (citar-notes-paths yza/slipbox-files)
     (org-cite-global-bibliography '("~/Dropbox/org/meta/slipbox.bib"))
     (citar-bibliography org-cite-global-bibliography)
 
@@ -2851,6 +2828,7 @@ the defun came from this [[https://github.com/emacs-citar/citar/issues/431][gith
     ;; (citar-create-note-function 'my/citar-org-roam-note-format)
 
     :bind (("C-c b" . citar-insert-citation)
+           ("H-r f" . citar-open)
            :map minibuffer-local-map
            ("M-b" . citar-insert-preset))
     )
@@ -2862,12 +2840,16 @@ the defun came from this [[https://github.com/emacs-citar/citar/issues/431][gith
     :no-require
     :config (citar-embark-mode))
 #+end_src
-****** citar roam
+****** citar org roam
 #+begin_src emacs-lisp
   (use-package citar-org-roam
     :after citar org-roam
     :no-require
-    :config (citar-org-roam-mode))
+    :config (citar-org-roam-mode)
+    :custom
+    (citar-org-roam-subdir (concat yza/slipbox-files "/references"))
+    (citar-org-roam-capture-template-key "r")
+    )
 #+end_src
 
 ***** org-roam
@@ -2893,11 +2875,41 @@ Most of this came from wonderful [[https://gist.github.com/jeremyf/b1fb8414624e6
 
     :custom
     (org-roam-directory (file-truename yza/slipbox-files))
-    (org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
     (org-roam-db-node-include-function
-          (lambda ()
-            (not (member "dontindex" (org-get-tags)))))
+     (lambda ()
+       (not (member "dontindex" (org-get-tags)))))
+    :config
+    (cl-defmethod org-roam-node-directories ((node org-roam-node))
+      (if-let ((dirs (file-name-directory (file-relative-name (org-roam-node-file node) org-roam-directory))))
+          (format "(%s)" (string-join (f-split dirs) "/"))
+        "(atom)"))
+
+    (setq org-roam-node-display-template (concat (propertize "${todo:10}" 'face 'homoglyph) (propertize "${title:100} " 'face 'org-headline-todo) (propertize "${tags:20}" 'face 'org-tag) "${directories:20} ") org-roam-node-annotation-function
+          (lambda (node) (marginalia--time (org-roam-node-file-mtime node))))
     )
+
+
+  (defun org-rename-to-new-title ()
+    (when-let*
+        ((old-file (buffer-file-name))
+         (is-roam-file (org-roam-file-p old-file))
+         (file-node (save-excursion
+                      (goto-char 1)
+                      (org-roam-node-at-point)))
+         (file-name  (file-name-base (org-roam-node-file file-node)))
+         (file-time  (or (and (string-match "\\`\\([0-9]\\{14\\}\\)-" file-name)
+                              (concat (match-string 1 file-name) "-"))
+                         ""))
+         (slug (org-roam-node-slug file-node))
+         (new-file (expand-file-name (concat file-time slug ".org")))
+         (different-name? (not (string-equal old-file new-file))))
+
+      (rename-buffer new-file)
+      (rename-file old-file new-file)
+      (set-visited-file-name new-file)
+      (set-buffer-modified-p nil)))
+
+  (add-hook 'after-save-hook #'org-rename-to-new-title)
 #+END_SRC
 ****** mini: org-buffer on the side
 from the [[https://www.orgroam.com/manual.html#Configuring-the-Org_002droam-buffer-display][official docs]]
@@ -2925,11 +2937,10 @@ combining doct to org-roam came from this [[https://github.com/progfolio/doct/is
   (setq org-roam-capture-templates
         (doct-org-roam
          '(("default (clean other windows, jump after finish)" :keys "n"
-            :template "%?"
+            :template "* %?"
             :type plain
             :unnarrowed t
-            :file "${slug}.org"
-            :before-finalize (lambda () (call-interactively 'denote-rename-file))
+            :file "%<%Y%m%d%H%M%S>-${slug}.org"
             :jump-to-captured t
             :hook (lambda () (call-interactively 'delete-other-windows))
             :head (""
@@ -2938,7 +2949,7 @@ combining doct to org-roam came from this [[https://github.com/progfolio/doct/is
             :template "%?"
             :type plain
             :unnarrowed t
-            :file "${slug}.org"
+            :file "%<%Y%m%d%H%M%S>-${slug}.org"
             :hook (lambda () (call-interactively 'delete-other-windows))
             :head (""
                    ""))
@@ -2946,11 +2957,11 @@ combining doct to org-roam came from this [[https://github.com/progfolio/doct/is
             :template "%?"
             :type plain
             :unnarrowed t
-            :file "${slug}.${citekey}.org"
+            :file "${citar-citekey}.org"
             :jump-to-captured t
             :hook (lambda () (call-interactively 'delete-other-windows))
             :head (":PROPERTIES:"
-                   ":ROAM_REFS: ${citekey}"
+                   ":ROAM_REFS: ${citar-citekey}"
                    ":END:"
                    "#+title: ${title}"
                    ""
@@ -2960,17 +2971,9 @@ combining doct to org-roam came from this [[https://github.com/progfolio/doct/is
             :type plain
             :unnarrowed t
             :file "short_refs.org"
-            :headline "* ${title} [cite:@%^{citekey}]\n%?"
+            :headline "* ${title} [cite:@%^{citar-citekey}]\n%?"
             )
            )))
-
-  ;; (setq org-roam-capture-templates
-  ;;       '(("d" "default" plain
-  ;;          "%?"
-  ;;          :if-new (file+head "${slug}.org"
-  ;;                             "#+title: ${hierarchy-title}\n")
-  ;;          :immediate-finish t
-  ;;          :unnarrowed t)))
 #+END_SRC
 
 ***** COMMENT deft
