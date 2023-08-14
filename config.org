@@ -2080,7 +2080,7 @@ function came from here
      (js . t)))
 #+end_src
 
-*** DWIM org insert link
+*** COMMENT DWIM org insert link
 :PROPERTIES:
 :ID:       2FD950D1-E037-4DE3-BB78-C7465CA7EF0B
 :END:
@@ -2617,7 +2617,7 @@ Org-appear for general org markups
                 ("<H-right>" . org-clock-convenience-fill-gap-both)))
 #+END_SRC
 
-*** org-fancy-priorities
+*** COMMENT org-fancy-priorities
 #+BEGIN_SRC emacs-lisp
   (use-package org-fancy-priorities
     :hook (org-mode . org-fancy-priorities-mode)
@@ -2643,11 +2643,6 @@ Org-appear for general org markups
     :config
     (org-edna-mode)
     )
-#+end_src
-
-*** hammy
-#+begin_src emacs-lisp
-  (use-package hammy)
 #+end_src
 
 *** org-super-links
