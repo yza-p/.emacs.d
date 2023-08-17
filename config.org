@@ -2626,7 +2626,7 @@ Org-appear for general org markups
       (org-download-enable))
     :config
     (add-hook 'dired-mode-hook 'org-download-enable)
-    (setq-default org-download-image-dir "~/Dropbox/org/meta/attached"))
+    (setq-default org-download-image-dir "./_media"))
 #+END_SRC
 
 *** Org-clock-convenience
