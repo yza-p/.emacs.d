@@ -2780,9 +2780,9 @@ Org-appear for general org markups
      ("H-[ u" . denote-rename-file-using-front-matter)
      ("H-[ r" . denote-rename-file))
     :custom
-    (denote-directory "~/Dropbox/org/notes/")
+    (denote-directory "~/Dropbox/org/")
     (denote-prompts '(subdirectory title keywords))
-    (denote-excluded-directories-regexp "ltximg\\|\+.+"))
+    (denote-excluded-directories-regexp "ltximg\\|\_\_.+"))
 #+end_src
 
 **** COMMENT org-now
