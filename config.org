@@ -3087,6 +3087,17 @@ not working
 
 ***** TODO reveal-js
 ***** TODO org-macros
+*** org-side-tree
+#+begin_src emacs-lisp
+  (use-package org-side-tree
+    :bind (("H-o o"   . org-side-tree)
+           ("H-o n"   . org-side-tree-toggle-narrow-on-jump))
+    :config
+    (setq org-side-tree-display-side 'bottom)
+    (setq org-side-tree-persistent t)
+    )
+#+end_src
+
 * Scratch displaying useful info
 #+begin_src emacs-lisp
   (defun yza/gen-scratch-info ()
