@@ -581,7 +581,7 @@ Provides us with hints on available keystroke combinations.
 #+end_src
 
 ** functions, main functionalities
-*** Replace default org-cycle to include properties too
+*** COMMENT Replace default org-cycle to include properties too
 Credit to lawliet from stackoverflow [[https://stackoverflow.com/a/17492723][[link]​]]
 #+BEGIN_SRC emacs-lisp
   (defun org-cycle-hide-drawers (state)
@@ -802,15 +802,6 @@ https://stackoverflow.com/questions/2357881/emacs-cant-get-buffer-offer-save-wor
           ad-do-it)
       ad-do-it))
 #+end_src
-
-*** Switch to sticky.org
-#+BEGIN_SRC emacs-lisp
-  (defun switch-to-sticky ()
-    "Switch to my sticky.org"
-    (interactive)
-    (find-file "~/Dropbox/org/meta/sticky.org"))
-  (bind-key "H-," #'switch-to-sticky)
-#+END_SRC
 
 *** Window configurations
 #+BEGIN_SRC emacs-lisp
@@ -1104,7 +1095,7 @@ most of this came from the official docs (all except org-roam)
     ("b" (progn (zap-to-char -1 ?x) (consult-buffer)))
     ("s" (progn (zap-to-char -1 ?x) (consult-line))))
 
-  (global-set-key "x" #'x-hydra/body)
+  ;; (global-set-key "x" #'x-hydra/body)
 #+END_SRC
 
 **** zooming
@@ -1345,7 +1336,7 @@ _B_uffers (3-way)   _F_iles (3-way)                          _w_ordwise
 #+end_src
 
 ** Small plug-ins
-*** Hammerspoon
+*** COMMENT Hammerspoon
 #+BEGIN_SRC emacs-lisp
 (load "~/emacs/hammerspoon.el")
 #+END_SRC
@@ -1789,7 +1780,7 @@ using consult for directory completion everywhere!
 
 ** TODO termkeys
 [[https://github.com/CyberShadow/term-keys]]
-*** TODO [#C] org-noter-pdftools
+** TODO [#C] org-noter-pdftools
 * Yza Config - Programming
 ** Showing diffs (git)
 *** Diff-hl
@@ -1810,7 +1801,6 @@ using consult for directory completion everywhere!
     :config
     (bind-key "<H-backspace>" 'yankpad-expand))
 #+END_SRC
-
 
 ** TODO Paredit
 ** TODO Htmlize
@@ -2102,40 +2092,6 @@ function came from here
      (js . t)))
 #+end_src
 
-*** COMMENT DWIM org insert link
-:PROPERTIES:
-:ID:       2FD950D1-E037-4DE3-BB78-C7465CA7EF0B
-:END:
-:RELATED:
-[2022-09-20 Tue 22:32] -> [[id:37D20759-9C82-4995-84BA-8A69AB2E220E][Emacs DWIM: do what ✨I✨ mean]]
-:END:
-#+begin_src emacs-lisp
-(defun ar/org-insert-link-dwim ()
-  "Like `org-insert-link' but with personal dwim preferences."
-  (interactive)
-  (let* ((point-in-link (org-in-regexp org-link-any-re 1))
-         (clipboard-url (when (string-match-p "^http" (current-kill 0))
-                          (current-kill 0)))
-         (region-content (when (region-active-p)
-                           (buffer-substring-no-properties (region-beginning)
-                                                           (region-end)))))
-    (cond ((and region-content clipboard-url (not point-in-link))
-           (delete-region (region-beginning) (region-end))
-           (insert (org-make-link-string clipboard-url region-content)))
-          ((and clipboard-url (not point-in-link))
-           (insert (org-make-link-string
-                    clipboard-url
-                    (read-string "title: "
-                                 (with-current-buffer (url-retrieve-synchronously clipboard-url)
-                                   (dom-text (car
-                                              (dom-by-tag (libxml-parse-html-region
-                                                           (point-min)
-                                                           (point-max))
-                                                          'title))))))))
-          (t
-           (call-interactively 'org-insert-link)))))
-#+end_src
-
 *** org-set-tags using all the tags in the org-agenda
 [[https://blog.aaronbieber.com/2016/03/05/playing-tag-in-org-mode.html][blog post]]
 #+begin_src emacs-lisp
@@ -2202,6 +2158,7 @@ function came from here
 
   (org-link-set-parameters "calibre" :follow 'my/calibre-follow)
 #+end_src
+
 ** Standard procedures
 *** Org-agenda custom views
 #+BEGIN_SRC emacs-lisp
