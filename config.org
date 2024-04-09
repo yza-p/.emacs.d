@@ -2845,6 +2845,7 @@ the defun came from this [[https://github.com/emacs-citar/citar/issues/431][gith
 
     :bind (("C-c b" . citar-insert-citation)
            ("H-r f" . citar-open)
+           ("H-r c" . citar-org-roam-ref-add)
            :map minibuffer-local-map
            ("M-b" . citar-insert-preset))
     )
@@ -2879,7 +2880,6 @@ Most of this came from wonderful [[https://gist.github.com/jeremyf/b1fb8414624e6
     :hook ((org-roam-mode . olivetti-mode))
     :bind
     (("H-r r" . org-roam-node-find)
-     ("H-r c" . org-roam-capture)
      ("H-r i" . org-roam-node-insert)
      ("H-r t" . org-roam-buffer-toggle)
      ("H-r o" . org-roam-node-random)
@@ -2953,22 +2953,25 @@ combining doct to org-roam came from this [[https://github.com/progfolio/doct/is
   (setq org-roam-capture-templates
         (doct-org-roam
          '(("default (clean other windows, jump after finish)" :keys "n"
-            :template "* %?"
             :type plain
             :unnarrowed t
             :file "%<%Y%m%d%H%M%S>-${slug}.org"
             :jump-to-captured t
             :hook (lambda () (call-interactively 'delete-other-windows))
-            :head (""
-                   ""))
+            :head ("* ${title}"))
+           ("default, but for piles" :keys "p"
+            :type plain
+            :unnarrowed t
+            :file "piles/%<%Y%m%d%H%M%S>-${slug}.org"
+            :jump-to-captured t
+            :hook (lambda () (call-interactively 'delete-other-windows))
+            :head ("* ${title}"))
            ("default (quick jot)" :keys "f"
-            :template "%?"
             :type plain
             :unnarrowed t
             :file "%<%Y%m%d%H%M%S>-${slug}.org"
             :hook (lambda () (call-interactively 'delete-other-windows))
-            :head (""
-                   ""))
+            :head ("* ${title}"))
            ("ref" :keys "r"
             :template "%?"
             :type plain
@@ -2976,10 +2979,7 @@ combining doct to org-roam came from this [[https://github.com/progfolio/doct/is
             :file "${citar-citekey}.org"
             :jump-to-captured t
             :hook (lambda () (call-interactively 'delete-other-windows))
-            :head (":PROPERTIES:"
-                   ":ROAM_REFS: ${citar-citekey}"
-                   ":END:"
-                   "#+title: ${title}"
+            :head ("#+title: ${note-title}"
                    ""
                    ""))
            ("ref (aggregate, quick)" :keys "a"
