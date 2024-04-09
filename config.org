@@ -1,9 +1,3 @@
-#+Title: Yay-Evil distro by Ian Y.E. Pan
-#+Author: Ian Y.E. Pan
-#+Date: 2019
-
-:: [[https://github.com/ianyepan/.macOS-emacs.d/blob/master/init.el][pan's short config]]
-
 * Quelpa
 #+begin_src emacs-lisp
   (require 'quelpa-use-package)
