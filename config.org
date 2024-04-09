@@ -514,7 +514,7 @@ Provides us with hints on available keystroke combinations.
 
     (org-todo-keywords
      '((sequence "INTR(i)" "TODO(t)" "NEXT(n!)" "PROG(p!)" "FRZE(f@)" "|" "CNCL(c@)" "DONE(d!)")
-       (sequence "BACKLOG(1!)" "WIP(2!)" "INCUBATE(3!)" "MATURE(4!)" "|" "REJECT(5@/@)")
+       (sequence "BKLOG(1!)" "WIP(2!)" "INCU(3!)" "RIPE(4!)" "|" "DEAD(5@/@)")
        ))
 
     (org-todo-keyword-faces
@@ -525,11 +525,11 @@ Provides us with hints on available keystroke combinations.
              ("DONE" :foreground "MediumSpringGreen" :weight bold)
              ("CNCL" :foreground "SaddleBrown" :weight bold)
 
-             ("BACKLOG" :foreground "White" :background "OrangeRed1" :weight bold)
+             ("BKLOG" :foreground "White" :background "OrangeRed1" :weight bold)
              ("WIP" :foreground "White" :background "OrangeRed4" :weight bold)
-             ("INCUBATE" :foreground "White" :background "DodgerBlue4" :weight bold)
-             ("MATURE" :foreground "White" :background "blue3" :weight bold)
-             ("REJECT" :foreground "White" :background "DarkRed" :weight bold)
+             ("INCU" :foreground "White" :background "DodgerBlue4" :weight bold)
+             ("RIPE" :foreground "White" :background "blue3" :weight bold)
+             ("DEAD" :foreground "White" :background "DarkRed" :weight bold)
 
                  ;;;; Special TODOs (can be used everywhere, especially FRZE)
              ("FRZE" :foreground "turquoise" :weight bold :box t)
@@ -538,8 +538,10 @@ Provides us with hints on available keystroke combinations.
     (org-link ((t (:inherit link :family "Roboto Mono"))))
     (org-document-title ((t (:weight bold :height 1.5))))
     (org-headline-done ((t (:strike-through t))))
-    (org-drawer ((t (:inherit link :family "Roboto Mono"))))
     (org-drawer ((t (:inherit (shadow fixed-pitch) :foreground "DimGray"))))
+    (org-code ((t (:inherit (fixed-pitch) :foreground "RosyBrown" :background "gray11"))))
+    (org-block-begin-line ((t (:inherit (shadow fixed-pitch) :foreground "DimGray"))))
+    (org-block-end-line ((t (:inherit (shadow fixed-pitch) :foreground "DimGray"))))
     )
 #+END_SRC
 
