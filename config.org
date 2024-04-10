@@ -819,7 +819,7 @@ https://stackoverflow.com/questions/2357881/emacs-cant-get-buffer-offer-save-wor
   (defun yza/switch-to-agenda () ;; call org agenda only if there's no existing shit, use switch-buffer if so
     (interactive)
     "Called by emacs-startup-hook to set up my initial window configuration."
-    (switch-to-buffer "*Org Agenda*")
+    (switch-to-buffer "*Org Agenda(n)*")
     ;; (org-agenda nil "0")
     )
 
@@ -839,9 +839,9 @@ https://stackoverflow.com/questions/2357881/emacs-cant-get-buffer-offer-save-wor
 #+BEGIN_SRC emacs-lisp
   (defvar yza/agenda-files "~/Dropbox/org/life/")
 
-  (defvar yza/action-files "~/Dropbox/org/life/actions/")
+  (defvar yza/action-files "~/Dropbox/org/life/life/")
   (defvar yza/review-files "~/Dropbox/org/life/reviews/")
-  (defvar yza/journal-files "~/Dropbox/org/journal/")
+  (defvar yza/journal-files "~/Dropbox/org/journal")
   (defvar yza/progress-diary-files "~/Dropbox/org/life/progdiary/")
   ;; (defvar yza/special-journal-files "~/Dropbox/org/life/journal/0special/")
 
@@ -849,9 +849,9 @@ https://stackoverflow.com/questions/2357881/emacs-cant-get-buffer-offer-save-wor
   (defvar yza/allnotes-archive "~/Dropbox/org/notes/__archive/")
 
   (defvar yza/meta-files "~/Dropbox/org/meta/")
-  (defvar yza/active-notes "~/Dropbox/org/notes/")
-  (defvar yza/slipbox-files "~/Dropbox/org/notes/_slipbox/")
-  (defvar yza/notepad-files "~/Dropbox/org/notes/_piles/")
+  (defvar yza/active-notes "~/Dropbox/org/resources/")
+  (defvar yza/slipbox-files "~/Dropbox/org/resources/_slipbox/")
+  (defvar yza/notepad-files "~/Dropbox/org/resources/")
 
   ;; Active Directories
   ;; (defvar yza/school-notes "~/Dropbox/org/notes/school/")
@@ -2302,10 +2302,11 @@ the tip for finding org files recursively using find-lisp is from [[https://stac
     :bind (("<f9>" . org-agenda))
     :config
     :custom
-    (org-agenda-files (append (find-lisp-find-files yza/agenda-files "\.org$")
+    (org-agenda-files (append (find-lisp-find-files yza/agenda-files "\.org$") (find-lisp-find-files yza/journal-files "\.org$")
                               ))
     (org-agenda-start-with-log-mode t)
     (org-agenda-skip-deadline-prewarning-if-scheduled t)
+    (org-agenda-sticky t)
     )
 #+END_SRC
 
@@ -2759,11 +2760,11 @@ Org-appear for general org markups
                consult-notes-org-roam-find-node-relation)
     :config
     (setq consult-notes-file-dir-sources `(
-                                    ;; ("Task Reviews" ?a ,(concat yza/action-archives))
-                                    ;; ("Project Diaries" ?p ,(concat yza/progress-diary-files))
-                                    ("Project: Fics" ?f ,(concat yza/fics))
-                                    ;; ("Other notes" ?o "~/Dropbox/org/notes/")
-                                    ))
+                                           ("Task Reviews" ?a ,(concat yza/agenda-files))
+                                           ;; ("Project Diaries" ?p ,(concat yza/progress-diary-files))
+                                           ;; ("Project: Fics" ?f ,(concat yza/fics))
+                                           ;; ("Other notes" ?o "~/Dropbox/org/notes/")
+                                           ))
     (consult-notes-org-roam-mode)
     (consult-notes-denote-mode)
     )
@@ -2771,15 +2772,48 @@ Org-appear for general org markups
 
 **** denote
 #+begin_src emacs-lisp
+  (require 'denote-silo-extras)
   (use-package denote
     :bind
-    (("H-[ [" . denote)
+    (("H-[ [" . my-denote-pick-silo-then-command)
      ("H-[ u" . denote-rename-file-using-front-matter)
      ("H-[ r" . denote-rename-file))
+    :preface
+    (defvar my-denote-silo-directories
+      `("/Users/nique/Dropbox/org/projects"
+        "/Users/nique/Dropbox/org/areas"
+        "/Users/nique/Dropbox/org/resources"
+        ,denote-directory)
+      "List of file paths pointing to my Denote silos.
+    This is a list of strings.")
+
+    (defvar my-denote-commands-for-silos
+      '(denote
+        denote-date
+        denote-subdirectory
+        denote-template
+        denote-type)
+      "List of Denote commands to call after selecting a silo.
+    This is a list of symbols that specify the note-creating
+    interactive functions that Denote provides.")
+
+    (defun my-denote-pick-silo-then-command (silo command)
+      "Select SILO and run Denote COMMAND in it.
+    SILO is a file path from `my-denote-silo-directories', while
+    COMMAND is one among `my-denote-commands-for-silos'."
+      (interactive
+       (list (completing-read "Select a silo: " my-denote-silo-directories nil t)
+             (intern (completing-read
+                      "Run command in silo: "
+                      my-denote-commands-for-silos nil t))))
+      (let ((denote-directory silo))
+        (call-interactively command)))
     :custom
     (denote-directory "~/Dropbox/org/")
-    (denote-prompts '(subdirectory title keywords))
-    (denote-excluded-directories-regexp "ltximg\\|\_\_.+"))
+    (denote-prompts '(title keywords))
+    (denote-excluded-directories-regexp "ltximg\\|\_\_.+")
+    (denote-known-keywords . nil)
+    )
 #+end_src
 
 **** COMMENT org-now
