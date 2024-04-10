@@ -1994,7 +1994,18 @@ Got most of it from [[id:20220923T224009.783715][here]]
 
   (global-set-key (kbd "M-s-k") 'org-drag-line-backward)
   (global-set-key (kbd "M-s-j") 'org-drag-line-forward)
-  (define-key org-mode-map (kbd "M-s-l") 'xah-reformat-to-sentence-lines)
+  (define-key text-mode-map (kbd "M-s-l") 'xah-reformat-to-sentence-lines)
+#+end_src
+
+*** Custom functions (general)
+#+begin_src emacs-lisp
+    (defun yza/yank-todo-to-clipboard ()
+      (interactive)
+      (simpleclip-set-contents (org-get-heading t t t t))
+      (message (org-get-heading t t t t)))
+
+  ;; (execute-kbd-macro (read-kbd-macro "s-\ "))
+    (evil-define-key 'normal org-mode-map (kbd "H-,") 'yza/yank-todo-to-clipboard)
 #+end_src
 
 *** Custom functions (consult-ripgrep)
