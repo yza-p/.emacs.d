@@ -2791,17 +2791,41 @@ Org-appear for general org markups
   (use-package org-journal
     :defer t
     :hook (after-init . evil-mode)
-    :bind (("H-j j" . org-journal-new-entry)
-           ("H-j s" . org-journal-search))
+    :bind (("H-j j" . yza/goto-entry-then-narrow)
+           ("H-j s" . org-journal-search)
+           ("H-j h" . yza/new-entry-then-narrow))
     :init
     ;; Change default prefix key; needs to be set before loading org-journal
     (setq org-journal-prefix-key "H-j ")
+    :preface
+    (defun org-journal-find-location ()
+      ;; Open today's journal, but specify a non-nil prefix argument in order to
+      ;; inhibit inserting the heading; org-capture will insert the heading.
+      (org-journal-new-entry t)
+      (unless (eq org-journal-file-type 'daily)
+        (org-narrow-to-subtree))
+      (goto-char (point-max)))
+    (defun yza/new-entry-then-narrow ()
+      (interactive)
+      (call-interactively 'org-journal-new-entry)
+      (outline-up-heading 1)
+      (call-interactively 'org-narrow-to-subtree)
+      (evil-open-fold)
+      (goto-char (point-max)))
+    (defun yza/goto-entry-then-narrow ()
+      (interactive)
+      (org-journal-new-entry t)
+      (outline-up-heading 1)
+      (call-interactively 'org-narrow-to-subtree)
+      (evil-open-fold)
+      (goto-char (point-max)))
+
     :config
     (setq org-journal-dir yza/journal-files
           org-journal-file-type 'weekly
           org-journal-file-header "#+STARTUP: folded\n"
           org-journal-date-format "%A, %d %B %Y"
-          org-journal-file-format "%Y-%m.org")
+          org-journal-file-format "%Y-%m.W%W.org")
     )
 
 #+END_SRC
