@@ -889,6 +889,19 @@ https://stackoverflow.com/questions/2357881/emacs-cant-get-buffer-offer-save-wor
   (setq epg-gpg-home-directory "~/.gnupg")
 #+end_src
 
+*** Local variables set
+#+begin_src emacs-lisp
+  (setq safe-local-variable-values
+        '((denote-directory . "~/Dropbox/org/projects/")
+          (denote-directory . "~/Dropbox/org/areas/")
+          (denote-directory . "~/Dropbox/org/resources/")
+          (org-category . "Projects")
+          (org-refile-targets
+           ("~/Dropbox/org/life/todo.org_archive" :maxlevel . 3))))
+
+
+#+end_src
+
 * Yza Config - Third-party
 ** Daemon Server
 #+BEGIN_SRC emacs-lisp
